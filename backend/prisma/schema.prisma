@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  accessCode      String    @unique
+  currentStreak   Int       @default(0)
+  totalDaysWon    Int       @default(0)
+  lastCheckIn     DateTime?
+  lastLoginAt     DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+
+  // Stripe
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String?
+  subscriptionStatus   String  @default("trialing") // trialing, active, canceled, completed
+
+  // Preferences
+  colorTheme  String    @default("slate")
+  completedAt DateTime?
+
+  checkIns        CheckIn[]
+  supportGiven    Support[] @relation("supporter")
+  supportReceived Support[] @relation("receiver")
+}
+
+model CheckIn {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  date        DateTime @default(now())
+  stayedStrong Boolean
+  daysAdded   Int      @default(1)
+}
+
+model Affirmation {
+  id     String @id @default(cuid())
+  dayNum Int    @unique
+  text   String
+}
+
+model DesensImage {
+  id          String @id @default(cuid())
+  dayNum      Int    @unique
+  imageUrl    String
+  overlayText String
+}
+
+model Support {
+  id          String   @id @default(cuid())
+  supporterId String
+  receiverId  String
+  supporter   User     @relation("supporter", fields: [supporterId], references: [id])
+  receiver    User     @relation("receiver", fields: [receiverId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([supporterId, receiverId, createdAt])
+}
+
+model Admin {
+  id           String @id @default(cuid())
+  username     String @unique
+  passwordHash String
+}

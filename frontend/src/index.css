@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Color theme CSS variables - Masculine Palette */
+:root {
+  /* Default: Slate theme (dark blue-gray) */
+  --color-primary-50: #f8fafc;
+  --color-primary-100: #f1f5f9;
+  --color-primary-200: #e2e8f0;
+  --color-primary-300: #cbd5e1;
+  --color-primary-400: #94a3b8;
+  --color-primary-500: #64748b;
+  --color-primary-600: #475569;
+  --color-primary-700: #334155;
+  --color-primary-800: #1e293b;
+  --color-primary-900: #0f172a;
+  --color-primary-950: #020617;
+}
+
+/* Slate - Classic workwear gray */
+[data-theme="slate"] {
+  --color-primary-50: #f8fafc;
+  --color-primary-100: #f1f5f9;
+  --color-primary-200: #e2e8f0;
+  --color-primary-300: #cbd5e1;
+  --color-primary-400: #94a3b8;
+  --color-primary-500: #64748b;
+  --color-primary-600: #475569;
+  --color-primary-700: #334155;
+  --color-primary-800: #1e293b;
+  --color-primary-900: #0f172a;
+  --color-primary-950: #020617;
+}
+
+/* Navy - Deep naval blue */
+[data-theme="navy"] {
+  --color-primary-50: #f0f4f8;
+  --color-primary-100: #d9e2ec;
+  --color-primary-200: #bcccdc;
+  --color-primary-300: #9fb3c8;
+  --color-primary-400: #829ab1;
+  --color-primary-500: #627d98;
+  --color-primary-600: #486581;
+  --color-primary-700: #334e68;
+  --color-primary-800: #243b53;
+  --color-primary-900: #102a43;
+  --color-primary-950: #0a1929;
+}
+
+/* Charcoal - Dark carbon gray */
+[data-theme="charcoal"] {
+  --color-primary-50: #f5f5f5;
+  --color-primary-100: #e5e5e5;
+  --color-primary-200: #d4d4d4;
+  --color-primary-300: #a3a3a3;
+  --color-primary-400: #737373;
+  --color-primary-500: #525252;
+  --color-primary-600: #404040;
+  --color-primary-700: #333333;
+  --color-primary-800: #262626;
+  --color-primary-900: #171717;
+  --color-primary-950: #0a0a0a;
+}
+
+/* Gunmetal - Dark metallic steel */
+[data-theme="gunmetal"] {
+  --color-primary-50: #f4f5f7;
+  --color-primary-100: #e4e7eb;
+  --color-primary-200: #cbd2d9;
+  --color-primary-300: #9aa5b1;
+  --color-primary-400: #7b8794;
+  --color-primary-500: #616e7c;
+  --color-primary-600: #52606d;
+  --color-primary-700: #3e4c59;
+  --color-primary-800: #323f4b;
+  --color-primary-900: #1f2933;
+  --color-primary-950: #131920;
+}
+
+/* Forest - Deep evergreen */
+[data-theme="forest"] {
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #22c55e;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
+  --color-primary-800: #166534;
+  --color-primary-900: #14532d;
+  --color-primary-950: #052e16;
+}
+
+/* Olive - Military tactical green */
+[data-theme="olive"] {
+  --color-primary-50: #f7f8f3;
+  --color-primary-100: #ebeee0;
+  --color-primary-200: #d5dbc2;
+  --color-primary-300: #b8c29a;
+  --color-primary-400: #9aa776;
+  --color-primary-500: #7d8c58;
+  --color-primary-600: #636f45;
+  --color-primary-700: #4d5638;
+  --color-primary-800: #40462f;
+  --color-primary-900: #373c29;
+  --color-primary-950: #1c2013;
+}
+
+/* Burgundy - Classic wine/maroon */
+[data-theme="burgundy"] {
+  --color-primary-50: #fdf2f4;
+  --color-primary-100: #fce4e8;
+  --color-primary-200: #f9ccd5;
+  --color-primary-300: #f4a3b4;
+  --color-primary-400: #ec6b87;
+  --color-primary-500: #dc4060;
+  --color-primary-600: #c82d4d;
+  --color-primary-700: #a82240;
+  --color-primary-800: #8c1f3b;
+  --color-primary-900: #781d38;
+  --color-primary-950: #450a1a;
+}
+
+/* Leather - Rich brown tones */
+[data-theme="leather"] {
+  --color-primary-50: #faf6f3;
+  --color-primary-100: #f3ebe3;
+  --color-primary-200: #e6d5c5;
+  --color-primary-300: #d4b89e;
+  --color-primary-400: #c19676;
+  --color-primary-500: #b37d5a;
+  --color-primary-600: #a5694d;
+  --color-primary-700: #8a5341;
+  --color-primary-800: #71453a;
+  --color-primary-900: #5d3b32;
+  --color-primary-950: #321d19;
+}
+
+/* Base styles */
+body {
+  @apply bg-gray-50 text-gray-900 min-h-screen;
+}
+
+/* Utility classes */
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400;
+}
+
+.btn-outline {
+  @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+}
+
+.input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+}
