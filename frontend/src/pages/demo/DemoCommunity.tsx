@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom';
 import { LockedOverlay } from '../../components/LockedOverlay';
 
-// Mock leaderboard data for demo
+// Mock leaderboard data for demo with cool warrior names
 const mockLeaderboard = [
-  { id: '1', rank: 1, streak: 142, theme: 'navy', isCompleted: false },
-  { id: '2', rank: 2, streak: 98, theme: 'charcoal', isCompleted: false },
-  { id: '3', rank: 3, streak: 87, theme: 'forest', isCompleted: false },
-  { id: '4', rank: 4, streak: 71, theme: 'slate', isCompleted: false },
-  { id: '5', rank: 5, streak: 65, theme: 'burgundy', isCompleted: false },
-  { id: '6', rank: 6, streak: 52, theme: 'leather', isCompleted: false },
-  { id: '7', rank: 7, streak: 45, theme: 'olive', isCompleted: false },
-  { id: '8', rank: 8, streak: 38, theme: 'gunmetal', isCompleted: false },
+  { id: '1', rank: 1, streak: 142, theme: 'navy', displayName: 'Iron Wolf 847', isCompleted: false },
+  { id: '2', rank: 2, streak: 98, theme: 'charcoal', displayName: 'Silent Titan 312', isCompleted: false },
+  { id: '3', rank: 3, streak: 87, theme: 'forest', displayName: 'Steel Guardian 556', isCompleted: false },
+  { id: '4', rank: 4, streak: 71, theme: 'slate', displayName: 'Shadow Phoenix 203', isCompleted: false },
+  { id: '5', rank: 5, streak: 65, theme: 'burgundy', displayName: 'Granite Sentinel 719', isCompleted: false },
+  { id: '6', rank: 6, streak: 52, theme: 'leather', displayName: 'Frost Viking 481', isCompleted: false },
+  { id: '7', rank: 7, streak: 45, theme: 'olive', displayName: 'Thunder Hawk 925', isCompleted: false },
+  { id: '8', rank: 8, streak: 38, theme: 'gunmetal', displayName: 'Obsidian Ronin 167', isCompleted: false },
 ];
 
 const themeColors: Record<string, string> = {
@@ -70,7 +70,7 @@ export function DemoCommunity() {
                 />
 
                 <span className="font-medium text-gray-700">
-                  Warrior #{member.rank}
+                  {member.displayName}
                 </span>
               </div>
 
@@ -100,7 +100,7 @@ export function DemoCommunity() {
                     style={{ backgroundColor: themeColors[member.theme] }}
                   />
                   <span className="font-medium text-gray-700">
-                    Warrior #{member.rank}
+                    {member.displayName}
                   </span>
                 </div>
                 <span className="text-lg font-bold text-primary-600">
@@ -129,7 +129,7 @@ export function DemoCommunity() {
                     style={{ backgroundColor: themeColors[member.theme] }}
                   />
                   <span className="font-medium text-gray-900">
-                    Warrior #{member.rank}
+                    {member.displayName}
                   </span>
                 </div>
               </div>

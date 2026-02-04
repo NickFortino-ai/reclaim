@@ -1,5 +1,35 @@
 import crypto from 'crypto';
 
+// Masculine, powerful adjectives for warrior names
+const ADJECTIVES = [
+  'Silent', 'Iron', 'Swift', 'Steel', 'Stone', 'Shadow', 'Thunder', 'Storm',
+  'Wild', 'Ancient', 'Bold', 'Fierce', 'Lone', 'Mighty', 'Noble', 'Rogue',
+  'Dark', 'Crimson', 'Silver', 'Ghost', 'Frost', 'Ember', 'Blaze', 'Grim',
+  'Savage', 'Primal', 'Alpha', 'Apex', 'Relentless', 'Fearless', 'Steadfast',
+  'Resolute', 'Unyielding', 'Vigilant', 'Valiant', 'Stoic', 'Rugged', 'Granite',
+  'Obsidian', 'Onyx', 'Bronze', 'Copper', 'Titanium', 'Cobalt', 'Midnight',
+  'Crimson', 'Scarlet', 'Azure', 'Ashen', 'Golden'
+];
+
+// Powerful, masculine nouns for warrior names
+const NOUNS = [
+  'Wolf', 'Bear', 'Hawk', 'Lion', 'Tiger', 'Eagle', 'Stallion', 'Spartan',
+  'Guardian', 'Sentinel', 'Warrior', 'Knight', 'Ranger', 'Titan', 'Viking',
+  'Phoenix', 'Dragon', 'Cobra', 'Panther', 'Viper', 'Falcon', 'Raven',
+  'Wolverine', 'Grizzly', 'Maverick', 'Hunter', 'Gladiator', 'Centurion',
+  'Warden', 'Crusader', 'Paladin', 'Champion', 'Conqueror', 'Defender',
+  'Protector', 'Vanguard', 'Ronin', 'Samurai', 'Templar', 'Legion',
+  'Enforcer', 'Reaper', 'Phantom', 'Specter', 'Wraith', 'Blade', 'Shield',
+  'Hammer', 'Forge', 'Anvil'
+];
+
+export function generateDisplayName(): string {
+  const adjective = ADJECTIVES[crypto.randomInt(0, ADJECTIVES.length)];
+  const noun = NOUNS[crypto.randomInt(0, NOUNS.length)];
+  const number = crypto.randomInt(100, 999);
+  return `${adjective} ${noun} ${number}`;
+}
+
 export function generateAccessCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';

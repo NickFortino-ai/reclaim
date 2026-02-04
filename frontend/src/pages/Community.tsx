@@ -116,7 +116,7 @@ export function Community() {
                     />
 
                     <span className={`font-medium ${isCurrentUser ? 'text-primary-700' : 'text-gray-700'}`}>
-                      {isCurrentUser ? 'You' : `Warrior #${index + 1}`}
+                      {isCurrentUser ? 'You' : member.displayName}
                     </span>
                   </div>
 
@@ -171,7 +171,7 @@ export function Community() {
                   style={{ backgroundColor: getThemeColor(member.colorTheme) }}
                 />
                 <span className="font-medium text-gray-900">
-                  Warrior #{index + 1}
+                  {member.displayName}
                   {member.id === user?.id && (
                     <span className="text-xs text-primary-600 ml-1">(You)</span>
                   )}

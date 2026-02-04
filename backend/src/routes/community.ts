@@ -19,6 +19,7 @@ router.get('/', async (req: Request, res: Response) => {
       },
       select: {
         id: true,
+        displayName: true,
         currentStreak: true,
         totalDaysWon: true,
         colorTheme: true,
@@ -54,7 +55,7 @@ router.get('/', async (req: Request, res: Response) => {
     // Map to anonymous format
     const communityMembers = users.map((user, index) => ({
       id: user.id,
-      displayName: `Warrior #${index + 1}`,
+      displayName: user.displayName || `Warrior #${index + 1}`,
       currentStreak: user.currentStreak,
       totalDaysWon: user.totalDaysWon,
       colorTheme: user.colorTheme,
