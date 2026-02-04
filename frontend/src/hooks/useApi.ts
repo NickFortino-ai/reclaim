@@ -171,3 +171,27 @@ export function useDeleteImage() {
     },
   });
 }
+
+// Referral hooks
+export function useReferralStats() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['referral', 'stats'],
+    queryFn: () => api.referral.getStats(token!),
+    enabled: !!token,
+  });
+}
+
+export function useClaimLifetime() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.referral.claimLifetime(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referral', 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}

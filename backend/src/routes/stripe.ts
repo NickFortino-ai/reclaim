@@ -17,6 +17,20 @@ router.post('/create-checkout', async (req: Request, res: Response) => {
       return;
     }
 
+    const { referralCode } = req.body;
+
+    // Validate referral code if provided
+    let referrerId: string | null = null;
+    if (referralCode) {
+      const referrer = await prisma.user.findUnique({
+        where: { referralCode },
+        select: { id: true },
+      });
+      if (referrer) {
+        referrerId = referrer.id;
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
@@ -29,6 +43,9 @@ router.post('/create-checkout', async (req: Request, res: Response) => {
       subscription_data: {
         trial_period_days: 1,
       },
+      metadata: {
+        referrerId: referrerId || '',
+      },
       success_url: `${FRONTEND_URL}/register/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${FRONTEND_URL}/register/cancel`,
     });
@@ -39,6 +56,10 @@ router.post('/create-checkout', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
+
+// Referral credit amount (1 week in cents at $0.69/week)
+const REFERRAL_CREDIT_CENTS = 69;
+const REFERRAL_CREDIT_DAYS = 7;
 
 // Complete registration after successful checkout
 router.post('/complete-registration', async (req: Request, res: Response) => {
@@ -59,6 +80,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
 
     const customerId = session.customer as string;
     const subscriptionId = session.subscription as string;
+    const referrerId = session.metadata?.referrerId || null;
 
     // Check if user already exists for this customer
     const existingUser = await prisma.user.findUnique({
@@ -75,6 +97,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
           currentStreak: existingUser.currentStreak,
           totalDaysWon: existingUser.totalDaysWon,
           colorTheme: existingUser.colorTheme,
+          referralCode: existingUser.referralCode,
         },
       });
       return;
@@ -95,14 +118,59 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
       return;
     }
 
+    // Create user with referral link if applicable
     const user = await prisma.user.create({
       data: {
         accessCode,
         stripeCustomerId: customerId,
         stripeSubscriptionId: subscriptionId,
         subscriptionStatus: 'trialing',
+        referredById: referrerId || undefined,
       },
     });
+
+    // Process referral rewards if user was referred
+    let referralApplied = false;
+    if (referrerId) {
+      try {
+        const referrer = await prisma.user.findUnique({
+          where: { id: referrerId },
+          select: { stripeCustomerId: true },
+        });
+
+        if (referrer) {
+          // Create referral reward record
+          await prisma.referralReward.create({
+            data: {
+              referrerId,
+              referredId: user.id,
+              creditDays: REFERRAL_CREDIT_DAYS,
+              stripeApplied: true,
+            },
+          });
+
+          // Apply credit to referrer
+          if (referrer.stripeCustomerId) {
+            await stripe.customers.createBalanceTransaction(referrer.stripeCustomerId, {
+              amount: -REFERRAL_CREDIT_CENTS,
+              currency: 'usd',
+              description: 'Referral reward - you referred a new member',
+            });
+          }
+
+          // Apply credit to new user
+          await stripe.customers.createBalanceTransaction(customerId, {
+            amount: -REFERRAL_CREDIT_CENTS,
+            currency: 'usd',
+            description: 'Referral reward - signed up with referral link',
+          });
+
+          referralApplied = true;
+        }
+      } catch (error) {
+        console.error('Failed to apply referral credits:', error);
+      }
+    }
 
     const token = generateToken({ userId: user.id, type: 'user' });
 
@@ -114,7 +182,9 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
         currentStreak: user.currentStreak,
         totalDaysWon: user.totalDaysWon,
         colorTheme: user.colorTheme,
+        referralCode: user.referralCode,
       },
+      referralApplied,
     });
   } catch (error) {
     console.error('Complete registration error:', error);

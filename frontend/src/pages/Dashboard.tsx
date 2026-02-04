@@ -5,6 +5,7 @@ import { StreakDisplay } from '../components/StreakDisplay';
 import { CheckInButton } from '../components/CheckInButton';
 import { MissedDaysModal } from '../components/MissedDaysModal';
 import { ResetButton } from '../components/ResetButton';
+import { ReferralWidget } from '../components/ReferralWidget';
 
 export function Dashboard() {
   const { data, isLoading, error } = useUserData();
@@ -88,6 +89,9 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Referral Widget */}
+      <ReferralWidget />
 
       {/* Quick Access Tools */}
       <div className="grid grid-cols-2 gap-4">

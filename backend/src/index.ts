@@ -7,6 +7,7 @@ import communityRoutes from './routes/community.js';
 import contentRoutes from './routes/content.js';
 import stripeRoutes from './routes/stripe.js';
 import adminRoutes from './routes/admin.js';
+import referralRoutes from './routes/referral.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +36,7 @@ app.use('/api/community', communityRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/referral', referralRoutes);
 
 // Error handler
 app.use(errorHandler);

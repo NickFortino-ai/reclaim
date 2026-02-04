@@ -10,6 +10,7 @@ datasource db {
 model User {
   id              String    @id @default(cuid())
   accessCode      String    @unique
+  referralCode    String    @unique @default(cuid())
   currentStreak   Int       @default(0)
   totalDaysWon    Int       @default(0)
   lastCheckIn     DateTime?
@@ -25,9 +26,17 @@ model User {
   colorTheme  String    @default("slate")
   completedAt DateTime?
 
+  // Referral tracking
+  referredById    String?
+  referredBy      User?      @relation("referrals", fields: [referredById], references: [id])
+  referrals       User[]     @relation("referrals")
+  lifetimeAccess  Boolean    @default(false)
+
   checkIns        CheckIn[]
   supportGiven    Support[] @relation("supporter")
   supportReceived Support[] @relation("receiver")
+  referralRewardsGiven    ReferralReward[] @relation("referrer")
+  referralRewardsReceived ReferralReward[] @relation("referred")
 }
 
 model CheckIn {
@@ -67,4 +76,17 @@ model Admin {
   id           String @id @default(cuid())
   username     String @unique
   passwordHash String
+}
+
+model ReferralReward {
+  id            String   @id @default(cuid())
+  referrerId    String
+  referredId    String
+  referrer      User     @relation("referrer", fields: [referrerId], references: [id])
+  referred      User     @relation("referred", fields: [referredId], references: [id])
+  creditDays    Int      @default(7) // 1 week = 7 days
+  appliedAt     DateTime @default(now())
+  stripeApplied Boolean  @default(false)
+
+  @@unique([referrerId, referredId])
 }

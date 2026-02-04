@@ -173,14 +173,52 @@ export interface CheckoutSession {
   url: string;
 }
 
+export interface CompleteRegistrationResponse extends RegisterResponse {
+  referralApplied?: boolean;
+}
+
 export const stripe = {
-  createCheckout: () =>
-    request<CheckoutSession>('/api/stripe/create-checkout', { method: 'POST' }),
+  createCheckout: (referralCode?: string) =>
+    request<CheckoutSession>('/api/stripe/create-checkout', {
+      method: 'POST',
+      body: referralCode ? { referralCode } : undefined,
+    }),
 
   completeRegistration: (sessionId: string) =>
-    request<RegisterResponse>('/api/stripe/complete-registration', {
+    request<CompleteRegistrationResponse>('/api/stripe/complete-registration', {
       method: 'POST',
       body: { sessionId },
+    }),
+};
+
+// Referral
+export interface ReferralStats {
+  referralCode: string;
+  referralLink: string;
+  referralCount: number;
+  referrals: {
+    number: number;
+    joinedAt: string;
+    currentStreak: number;
+    totalDaysWon: number;
+  }[];
+  totalCreditDays: number;
+  lifetimeAccess: boolean;
+  canGetLifetimeAccess: boolean;
+  referralsNeededForLifetime: number;
+}
+
+export const referral = {
+  getStats: (token: string) =>
+    request<ReferralStats>('/api/referral/stats', { token }),
+
+  validateCode: (code: string) =>
+    request<{ valid: boolean }>(`/api/referral/validate/${code}`),
+
+  claimLifetime: (token: string) =>
+    request<{ message: string; lifetimeAccess: boolean }>('/api/referral/claim-lifetime', {
+      method: 'POST',
+      token,
     }),
 };
 

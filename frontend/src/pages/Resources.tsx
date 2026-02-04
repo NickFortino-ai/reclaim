@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-type Tab = 'studies' | 'testosterone' | 'wisdom';
+type Tab = 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
 
 export function Resources() {
   const [activeTab, setActiveTab] = useState<Tab>('studies');
@@ -10,7 +10,7 @@ export function Resources() {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Resources</h1>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto">
         <TabButton
           active={activeTab === 'studies'}
           onClick={() => setActiveTab('studies')}
@@ -21,19 +21,26 @@ export function Resources() {
           active={activeTab === 'testosterone'}
           onClick={() => setActiveTab('testosterone')}
         >
-          Testosterone & Health
+          Testosterone
+        </TabButton>
+        <TabButton
+          active={activeTab === 'intimacy'}
+          onClick={() => setActiveTab('intimacy')}
+        >
+          Real Intimacy
         </TabButton>
         <TabButton
           active={activeTab === 'wisdom'}
           onClick={() => setActiveTab('wisdom')}
         >
-          Community Wisdom
+          Wisdom
         </TabButton>
       </div>
 
       {/* Tab Content */}
       {activeTab === 'studies' && <StudiesContent />}
       {activeTab === 'testosterone' && <TestosteroneContent />}
+      {activeTab === 'intimacy' && <IntimacyContent />}
       {activeTab === 'wisdom' && <WisdomContent />}
     </div>
   );
@@ -151,6 +158,113 @@ function TestosteroneContent() {
           <div key={index} className="card">
             <h3 className="font-semibold text-gray-900 mb-2">{fact.title}</h3>
             <p className="text-gray-600 text-sm">{fact.content}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function IntimacyContent() {
+  const studies = [
+    {
+      title: 'Oxytocin and Pair Bonding in Humans',
+      source: 'Psychoneuroendocrinology, 2012',
+      summary: 'Physical intimacy with a real partner triggers sustained oxytocin release, strengthening emotional bonds and attachment. This "bonding hormone" creates lasting connection that pornography cannot replicate.',
+      link: 'https://pubmed.ncbi.nlm.nih.gov/22115921/',
+    },
+    {
+      title: 'Sexual Satisfaction and Relationship Quality',
+      source: 'Journal of Sex Research, 2017',
+      summary: 'Couples who engage in affectionate touch and real intimacy report significantly higher relationship satisfaction. Emotional presence during sex predicts long-term relationship success.',
+      link: 'https://pubmed.ncbi.nlm.nih.gov/28276929/',
+    },
+    {
+      title: 'Recovery from Porn-Induced Erectile Dysfunction',
+      source: 'Behavioral Sciences, 2016',
+      summary: 'Men who abstain from pornography often report full recovery of erectile function with real partners within 2-6 months. The brain\'s reward system recalibrates to respond to natural stimuli.',
+      link: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5039517/',
+    },
+    {
+      title: 'Performance Anxiety and Sexual Function',
+      source: 'Journal of Sexual Medicine, 2015',
+      summary: 'Performance anxiety from porn-induced expectations is a leading cause of sexual dysfunction in young men. Mindfulness and present-moment awareness with a partner significantly reduces anxiety.',
+      link: 'https://pubmed.ncbi.nlm.nih.gov/25545022/',
+    },
+    {
+      title: 'The Neuroscience of Human Touch',
+      source: 'Nature Neuroscience, 2014',
+      summary: 'Skin-to-skin contact activates C-tactile afferents that trigger dopamine and serotonin release in ways that visual stimulation cannot. Real touch creates neurochemical rewards that build genuine satisfaction.',
+      link: 'https://pubmed.ncbi.nlm.nih.gov/24997764/',
+    },
+    {
+      title: 'Pornography Use and Intimacy Avoidance',
+      source: 'Archives of Sexual Behavior, 2017',
+      summary: 'Higher pornography consumption is correlated with reduced desire for real intimacy and avoidance of emotional vulnerability. Quitting porn often restores interest in genuine connection.',
+      link: 'https://pubmed.ncbi.nlm.nih.gov/28677048/',
+    },
+    {
+      title: 'Benefits of Committed Relationships on Male Health',
+      source: 'Health Psychology, 2018',
+      summary: 'Men in committed intimate relationships show lower cortisol, better immune function, and longer lifespan. Real partnership provides health benefits that solitary behaviors cannot.',
+      link: 'https://pubmed.ncbi.nlm.nih.gov/29369662/',
+    },
+  ];
+
+  const tips = [
+    {
+      title: 'Presence Over Performance',
+      content: 'Real intimacy isn\'t about performing like in porn. It\'s about being fully present with another person. Focus on connection, not technique.',
+    },
+    {
+      title: 'Rewiring Takes Time',
+      content: 'Your brain needs time to recalibrate. Many men report that attraction to real partners intensifies after 60-90 days of abstaining from porn.',
+    },
+    {
+      title: 'Emotional Vulnerability',
+      content: 'True intimacy requires emotional openness—something porn trains you to avoid. Practice being vulnerable in small ways to rebuild this capacity.',
+    },
+    {
+      title: 'Touch Without Expectation',
+      content: 'Learn to enjoy physical affection without it needing to lead to sex. Holding hands, cuddling, and casual touch rebuild healthy intimacy patterns.',
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="card bg-primary-50 border-primary-200">
+        <p className="text-primary-800 text-sm">
+          <strong>Why This Matters:</strong> Quitting porn isn't just about stopping a bad habit—it's about preparing yourself for real, fulfilling intimacy with a real partner. These studies show what you're working toward.
+        </p>
+      </div>
+
+      {/* Studies Section */}
+      <h3 className="text-lg font-semibold text-gray-900">Research on Real Intimacy</h3>
+      <div className="space-y-4">
+        {studies.map((study, index) => (
+          <div key={index} className="card">
+            <h3 className="font-semibold text-gray-900 mb-1">{study.title}</h3>
+            <p className="text-sm text-primary-600 mb-2">{study.source}</p>
+            <p className="text-gray-600 text-sm mb-3">{study.summary}</p>
+            <a
+              href={study.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-primary-600 hover:underline"
+            >
+              Read full study →
+            </a>
+          </div>
+        ))}
+      </div>
+
+      {/* Tips Section */}
+      <h3 className="text-lg font-semibold text-gray-900 mt-8">Rebuilding Real Connection</h3>
+      <div className="grid md:grid-cols-2 gap-4">
+        {tips.map((tip, index) => (
+          <div key={index} className="card">
+            <h4 className="font-semibold text-gray-900 mb-2">{tip.title}</h4>
+            <p className="text-gray-600 text-sm">{tip.content}</p>
           </div>
         ))}
       </div>

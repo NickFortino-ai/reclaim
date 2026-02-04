@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PreviewProvider, usePreview } from './context/PreviewContext';
 import { Layout } from './components/Layout';
 
 // Pages
@@ -16,6 +17,11 @@ import { Resources } from './pages/Resources';
 import { Community } from './pages/Community';
 import { Settings } from './pages/Settings';
 import { Celebration } from './pages/Celebration';
+
+// Demo Pages
+import { DemoDashboard } from './pages/demo/DemoDashboard';
+import { DemoResources } from './pages/demo/DemoResources';
+import { DemoCommunity } from './pages/demo/DemoCommunity';
 
 // Admin Pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -66,6 +72,23 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function DemoRoute({ children }: { children: React.ReactNode }) {
+  const { isDemo } = usePreview();
+  const { token } = useAuth();
+
+  // If user is logged in, redirect to real dashboard
+  if (token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // If not in demo mode, redirect to landing
+  if (!isDemo) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AppRoutes() {
   return (
     <Layout>
@@ -97,6 +120,32 @@ function AppRoutes() {
         />
         <Route path="/register/success" element={<RegisterSuccess />} />
         <Route path="/register/cancel" element={<RegisterCancel />} />
+
+        {/* Demo routes */}
+        <Route
+          path="/demo/dashboard"
+          element={
+            <DemoRoute>
+              <DemoDashboard />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/resources"
+          element={
+            <DemoRoute>
+              <DemoResources />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/community"
+          element={
+            <DemoRoute>
+              <DemoCommunity />
+            </DemoRoute>
+          }
+        />
 
         {/* Protected user routes */}
         <Route
@@ -187,9 +236,11 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <ThemeProvider>
-            <AppRoutes />
-          </ThemeProvider>
+          <PreviewProvider>
+            <ThemeProvider>
+              <AppRoutes />
+            </ThemeProvider>
+          </PreviewProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
