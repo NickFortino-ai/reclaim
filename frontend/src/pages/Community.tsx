@@ -157,7 +157,7 @@ export function Community() {
       {/* Community Cards Section */}
       <h2 className="text-xl font-bold text-gray-900 mb-4">Send Support</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        {data.members.map((member, index) => (
+        {data.members.map((member) => (
           <div
             key={member.id}
             className={`card transition-all ${member.id === user?.id ? 'ring-2 ring-primary-500' : ''} ${
