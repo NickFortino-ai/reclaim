@@ -157,6 +157,7 @@ export interface DesensImage {
   dayNum: number;
   imageUrl: string;
   overlayText: string;
+  difficulty: string;
 }
 
 export const content = {
@@ -165,6 +166,13 @@ export const content = {
 
   getDesensImage: (token: string, day: number) =>
     request<DesensImage>(`/api/content/desens/${day}`, { token }),
+
+  logUrgeSurf: (token: string, data: { sessionDay: number; completedBreathing: boolean; resumedExercise: boolean }) =>
+    request<{ success: boolean; eventId: string }>('/api/content/urge-surf', {
+      method: 'POST',
+      token,
+      body: data,
+    }),
 };
 
 // Stripe
@@ -263,11 +271,11 @@ export const admin = {
   getImages: (token: string) =>
     request<DesensImage[]>('/api/admin/images', { token }),
 
-  saveImage: (token: string, dayNum: number, imageUrl: string, overlayText: string) =>
+  saveImage: (token: string, dayNum: number, imageUrl: string, overlayText: string, difficulty: string = 'beginner') =>
     request<DesensImage>('/api/admin/images', {
       method: 'POST',
       token,
-      body: { dayNum, imageUrl, overlayText },
+      body: { dayNum, imageUrl, overlayText, difficulty },
     }),
 
   deleteImage: (token: string, id: string) =>

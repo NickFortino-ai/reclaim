@@ -39,6 +39,7 @@ model User {
   supportReceived Support[] @relation("receiver")
   referralRewardsGiven    ReferralReward[] @relation("referrer")
   referralRewardsReceived ReferralReward[] @relation("referred")
+  urgeSurfEvents  UrgeSurfEvent[]
 }
 
 model CheckIn {
@@ -61,6 +62,17 @@ model DesensImage {
   dayNum      Int    @unique
   imageUrl    String
   overlayText String
+  difficulty  String @default("beginner") // beginner | intermediate | advanced | mixed
+}
+
+model UrgeSurfEvent {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+  sessionDay         Int
+  completedBreathing Boolean  @default(false)
+  resumedExercise    Boolean  @default(false)
+  createdAt          DateTime @default(now())
 }
 
 model Support {

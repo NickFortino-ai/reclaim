@@ -77,17 +77,24 @@ router.get('/images', async (_req: Request, res: Response) => {
 // Create or update desensitization image
 router.post('/images', async (req: Request, res: Response) => {
   try {
-    const { dayNum, imageUrl, overlayText } = req.body;
+    const { dayNum, imageUrl, overlayText, difficulty = 'beginner' } = req.body;
+
+    const validDifficulties = ['beginner', 'intermediate', 'advanced', 'mixed'];
 
     if (!dayNum || !imageUrl || !overlayText || dayNum < 1 || dayNum > 365) {
       res.status(400).json({ error: 'Invalid day number, image URL, or overlay text' });
       return;
     }
 
+    if (!validDifficulties.includes(difficulty)) {
+      res.status(400).json({ error: 'Invalid difficulty level' });
+      return;
+    }
+
     const image = await prisma.desensImage.upsert({
       where: { dayNum },
-      update: { imageUrl, overlayText },
-      create: { dayNum, imageUrl, overlayText },
+      update: { imageUrl, overlayText, difficulty },
+      create: { dayNum, imageUrl, overlayText, difficulty },
     });
 
     res.json(image);

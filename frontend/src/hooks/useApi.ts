@@ -91,6 +91,15 @@ export function useDesensImage(dayNum: number) {
   });
 }
 
+export function useLogUrgeSurf() {
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: (data: { sessionDay: number; completedBreathing: boolean; resumedExercise: boolean }) =>
+      api.content.logUrgeSurf(token!, data),
+  });
+}
+
 // Admin hooks
 export function useAdminStats() {
   const { token, isAdmin } = useAuth();
@@ -152,8 +161,8 @@ export function useSaveImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ dayNum, imageUrl, overlayText }: { dayNum: number; imageUrl: string; overlayText: string }) =>
-      api.admin.saveImage(token!, dayNum, imageUrl, overlayText),
+    mutationFn: ({ dayNum, imageUrl, overlayText, difficulty }: { dayNum: number; imageUrl: string; overlayText: string; difficulty: string }) =>
+      api.admin.saveImage(token!, dayNum, imageUrl, overlayText, difficulty),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'images'] });
     },

@@ -1,20 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useDesensImage } from '../hooks/useApi';
+import { useDesensImage, useLogUrgeSurf } from '../hooks/useApi';
 
-// Mindfulness prompts that rotate during exercise
-const MINDFULNESS_PROMPTS = [
-  "Notice her humanity, not just her appearance",
-  "Feel the urge without acting on it",
-  "This discomfort is growth happening",
-  "You are rewiring your brain right now",
-  "Attraction is natural; acting on it is a choice",
-  "Breathe deeply. You are in control.",
-  "This moment will pass. Your strength will remain.",
-  "Every second you resist, you grow stronger",
-  "Your values define you, not your urges",
-  "This is you becoming who you want to be",
+// Time-based mindfulness prompts (5-second intervals for 30s exercise)
+const TIMED_MINDFULNESS_PROMPTS = [
+  { start: 0, end: 5, text: "Notice her eyes. What story do they tell?" },
+  { start: 5, end: 10, text: "She's someone's daughter, sister, friend." },
+  { start: 10, end: 15, text: "Feel any urges rising. Don't fight them. Just observe." },
+  { start: 15, end: 20, text: "This discomfort is your brain rewiring." },
+  { start: 20, end: 25, text: "Breathe. You're in control." },
+  { start: 25, end: 30, text: "Real attraction without objectification—this is growth." },
 ];
+
+// Helper to get prompt based on elapsed time (scales to exercise duration)
+const getPromptForTime = (elapsedSeconds: number, totalDuration: number): string => {
+  const scaleFactor = totalDuration / 30;
+
+  for (const prompt of TIMED_MINDFULNESS_PROMPTS) {
+    const scaledStart = prompt.start * scaleFactor;
+    const scaledEnd = prompt.end * scaleFactor;
+    if (elapsedSeconds >= scaledStart && elapsedSeconds < scaledEnd) {
+      return prompt.text;
+    }
+  }
+  return TIMED_MINDFULNESS_PROMPTS[TIMED_MINDFULNESS_PROMPTS.length - 1].text;
+};
 
 // Difficulty levels based on day progression
 const getDifficultyLevel = (dayNum: number): { level: string; description: string; duration: number } => {
@@ -51,13 +61,19 @@ export function Desensitize() {
   const { user } = useAuth();
   const dayNum = Math.min((user?.totalDaysWon || 0) + 1, 365);
   const { data: image, isLoading, error } = useDesensImage(dayNum);
+  const logUrgeSurf = useLogUrgeSurf();
 
   // Exercise states
   const [phase, setPhase] = useState<'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
   const [showEducation, setShowEducation] = useState(false);
   const [progress, setProgress] = useState<ProgressData>({ sessions: [] });
+
+  // Urge surfing states
+  const [urgeSurfTimeRemaining, setUrgeSurfTimeRemaining] = useState(90);
+  const [breathingPhase, setBreathingPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
+  const [breathingCircleScale, setBreathingCircleScale] = useState(1);
+  const [exerciseTimerPaused, setExerciseTimerPaused] = useState(0);
 
   const difficulty = getDifficultyLevel(dayNum);
 
@@ -73,7 +89,7 @@ export function Desensitize() {
     }
   }, []);
 
-  // Timer countdown
+  // Timer countdown for exercise
   useEffect(() => {
     if (phase !== 'exercise' || timeRemaining <= 0) return;
 
@@ -90,22 +106,85 @@ export function Desensitize() {
     return () => clearInterval(timer);
   }, [phase, timeRemaining]);
 
-  // Rotate mindfulness prompts
+  // Urge surf timer countdown
   useEffect(() => {
-    if (phase !== 'exercise') return;
+    if (phase !== 'urge-surf' || urgeSurfTimeRemaining <= 0) return;
 
-    const interval = setInterval(() => {
-      setCurrentPromptIndex((i) => (i + 1) % MINDFULNESS_PROMPTS.length);
-    }, 4000);
+    const timer = setInterval(() => {
+      setUrgeSurfTimeRemaining((t) => t - 1);
+    }, 1000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
+  }, [phase, urgeSurfTimeRemaining]);
+
+  // Breathing animation effect (4-7-8 pattern = 19 seconds per cycle)
+  useEffect(() => {
+    if (phase !== 'urge-surf') return;
+
+    const runBreathingCycle = () => {
+      // Inhale (4s) - expand
+      setBreathingPhase('inhale');
+      setBreathingCircleScale(1.5);
+
+      setTimeout(() => {
+        // Hold (7s) - stay expanded
+        setBreathingPhase('hold');
+      }, 4000);
+
+      setTimeout(() => {
+        // Exhale (8s) - contract
+        setBreathingPhase('exhale');
+        setBreathingCircleScale(1);
+      }, 11000); // 4s + 7s
+    };
+
+    runBreathingCycle();
+    const cycleInterval = setInterval(runBreathingCycle, 19000);
+
+    return () => clearInterval(cycleInterval);
   }, [phase]);
 
   const startExercise = useCallback(() => {
     setTimeRemaining(difficulty.duration);
-    setCurrentPromptIndex(0);
     setPhase('exercise');
   }, [difficulty.duration]);
+
+  const enterUrgeSurf = useCallback(() => {
+    setExerciseTimerPaused(timeRemaining);
+    setUrgeSurfTimeRemaining(90);
+    setBreathingPhase('inhale');
+    setBreathingCircleScale(1);
+    setPhase('urge-surf');
+
+    // Log that they started urge surfing
+    logUrgeSurf.mutate({
+      sessionDay: image?.dayNum || dayNum,
+      completedBreathing: false,
+      resumedExercise: false,
+    });
+  }, [timeRemaining, image, dayNum, logUrgeSurf]);
+
+  const continueExercise = useCallback(() => {
+    setTimeRemaining(exerciseTimerPaused);
+    setPhase('exercise');
+
+    // Log that they resumed
+    logUrgeSurf.mutate({
+      sessionDay: image?.dayNum || dayNum,
+      completedBreathing: urgeSurfTimeRemaining === 0,
+      resumedExercise: true,
+    });
+  }, [exerciseTimerPaused, urgeSurfTimeRemaining, image, dayNum, logUrgeSurf]);
+
+  const endSessionAfterUrgeSurf = useCallback(() => {
+    // Log event
+    logUrgeSurf.mutate({
+      sessionDay: image?.dayNum || dayNum,
+      completedBreathing: urgeSurfTimeRemaining === 0,
+      resumedExercise: false,
+    });
+    setPhase('feedback');
+  }, [urgeSurfTimeRemaining, image, dayNum, logUrgeSurf]);
 
   const handleFeedback = (score: number) => {
     const newSession = { day: dayNum, score, date: new Date().toISOString() };
@@ -132,7 +211,7 @@ export function Desensitize() {
   const resetExercise = () => {
     setPhase('intro');
     setTimeRemaining(0);
-    setCurrentPromptIndex(0);
+    setUrgeSurfTimeRemaining(90);
   };
 
   if (isLoading) {
@@ -158,8 +237,15 @@ export function Desensitize() {
     );
   }
 
-  // Urge Surfing Emergency Mode
+  // Urge Surfing Emergency Mode (90-second breathing exercise)
   if (phase === 'urge-surf') {
+    const breathingComplete = urgeSurfTimeRemaining === 0;
+    const peakMessage = urgeSurfTimeRemaining > 30
+      ? "The urge will peak in about 60 seconds, then pass. Breathe with me."
+      : urgeSurfTimeRemaining > 0
+      ? "The peak is passing. Keep breathing."
+      : "You made it through. You're stronger than the urge.";
+
     return (
       <div className="max-w-2xl mx-auto">
         <div className="card bg-blue-50 border-blue-200">
@@ -168,60 +254,80 @@ export function Desensitize() {
           </h2>
 
           <div className="space-y-6">
-            <p className="text-blue-700 text-center">
-              Urges are like waves—they rise, peak, and fall. Let's ride this one out together.
+            {/* Timer */}
+            <div className="text-center">
+              <span className="text-4xl font-bold text-blue-600">
+                {Math.floor(urgeSurfTimeRemaining / 60)}:{(urgeSurfTimeRemaining % 60).toString().padStart(2, '0')}
+              </span>
+            </div>
+
+            {/* Peak message */}
+            <p className="text-blue-700 text-center font-medium">
+              {peakMessage}
             </p>
 
-            <div className="bg-white rounded-lg p-6 text-center">
-              <p className="text-lg font-medium text-gray-800 mb-4">Breathe with me:</p>
-              <div className="flex justify-center items-center gap-4 text-2xl">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">4s</div>
-                  <div className="text-sm text-gray-600">Inhale</div>
+            {/* Animated Breathing Circle */}
+            <div className="flex justify-center py-8">
+              <div
+                className="w-32 h-32 rounded-full bg-blue-200 flex items-center justify-center transition-transform ease-in-out"
+                style={{
+                  transform: `scale(${breathingCircleScale})`,
+                  transitionDuration: breathingPhase === 'inhale' ? '4000ms' : breathingPhase === 'exhale' ? '8000ms' : '0ms',
+                }}
+              >
+                <span className="text-blue-700 font-semibold text-lg capitalize">
+                  {breathingPhase}
+                </span>
+              </div>
+            </div>
+
+            {/* Breathing instruction */}
+            <div className="bg-white rounded-lg p-4 text-center">
+              <div className="flex justify-center items-center gap-4 text-lg">
+                <div className={`text-center ${breathingPhase === 'inhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
+                  <div className="text-2xl mb-1">4s</div>
+                  <div className="text-sm">Inhale</div>
                 </div>
-                <div className="text-gray-400">→</div>
-                <div className="text-center">
-                  <div className="text-4xl mb-2">7s</div>
-                  <div className="text-sm text-gray-600">Hold</div>
+                <div className="text-gray-300">→</div>
+                <div className={`text-center ${breathingPhase === 'hold' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
+                  <div className="text-2xl mb-1">7s</div>
+                  <div className="text-sm">Hold</div>
                 </div>
-                <div className="text-gray-400">→</div>
-                <div className="text-center">
-                  <div className="text-4xl mb-2">8s</div>
-                  <div className="text-sm text-gray-600">Exhale</div>
+                <div className="text-gray-300">→</div>
+                <div className={`text-center ${breathingPhase === 'exhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
+                  <div className="text-2xl mb-1">8s</div>
+                  <div className="text-sm">Exhale</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4">
-              <p className="text-gray-700 italic text-center">
-                "The urge will pass whether you act on it or not. But if you don't act, you'll be proud of yourself when it does."
+            {/* Action buttons */}
+            {breathingComplete ? (
+              <div className="space-y-3">
+                <p className="text-center text-blue-800 font-medium">Ready to continue?</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={continueExercise}
+                    className="flex-1 btn btn-primary"
+                  >
+                    Continue Exercise
+                  </button>
+                  <button
+                    onClick={endSessionAfterUrgeSurf}
+                    className="flex-1 btn btn-secondary"
+                  >
+                    End Session
+                  </button>
+                </div>
+                <p className="text-center text-sm text-gray-500">
+                  (Both options count as completing the exercise)
+                </p>
+              </div>
+            ) : (
+              <p className="text-center text-blue-600 text-sm">
+                Complete the breathing exercise to unlock options
               </p>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm text-blue-700 font-medium">Remember:</p>
-              <ul className="text-sm text-blue-600 space-y-2">
-                <li>• This feeling is temporary—usually peaks in 15-20 minutes</li>
-                <li>• You've survived every urge you've ever had</li>
-                <li>• Each urge you ride out makes the next one weaker</li>
-                <li>• Your future self will thank you for staying strong</li>
-              </ul>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setPhase('exercise')}
-                className="flex-1 btn btn-primary"
-              >
-                I'm Ready to Continue
-              </button>
-              <button
-                onClick={resetExercise}
-                className="flex-1 btn btn-secondary"
-              >
-                End Exercise
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -306,6 +412,8 @@ export function Desensitize() {
   // Exercise Phase
   if (phase === 'exercise') {
     const progressPercent = ((difficulty.duration - timeRemaining) / difficulty.duration) * 100;
+    const elapsedTime = difficulty.duration - timeRemaining;
+    const currentPrompt = getPromptForTime(elapsedTime, difficulty.duration);
 
     return (
       <div className="max-w-2xl mx-auto space-y-4">
@@ -325,8 +433,8 @@ export function Desensitize() {
 
         {/* Mindfulness Prompt */}
         <div className="card bg-primary-50 border-primary-200">
-          <p className="text-center text-primary-800 font-medium text-lg animate-pulse">
-            {MINDFULNESS_PROMPTS[currentPromptIndex]}
+          <p className="text-center text-primary-800 font-medium text-lg">
+            {currentPrompt}
           </p>
         </div>
 
@@ -346,16 +454,16 @@ export function Desensitize() {
           </div>
         </div>
 
-        {/* Emergency Urge Button */}
+        {/* "Feeling Triggered?" Emergency Button */}
         <button
-          onClick={() => setPhase('urge-surf')}
-          className="w-full btn bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300"
+          onClick={enterUrgeSurf}
+          className="w-full btn bg-red-100 text-red-700 hover:bg-red-200 border-2 border-red-300 py-4"
         >
-          <span className="flex items-center justify-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          <span className="flex items-center justify-center gap-2 text-lg font-semibold">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            Struggling? Try Urge Surfing
+            Feeling Triggered?
           </span>
         </button>
 
@@ -475,7 +583,7 @@ export function Desensitize() {
           <li>• Take slow, deep breaths throughout the exercise</li>
           <li>• Read each mindfulness prompt out loud if possible</li>
           <li>• Notice your physical sensations without judgment</li>
-          <li>• Use the "Urge Surfing" button if you're struggling</li>
+          <li>• Use the "Feeling Triggered?" button if you're struggling</li>
           <li>• Be honest in your feedback—it helps track your progress</li>
         </ul>
       </div>
