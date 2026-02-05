@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { stripe } from '../services/stripe.js';
 import { prisma } from '../services/prisma.js';
-import { generateAccessCode, generateDisplayName } from '../utils/helpers.js';
+import { generateAccessCode, generateUniqueDisplayName } from '../utils/helpers.js';
 import { generateToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -118,8 +118,13 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
       return;
     }
 
-    // Generate a unique display name
-    const displayName = generateDisplayName();
+    // Generate a unique display name (without number if possible)
+    const displayName = await generateUniqueDisplayName(async (name) => {
+      const existing = await prisma.user.findFirst({
+        where: { displayName: name },
+      });
+      return !!existing;
+    });
 
     // Create user with referral link if applicable
     const user = await prisma.user.create({

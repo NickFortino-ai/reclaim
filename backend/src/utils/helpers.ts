@@ -23,6 +23,43 @@ const NOUNS = [
   'Hammer', 'Forge', 'Anvil'
 ];
 
+// Generate a random warrior name base (without number)
+export function generateWarriorNameBase(): string {
+  const adjective = ADJECTIVES[crypto.randomInt(0, ADJECTIVES.length)];
+  const noun = NOUNS[crypto.randomInt(0, NOUNS.length)];
+  return `${adjective} ${noun}`;
+}
+
+// Check if a display name exists and find the next available number if needed
+export async function generateUniqueDisplayName(
+  checkExists: (name: string) => Promise<boolean>
+): Promise<string> {
+  // Try up to 10 different name combinations
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const baseName = generateWarriorNameBase();
+
+    // Check if the base name is available
+    const baseExists = await checkExists(baseName);
+    if (!baseExists) {
+      return baseName;
+    }
+
+    // Base name exists, find the smallest available number
+    for (let num = 2; num <= 100; num++) {
+      const numberedName = `${baseName} ${num}`;
+      const numberedExists = await checkExists(numberedName);
+      if (!numberedExists) {
+        return numberedName;
+      }
+    }
+  }
+
+  // Fallback: generate with random number (very unlikely to reach here)
+  const baseName = generateWarriorNameBase();
+  return `${baseName} ${crypto.randomInt(100, 999)}`;
+}
+
+// Legacy function for backwards compatibility (generates with number)
 export function generateDisplayName(): string {
   const adjective = ADJECTIVES[crypto.randomInt(0, ADJECTIVES.length)];
   const noun = NOUNS[crypto.randomInt(0, NOUNS.length)];
