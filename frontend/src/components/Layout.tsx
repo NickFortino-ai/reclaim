@@ -27,9 +27,10 @@ export function Layout({ children }: LayoutProps) {
   // Demo mode layout
   if (isDemo && location.pathname.startsWith('/demo')) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 overflow-x-hidden">
         <PreviewBar />
-        <nav className="bg-white shadow-sm border-b border-gray-200">
+        {/* Desktop nav */}
+        <nav className="hidden sm:block bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
@@ -57,6 +58,33 @@ export function Layout({ children }: LayoutProps) {
                 </button>
               </div>
             </div>
+          </div>
+        </nav>
+        {/* Mobile nav */}
+        <nav className="sm:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center">
+              <Link to="/demo/dashboard" className="text-lg font-bold text-primary-600">
+                Reclaim
+              </Link>
+              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                DEMO
+              </span>
+            </div>
+            <button onClick={handleExitDemo} className="text-sm text-gray-600 font-medium">
+              Exit
+            </button>
+          </div>
+          <div className="flex border-t border-gray-100">
+            <MobileNavLink to="/demo/dashboard" current={location.pathname === '/demo/dashboard'}>
+              Dashboard
+            </MobileNavLink>
+            <MobileNavLink to="/demo/resources" current={location.pathname === '/demo/resources'}>
+              Resources
+            </MobileNavLink>
+            <MobileNavLink to="/demo/community" current={location.pathname === '/demo/community'}>
+              Community
+            </MobileNavLink>
           </div>
         </nav>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
@@ -171,6 +199,21 @@ function NavLink({ to, current, children }: { to: string; current: boolean; chil
         current
           ? 'bg-primary-100 text-primary-700'
           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MobileNavLink({ to, current, children }: { to: string; current: boolean; children: ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className={`flex-1 py-3 text-center text-sm font-medium border-b-2 ${
+        current
+          ? 'border-primary-600 text-primary-600'
+          : 'border-transparent text-gray-500'
       }`}
     >
       {children}
