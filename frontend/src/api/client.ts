@@ -271,12 +271,37 @@ export const admin = {
   getImages: (token: string) =>
     request<DesensImage[]>('/api/admin/images', { token }),
 
-  saveImage: (token: string, dayNum: number, imageUrl: string, overlayText: string, difficulty: string = 'beginner') =>
-    request<DesensImage>('/api/admin/images', {
+  saveImage: async (
+    token: string,
+    dayNum: number,
+    overlayText: string,
+    difficulty: string,
+    imageFile?: File
+  ): Promise<DesensImage> => {
+    const formData = new FormData();
+    formData.append('dayNum', dayNum.toString());
+    formData.append('overlayText', overlayText);
+    formData.append('difficulty', difficulty);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    const response = await fetch(`${API_URL}/api/admin/images`, {
       method: 'POST',
-      token,
-      body: { dayNum, imageUrl, overlayText, difficulty },
-    }),
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new ApiError(data.error || 'Request failed', response.status);
+    }
+
+    return data;
+  },
 
   deleteImage: (token: string, id: string) =>
     request<{ message: string }>(`/api/admin/images/${id}`, { method: 'DELETE', token }),

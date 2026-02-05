@@ -1,9 +1,27 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import multer from 'multer';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
+import { uploadImage, deleteImage } from '../services/supabase.js';
 
 const router = Router();
+
+// Configure multer for memory storage (we'll upload to Supabase)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.'));
+    }
+  },
+});
 
 // All admin routes require auth + admin role
 router.use(authMiddleware);
@@ -74,15 +92,22 @@ router.get('/images', async (_req: Request, res: Response) => {
   }
 });
 
-// Create or update desensitization image
-router.post('/images', async (req: Request, res: Response) => {
+// Create or update desensitization image (with file upload)
+router.post('/images', upload.single('image'), async (req: Request, res: Response) => {
   try {
-    const { dayNum, imageUrl, overlayText, difficulty = 'beginner' } = req.body;
+    const { dayNum, overlayText, difficulty = 'beginner' } = req.body;
+    const file = req.file;
 
     const validDifficulties = ['beginner', 'intermediate', 'advanced', 'mixed'];
+    const dayNumInt = parseInt(dayNum);
 
-    if (!dayNum || !imageUrl || !overlayText || dayNum < 1 || dayNum > 365) {
-      res.status(400).json({ error: 'Invalid day number, image URL, or overlay text' });
+    if (!dayNumInt || dayNumInt < 1 || dayNumInt > 365) {
+      res.status(400).json({ error: 'Invalid day number (must be 1-365)' });
+      return;
+    }
+
+    if (!overlayText) {
+      res.status(400).json({ error: 'Overlay text is required' });
       return;
     }
 
@@ -91,10 +116,33 @@ router.post('/images', async (req: Request, res: Response) => {
       return;
     }
 
+    // Check if image for this day already exists
+    const existingImage = await prisma.desensImage.findUnique({
+      where: { dayNum: dayNumInt },
+    });
+
+    let imageUrl: string;
+
+    if (file) {
+      // Upload new file to Supabase
+      imageUrl = await uploadImage(file.buffer, file.originalname, file.mimetype);
+
+      // Delete old image from storage if replacing
+      if (existingImage && existingImage.imageUrl.includes('supabase')) {
+        await deleteImage(existingImage.imageUrl);
+      }
+    } else if (existingImage) {
+      // No new file, keep existing URL
+      imageUrl = existingImage.imageUrl;
+    } else {
+      res.status(400).json({ error: 'Image file is required for new entries' });
+      return;
+    }
+
     const image = await prisma.desensImage.upsert({
-      where: { dayNum },
+      where: { dayNum: dayNumInt },
       update: { imageUrl, overlayText, difficulty },
-      create: { dayNum, imageUrl, overlayText, difficulty },
+      create: { dayNum: dayNumInt, imageUrl, overlayText, difficulty },
     });
 
     res.json(image);
@@ -108,6 +156,16 @@ router.post('/images', async (req: Request, res: Response) => {
 router.delete('/images/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Get image to find storage URL
+    const image = await prisma.desensImage.findUnique({
+      where: { id },
+    });
+
+    if (image && image.imageUrl.includes('supabase')) {
+      // Delete from Supabase storage
+      await deleteImage(image.imageUrl);
+    }
 
     await prisma.desensImage.delete({
       where: { id },

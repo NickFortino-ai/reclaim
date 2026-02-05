@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   useAdminImages,
   useSaveImage,
@@ -12,17 +12,23 @@ const DIFFICULTY_OPTIONS = [
   { value: 'mixed', label: 'Mixed (Days 181-365)', color: 'bg-purple-100 text-purple-700' },
 ];
 
+const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export function AdminImages() {
   const { data: images, isLoading, error } = useAdminImages();
   const saveImage = useSaveImage();
   const deleteImage = useDeleteImage();
 
   const [newDayNum, setNewDayNum] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
   const [newOverlayText, setNewOverlayText] = useState('');
   const [newDifficulty, setNewDifficulty] = useState('beginner');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [filterDifficulty, setFilterDifficulty] = useState('all');
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Count images by difficulty
   const difficultyCount = DIFFICULTY_OPTIONS.reduce((acc, opt) => {
@@ -35,25 +41,80 @@ export function AdminImages() {
     filterDifficulty === 'all' || img.difficulty === filterDifficulty
   );
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setUploadError(null);
+
+    if (!file) {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+
+    if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+      setUploadError('Invalid file type. Please upload a JPG, PNG, or WebP image.');
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File too large. Maximum size is 10MB.');
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploadError(null);
+
     const dayNum = parseInt(newDayNum);
-    if (isNaN(dayNum) || dayNum < 1 || dayNum > 365 || !newImageUrl.trim() || !newOverlayText.trim()) return;
+    if (isNaN(dayNum) || dayNum < 1 || dayNum > 365) {
+      setUploadError('Day number must be between 1 and 365.');
+      return;
+    }
+
+    if (!newOverlayText.trim()) {
+      setUploadError('Overlay text is required.');
+      return;
+    }
+
+    if (!selectedFile) {
+      setUploadError('Please select an image file.');
+      return;
+    }
 
     try {
       await saveImage.mutateAsync({
         dayNum,
-        imageUrl: newImageUrl.trim(),
         overlayText: newOverlayText.trim(),
         difficulty: newDifficulty,
+        imageFile: selectedFile,
       });
+
+      // Reset form
       setNewDayNum('');
-      setNewImageUrl('');
       setNewOverlayText('');
       setNewDifficulty('beginner');
+      setSelectedFile(null);
+      setPreviewUrl(null);
       setShowAdd(false);
-    } catch {
-      // Error handled by mutation
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Failed to upload image');
     }
   };
 
@@ -63,6 +124,19 @@ export function AdminImages() {
       await deleteImage.mutateAsync(id);
     } catch {
       // Error handled by mutation
+    }
+  };
+
+  const resetForm = () => {
+    setShowAdd(false);
+    setNewDayNum('');
+    setNewOverlayText('');
+    setNewDifficulty('beginner');
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -101,7 +175,7 @@ export function AdminImages() {
             ))}
           </select>
           <button
-            onClick={() => setShowAdd(!showAdd)}
+            onClick={() => showAdd ? resetForm() : setShowAdd(true)}
             className="btn btn-primary"
           >
             {showAdd ? 'Cancel' : 'Add Image'}
@@ -123,7 +197,14 @@ export function AdminImages() {
       {showAdd && (
         <form onSubmit={handleSave} className="card">
           <div className="grid gap-4">
-            <div className="grid gap-4 md:grid-cols-[100px_1fr_180px]">
+            {/* Error message */}
+            {uploadError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {uploadError}
+              </div>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-[100px_1fr]">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Day #
@@ -136,19 +217,6 @@ export function AdminImages() {
                   onChange={(e) => setNewDayNum(e.target.value)}
                   className="input"
                   placeholder="1-365"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  value={newImageUrl}
-                  onChange={(e) => setNewImageUrl(e.target.value)}
-                  className="input"
-                  placeholder="https://..."
                   required
                 />
               </div>
@@ -168,6 +236,61 @@ export function AdminImages() {
                 </select>
               </div>
             </div>
+
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image File
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="btn btn-secondary cursor-pointer"
+                >
+                  {selectedFile ? 'Change Image' : 'Choose Image'}
+                </label>
+                {selectedFile && (
+                  <span className="text-sm text-gray-600">
+                    {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Accepts JPG, PNG, WebP. Max 10MB.
+              </p>
+            </div>
+
+            {/* Image Preview */}
+            {previewUrl && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Preview
+                </label>
+                <div className="relative w-full max-w-md aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  {newOverlayText && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4">
+                      <p className="text-white text-lg font-bold text-center">
+                        {newOverlayText}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Overlay Text
@@ -182,13 +305,20 @@ export function AdminImages() {
               />
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
-              disabled={saveImage.isPending}
+              disabled={saveImage.isPending || !selectedFile}
               className="btn btn-primary"
             >
-              {saveImage.isPending ? 'Saving...' : 'Save Image'}
+              {saveImage.isPending ? 'Uploading...' : 'Upload Image'}
             </button>
           </div>
         </form>
