@@ -160,7 +160,7 @@ export function AdminImages() {
     <div className="space-y-6">
       {/* Header with filter */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Desensitization Images</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Desensitization Images Manager</h1>
         <div className="flex gap-2">
           <select
             value={filterDifficulty}
