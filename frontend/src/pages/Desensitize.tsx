@@ -49,8 +49,20 @@ const FEEDBACK_OPTIONS = [
   { id: 'difficult', label: 'Very difficult but completed', emoji: '🏆', score: 3 },
 ];
 
-// Storage key for tracking progress
+// Storage keys
 const PROGRESS_KEY = 'desens_progress';
+const INTRO_SEEN_KEY = 'desens_intro_seen';
+
+// Educational content
+const WHY_THIS_WORKS = {
+  title: "Why This Exercise Works",
+  content: [
+    "Your brain can be retrained to see beautiful women as multidimensional people, not sex objects.",
+    "This exercise helps you practice attraction without objectification—observing beauty while recognizing her full humanity.",
+    "Over time, this rewires your brain to experience deeper, more meaningful intimacy and longer-lasting sexual connection with real partners.",
+    "Real attraction includes personality, presence, and connection—not just physical appearance."
+  ]
+};
 
 interface ProgressData {
   sessions: { day: number; score: number; date: string }[];
@@ -64,10 +76,11 @@ export function Desensitize() {
   const logUrgeSurf = useLogUrgeSurf();
 
   // Exercise states
-  const [phase, setPhase] = useState<'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
+  const [phase, setPhase] = useState<'first-intro' | 'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [showEducation, setShowEducation] = useState(false);
+  const [showWhyThis, setShowWhyThis] = useState(false);
   const [progress, setProgress] = useState<ProgressData>({ sessions: [] });
+  const [, setHasSeenIntro] = useState(true); // Default true to avoid flash
 
   // Urge surfing states
   const [urgeSurfTimeRemaining, setUrgeSurfTimeRemaining] = useState(90);
@@ -77,7 +90,7 @@ export function Desensitize() {
 
   const difficulty = getDifficultyLevel(dayNum);
 
-  // Load progress from localStorage
+  // Load progress and intro state from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(PROGRESS_KEY);
     if (saved) {
@@ -86,6 +99,13 @@ export function Desensitize() {
       } catch {
         // Invalid data, start fresh
       }
+    }
+
+    // Check if user has seen the intro
+    const introSeen = localStorage.getItem(INTRO_SEEN_KEY);
+    if (!introSeen) {
+      setHasSeenIntro(false);
+      setPhase('first-intro');
     }
   }, []);
 
@@ -214,6 +234,12 @@ export function Desensitize() {
     setUrgeSurfTimeRemaining(90);
   };
 
+  const dismissIntro = () => {
+    localStorage.setItem(INTRO_SEEN_KEY, 'true');
+    setHasSeenIntro(true);
+    setPhase('intro');
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -232,6 +258,43 @@ export function Desensitize() {
           <p className="text-gray-600">
             No exercise available for day {dayNum} yet. Check back later or ask your admin to add images.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // First-time educational intro
+  if (phase === 'first-intro') {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="card">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {WHY_THIS_WORKS.title}
+            </h2>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            {WHY_THIS_WORKS.content.map((paragraph, index) => (
+              <p key={index} className="text-gray-700 leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={dismissIntro}
+              className="btn btn-primary py-3 px-8 text-lg"
+            >
+              I Understand, Let's Begin
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -490,36 +553,36 @@ export function Desensitize() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Day {dayNum} Desensitization
-          </h2>
-          <button
-            onClick={() => setShowEducation(!showEducation)}
-            className="text-primary-600 hover:text-primary-700"
-            title="Learn more"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Day {dayNum} Desensitization
+        </h2>
 
-        {/* Educational Tooltip */}
-        {showEducation && (
-          <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2">The Neuroscience Behind This</h3>
-            <p className="text-sm text-blue-700 mb-3">
-              This is <strong>exposure therapy</strong>—a proven psychological technique. You're training your brain
-              that <strong>attraction ≠ action</strong>.
-            </p>
-            <p className="text-sm text-blue-700 mb-3">
-              When you see a trigger and choose NOT to act, you weaken the neural pathway connecting
-              that stimulus to compulsive behavior. Over time, the automatic urge response diminishes.
-            </p>
-            <p className="text-sm text-blue-700">
-              Each session literally rewires your brain. The discomfort you feel is neuroplasticity in action.
-            </p>
+        {/* Why am I doing this? - Collapsible */}
+        <button
+          onClick={() => setShowWhyThis(!showWhyThis)}
+          className="w-full flex items-center justify-between p-3 mb-4 bg-primary-50 rounded-lg text-primary-700 hover:bg-primary-100 transition-colors"
+        >
+          <span className="font-medium">Why am I doing this?</span>
+          <svg
+            className={`w-5 h-5 transition-transform ${showWhyThis ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {showWhyThis && (
+          <div className="bg-primary-50 rounded-lg p-4 mb-6 border border-primary-200">
+            <h3 className="font-semibold text-primary-800 mb-3">{WHY_THIS_WORKS.title}</h3>
+            <div className="space-y-2">
+              {WHY_THIS_WORKS.content.map((paragraph, index) => (
+                <p key={index} className="text-sm text-primary-700">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
           </div>
         )}
 
