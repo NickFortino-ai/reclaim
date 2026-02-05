@@ -15,8 +15,11 @@ const PORT = process.env.PORT || 3000;
 // CORS - allow multiple origins
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
-  'https://reclaim365app.vercel.app',
   'http://localhost:5173',
+  'https://reclaim365app.vercel.app',
+  'https://reclaim365.app',
+  'https://www.reclaim365.app',
+  'https://frontend-seven-pi-10.vercel.app',
 ];
 
 app.use(cors({
