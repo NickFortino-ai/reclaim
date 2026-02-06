@@ -14,6 +14,8 @@ const DIFFICULTY_OPTIONS = [
 
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+type ImageInputMode = 'url' | 'upload';
+
 export function AdminImages() {
   const { data: images, isLoading, error } = useAdminImages();
   const saveImage = useSaveImage();
@@ -22,6 +24,8 @@ export function AdminImages() {
   const [newDayNum, setNewDayNum] = useState('');
   const [newOverlayText, setNewOverlayText] = useState('');
   const [newDifficulty, setNewDifficulty] = useState('beginner');
+  const [inputMode, setInputMode] = useState<ImageInputMode>('url');
+  const [imageUrl, setImageUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -40,6 +44,22 @@ export function AdminImages() {
   const filteredImages = images?.filter(img =>
     filterDifficulty === 'all' || img.difficulty === filterDifficulty
   );
+
+  const handleModeChange = (mode: ImageInputMode) => {
+    setInputMode(mode);
+    setUploadError(null);
+    // Clear the other input method
+    if (mode === 'url') {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } else {
+      setImageUrl('');
+      setPreviewUrl(null);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,6 +95,17 @@ export function AdminImages() {
     reader.readAsDataURL(file);
   };
 
+  const handleUrlChange = (url: string) => {
+    setImageUrl(url);
+    setUploadError(null);
+    // Set preview for URL mode
+    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadError(null);
@@ -90,8 +121,14 @@ export function AdminImages() {
       return;
     }
 
-    if (!selectedFile) {
+    // Validate based on input mode
+    if (inputMode === 'upload' && !selectedFile) {
       setUploadError('Please select an image file.');
+      return;
+    }
+
+    if (inputMode === 'url' && !imageUrl.trim()) {
+      setUploadError('Please enter an image URL.');
       return;
     }
 
@@ -100,13 +137,15 @@ export function AdminImages() {
         dayNum,
         overlayText: newOverlayText.trim(),
         difficulty: newDifficulty,
-        imageFile: selectedFile,
+        imageFile: inputMode === 'upload' && selectedFile ? selectedFile : undefined,
+        imageUrl: inputMode === 'url' ? imageUrl.trim() : undefined,
       });
 
       // Reset form
       setNewDayNum('');
       setNewOverlayText('');
       setNewDifficulty('beginner');
+      setImageUrl('');
       setSelectedFile(null);
       setPreviewUrl(null);
       setShowAdd(false);
@@ -114,7 +153,7 @@ export function AdminImages() {
         fileInputRef.current.value = '';
       }
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Failed to upload image');
+      setUploadError(err instanceof Error ? err.message : 'Failed to save image');
     }
   };
 
@@ -132,6 +171,8 @@ export function AdminImages() {
     setNewDayNum('');
     setNewOverlayText('');
     setNewDifficulty('beginner');
+    setInputMode('url');
+    setImageUrl('');
     setSelectedFile(null);
     setPreviewUrl(null);
     setUploadError(null);
@@ -139,6 +180,8 @@ export function AdminImages() {
       fileInputRef.current.value = '';
     }
   };
+
+  const hasValidImage = inputMode === 'upload' ? !!selectedFile : !!imageUrl.trim();
 
   if (isLoading) {
     return (
@@ -160,7 +203,7 @@ export function AdminImages() {
     <div className="space-y-6">
       {/* Header with filter */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Desensitization Images Manager</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Desensitization Images</h1>
         <div className="flex gap-2">
           <select
             value={filterDifficulty}
@@ -237,36 +280,88 @@ export function AdminImages() {
               </div>
             </div>
 
-            {/* File Upload */}
+            {/* Image Input Mode Toggle */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image File
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image Source
               </label>
-              <div className="flex items-center gap-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.webp"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="btn btn-secondary cursor-pointer"
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('url')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    inputMode === 'url'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
                 >
-                  {selectedFile ? 'Change Image' : 'Choose Image'}
-                </label>
-                {selectedFile && (
-                  <span className="text-sm text-gray-600">
-                    {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                )}
+                  Paste URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('upload')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    inputMode === 'upload'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Upload File
+                </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Accepts JPG, PNG, WebP. Max 10MB.
-              </p>
             </div>
+
+            {/* URL Input */}
+            {inputMode === 'url' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                  className="input"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter a direct link to an image (JPG, PNG, WebP)
+                </p>
+              </div>
+            )}
+
+            {/* File Upload */}
+            {inputMode === 'upload' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Image File
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="btn btn-secondary cursor-pointer"
+                  >
+                    {selectedFile ? 'Change Image' : 'Choose Image'}
+                  </label>
+                  {selectedFile && (
+                    <span className="text-sm text-gray-600">
+                      {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Accepts JPG, PNG, WebP. Max 10MB.
+                </p>
+              </div>
+            )}
 
             {/* Image Preview */}
             {previewUrl && (
@@ -279,6 +374,12 @@ export function AdminImages() {
                     src={previewUrl}
                     alt="Preview"
                     className="w-full h-full object-cover"
+                    onError={() => {
+                      if (inputMode === 'url') {
+                        setPreviewUrl(null);
+                        setUploadError('Could not load image from URL. Please check the link.');
+                      }
+                    }}
                   />
                   {newOverlayText && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4">
@@ -315,10 +416,10 @@ export function AdminImages() {
             </button>
             <button
               type="submit"
-              disabled={saveImage.isPending || !selectedFile}
+              disabled={saveImage.isPending || !hasValidImage}
               className="btn btn-primary"
             >
-              {saveImage.isPending ? 'Uploading...' : 'Upload Image'}
+              {saveImage.isPending ? 'Saving...' : 'Save Image'}
             </button>
           </div>
         </form>

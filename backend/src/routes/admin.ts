@@ -92,10 +92,10 @@ router.get('/images', async (_req: Request, res: Response) => {
   }
 });
 
-// Create or update desensitization image (with file upload)
+// Create or update desensitization image (with file upload or URL)
 router.post('/images', upload.single('image'), async (req: Request, res: Response) => {
   try {
-    const { dayNum, overlayText, difficulty = 'beginner' } = req.body;
+    const { dayNum, overlayText, difficulty = 'beginner', imageUrl: providedUrl } = req.body;
     const file = req.file;
 
     const validDifficulties = ['beginner', 'intermediate', 'advanced', 'mixed'];
@@ -131,11 +131,19 @@ router.post('/images', upload.single('image'), async (req: Request, res: Respons
       if (existingImage && existingImage.imageUrl.includes('supabase')) {
         await deleteImage(existingImage.imageUrl);
       }
+    } else if (providedUrl) {
+      // Use provided URL directly
+      imageUrl = providedUrl;
+
+      // Delete old Supabase image if replacing with URL
+      if (existingImage && existingImage.imageUrl.includes('supabase')) {
+        await deleteImage(existingImage.imageUrl);
+      }
     } else if (existingImage) {
-      // No new file, keep existing URL
+      // No new file or URL, keep existing URL
       imageUrl = existingImage.imageUrl;
     } else {
-      res.status(400).json({ error: 'Image file is required for new entries' });
+      res.status(400).json({ error: 'Image file or URL is required for new entries' });
       return;
     }
 

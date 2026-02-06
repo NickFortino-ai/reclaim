@@ -276,7 +276,8 @@ export const admin = {
     dayNum: number,
     overlayText: string,
     difficulty: string,
-    imageFile?: File
+    imageFile?: File,
+    imageUrl?: string
   ): Promise<DesensImage> => {
     const formData = new FormData();
     formData.append('dayNum', dayNum.toString());
@@ -284,6 +285,9 @@ export const admin = {
     formData.append('difficulty', difficulty);
     if (imageFile) {
       formData.append('image', imageFile);
+    }
+    if (imageUrl) {
+      formData.append('imageUrl', imageUrl);
     }
 
     const response = await fetch(`${API_URL}/api/admin/images`, {

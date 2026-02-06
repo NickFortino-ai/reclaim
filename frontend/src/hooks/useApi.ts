@@ -161,8 +161,8 @@ export function useSaveImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ dayNum, overlayText, difficulty, imageFile }: { dayNum: number; overlayText: string; difficulty: string; imageFile?: File }) =>
-      api.admin.saveImage(token!, dayNum, overlayText, difficulty, imageFile),
+    mutationFn: ({ dayNum, overlayText, difficulty, imageFile, imageUrl }: { dayNum: number; overlayText: string; difficulty: string; imageFile?: File; imageUrl?: string }) =>
+      api.admin.saveImage(token!, dayNum, overlayText, difficulty, imageFile, imageUrl),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'images'] });
     },
