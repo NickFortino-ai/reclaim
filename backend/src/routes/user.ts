@@ -58,6 +58,7 @@ router.get('/me', async (req: Request, res: Response) => {
         colorTheme: user.colorTheme,
         subscriptionStatus: user.subscriptionStatus,
         completedAt: user.completedAt,
+        desensitizationPoints: user.desensitizationPoints,
         supportReceivedToday: user.supportReceived.length,
       },
       affirmation: affirmation?.text || null,
@@ -112,10 +113,10 @@ router.post('/checkin', async (req: Request, res: Response) => {
       },
     });
 
-    // Check for 365-day completion
+    // Check for 365-day completion (Total Days Won, not calendar days)
     let completed = false;
     if (newTotalDaysWon >= 365 && !user.completedAt) {
-      // Cancel subscription
+      // Auto-cancel subscription — user earned 365 Total Days Won
       if (user.stripeSubscriptionId) {
         try {
           await stripe.subscriptions.cancel(user.stripeSubscriptionId);
@@ -168,13 +169,13 @@ router.post('/missed-days', async (req: Request, res: Response) => {
     if (stayedStrong) {
       // Add missed days to streak and total
       const newStreak = user.currentStreak + missedDays;
-      const newTotalDaysWon = user.totalDaysWon + missedDays;
+      const newTotalDaysWon = Math.min(user.totalDaysWon + missedDays, 365);
 
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           currentStreak: newStreak,
-          totalDaysWon: Math.min(newTotalDaysWon, 365),
+          totalDaysWon: newTotalDaysWon,
           lastCheckIn: new Date(),
         },
       });
@@ -188,9 +189,32 @@ router.post('/missed-days', async (req: Request, res: Response) => {
         },
       });
 
+      // Check for 365-day completion (Total Days Won, not calendar days)
+      let completed = false;
+      if (newTotalDaysWon >= 365 && !user.completedAt) {
+        if (user.stripeSubscriptionId) {
+          try {
+            await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+          } catch (e) {
+            console.error('Failed to cancel subscription:', e);
+          }
+        }
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            completedAt: new Date(),
+            subscriptionStatus: 'completed',
+          },
+        });
+
+        completed = true;
+      }
+
       res.json({
         currentStreak: updatedUser.currentStreak,
         totalDaysWon: updatedUser.totalDaysWon,
+        completed,
       });
     } else {
       // Reset streak

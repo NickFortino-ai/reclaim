@@ -90,6 +90,7 @@ router.post('/login', async (req: Request, res: Response) => {
         colorTheme: user.colorTheme,
         subscriptionStatus: user.subscriptionStatus,
         completedAt: user.completedAt,
+        desensitizationPoints: user.desensitizationPoints,
       },
     });
   } catch (error) {

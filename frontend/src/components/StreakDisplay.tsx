@@ -31,7 +31,7 @@ export function StreakDisplay({ currentStreak, totalDaysWon }: StreakDisplayProp
           />
         </div>
         <p className="text-sm text-gray-500 text-center">
-          {365 - totalDaysWon} days remaining
+          {365 - totalDaysWon} more days to earn — subscription auto-cancels at 365
         </p>
       </div>
     </div>

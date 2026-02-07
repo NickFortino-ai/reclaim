@@ -53,12 +53,12 @@ export function Celebration() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-6">
-            365 days of strength, discipline, and growth.
+            365 Total Days Won — a year of strength, discipline, and growth.
           </p>
 
           <div className="bg-primary-50 rounded-lg p-6 mb-6">
             <div className="text-5xl font-bold text-primary-600 mb-2">365</div>
-            <p className="text-primary-700">Days of Freedom</p>
+            <p className="text-primary-700">Total Days Won</p>
           </div>
 
           <p className="text-gray-600 mb-6">

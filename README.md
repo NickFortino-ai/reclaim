@@ -1,6 +1,6 @@
 # Reclaim
 
-Accountability platform for men recovering from porn addiction. Anonymous authentication, Stripe billing ($2.76/month, first day free), 365-day completion goal with auto-cancellation.
+Accountability platform for men recovering from porn addiction. Anonymous authentication, Stripe billing ($2.76/month, first day free), auto-cancellation when user reaches 365 Total Days Won (not calendar days).
 
 ## Architecture
 
@@ -204,7 +204,7 @@ VITE_STRIPE_PUBLIC_KEY=pk_test_...
 - **Anonymous Auth**: Users identified only by 8-character access codes
 - **Streak Tracking**: Current streak and total days won
 - **Missed Days Detection**: Prompts users who haven't checked in
-- **365-Day Completion**: Auto-cancels subscription at goal
+- **365-Day Completion**: Auto-cancels subscription when Total Days Won reaches 365 (resets don't count — users stay subscribed until they earn all 365 days)
 - **12 Color Themes**: Personalize your experience
 - **Community Support**: Anonymous encouragement between users
 - **Desensitization Exercises**: Daily exposure therapy content

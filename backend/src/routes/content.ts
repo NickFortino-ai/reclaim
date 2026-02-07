@@ -32,7 +32,7 @@ router.get('/affirmation/:day', async (req: Request, res: Response) => {
   }
 });
 
-// Get desensitization image for specific day (based on difficulty tier)
+// Get desensitization image for specific day (weighted random by difficulty)
 router.get('/desens/:day', async (req: Request, res: Response) => {
   try {
     const dayNum = parseInt(req.params.day);
@@ -42,38 +42,61 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
       return;
     }
 
-    // Determine difficulty tier based on user's day
-    let difficulty: string;
+    // Weighted difficulty selection based on day progression
+    let weights: { difficulty: number; weight: number }[];
     if (dayNum <= 30) {
-      difficulty = 'beginner';
+      weights = [{ difficulty: 1, weight: 1 }];
     } else if (dayNum <= 90) {
-      difficulty = 'intermediate';
+      weights = [
+        { difficulty: 1, weight: 0.3 },
+        { difficulty: 2, weight: 0.7 },
+      ];
     } else if (dayNum <= 180) {
-      difficulty = 'advanced';
+      weights = [
+        { difficulty: 2, weight: 0.3 },
+        { difficulty: 3, weight: 0.7 },
+      ];
     } else {
-      difficulty = 'mixed';
+      weights = [
+        { difficulty: 1, weight: 0.2 },
+        { difficulty: 2, weight: 0.4 },
+        { difficulty: 3, weight: 0.4 },
+      ];
+    }
+
+    // Pick a difficulty tier via weighted random
+    const rand = Math.random();
+    let cumulative = 0;
+    let selectedDifficulty = weights[0].difficulty;
+    for (const w of weights) {
+      cumulative += w.weight;
+      if (rand <= cumulative) {
+        selectedDifficulty = w.difficulty;
+        break;
+      }
     }
 
     let image;
+    let images = await prisma.desensImage.findMany({
+      where: { difficulty: selectedDifficulty },
+    });
 
-    if (difficulty === 'mixed') {
-      // For mixed (days 181-365): select random image from any difficulty
-      const images = await prisma.desensImage.findMany();
-      if (images.length > 0) {
-        image = images[Math.floor(Math.random() * images.length)];
+    // Fallback: try other tiers in weight order
+    if (images.length === 0) {
+      for (const w of weights) {
+        if (w.difficulty === selectedDifficulty) continue;
+        images = await prisma.desensImage.findMany({
+          where: { difficulty: w.difficulty },
+        });
+        if (images.length > 0) break;
       }
+    }
+
+    // Final fallback: any image
+    if (images.length === 0) {
+      image = await prisma.desensImage.findFirst();
     } else {
-      // Select random image from the appropriate difficulty tier
-      const images = await prisma.desensImage.findMany({
-        where: { difficulty },
-      });
-
-      if (images.length > 0) {
-        image = images[Math.floor(Math.random() * images.length)];
-      } else {
-        // Fallback: try to find any image if tier is empty
-        image = await prisma.desensImage.findFirst();
-      }
+      image = images[Math.floor(Math.random() * images.length)];
     }
 
     if (!image) {
@@ -85,6 +108,65 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get desens image error:', error);
     res.status(500).json({ error: 'Failed to get image' });
+  }
+});
+
+// Complete desensitization exercise, award points
+router.post('/desens/complete', async (req: Request, res: Response) => {
+  try {
+    const { imageId } = req.body;
+    const userId = req.user!.userId;
+
+    if (!imageId || typeof imageId !== 'string') {
+      res.status(400).json({ error: 'Image ID is required' });
+      return;
+    }
+
+    const image = await prisma.desensImage.findUnique({
+      where: { id: imageId },
+    });
+
+    if (!image) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const pointsEarned = image.difficulty; // 1, 2, or 3
+    const newTotal = Math.min(user.desensitizationPoints + pointsEarned, 300);
+    const actualPointsEarned = newTotal - user.desensitizationPoints;
+
+    const [updatedUser] = await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { desensitizationPoints: newTotal },
+      }),
+      prisma.desensitizationLog.create({
+        data: {
+          userId,
+          imageId: image.id,
+          pointsEarned: actualPointsEarned,
+        },
+      }),
+    ]);
+
+    res.json({
+      pointsEarned: actualPointsEarned,
+      totalPoints: updatedUser.desensitizationPoints,
+      maxPoints: 300,
+      isComplete: updatedUser.desensitizationPoints >= 300,
+    });
+  } catch (error) {
+    console.error('Desens complete error:', error);
+    res.status(500).json({ error: 'Failed to record completion' });
   }
 });
 

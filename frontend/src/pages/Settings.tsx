@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ThemePicker } from '../components/ThemePicker';
 import { useReferralStats } from '../hooks/useApi';
@@ -131,8 +132,8 @@ export function Settings() {
               Contact Support
             </span>
           </a>
-          <button
-            onClick={() => alert('FAQ page coming soon!')}
+          <Link
+            to="/faq"
             className="btn btn-secondary"
           >
             <span className="flex items-center gap-2">
@@ -141,7 +142,7 @@ export function Settings() {
               </svg>
               FAQ
             </span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -164,7 +165,7 @@ export function Settings() {
                   <span className="text-red-600">Cancelled</span>
                 )}
                 {user?.subscriptionStatus === 'completed' && (
-                  <span className="text-purple-600">Completed (365 Days!)</span>
+                  <span className="text-purple-600">Completed (365 Days Won!)</span>
                 )}
                 {!['active', 'trialing', 'canceled', 'completed'].includes(user?.subscriptionStatus || '') && (
                   <span className="text-gray-600">{user?.subscriptionStatus || 'Unknown'}</span>
@@ -173,6 +174,7 @@ export function Settings() {
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500">Progress</p>
+              <p className="text-sm text-gray-500">Total Days Won</p>
               <p className="text-lg font-bold text-primary-600">{user?.totalDaysWon || 0} / 365</p>
             </div>
           </div>

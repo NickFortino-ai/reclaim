@@ -49,6 +49,7 @@ export interface LoginResponse {
     id: string;
     currentStreak: number;
     totalDaysWon: number;
+    desensitizationPoints: number;
     lastCheckIn: string | null;
     colorTheme: string;
     subscriptionStatus: string;
@@ -78,6 +79,7 @@ export interface UserData {
     colorTheme: string;
     subscriptionStatus: string;
     completedAt: string | null;
+    desensitizationPoints: number;
     supportReceivedToday: number;
   };
   affirmation: string | null;
@@ -157,7 +159,14 @@ export interface DesensImage {
   dayNum: number;
   imageUrl: string;
   overlayText: string;
-  difficulty: string;
+  difficulty: number;
+}
+
+export interface DesensCompleteResponse {
+  pointsEarned: number;
+  totalPoints: number;
+  maxPoints: number;
+  isComplete: boolean;
 }
 
 export const content = {
@@ -172,6 +181,13 @@ export const content = {
       method: 'POST',
       token,
       body: data,
+    }),
+
+  completeDesens: (token: string, imageId: string) =>
+    request<DesensCompleteResponse>('/api/content/desens/complete', {
+      method: 'POST',
+      token,
+      body: { imageId },
     }),
 };
 
@@ -275,14 +291,14 @@ export const admin = {
     token: string,
     dayNum: number,
     overlayText: string,
-    difficulty: string,
+    difficulty: number,
     imageFile?: File,
     imageUrl?: string
   ): Promise<DesensImage> => {
     const formData = new FormData();
     formData.append('dayNum', dayNum.toString());
     formData.append('overlayText', overlayText);
-    formData.append('difficulty', difficulty);
+    formData.append('difficulty', difficulty.toString());
     if (imageFile) {
       formData.append('image', imageFile);
     }

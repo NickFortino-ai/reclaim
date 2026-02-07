@@ -4,6 +4,7 @@ interface User {
   id: string;
   currentStreak: number;
   totalDaysWon: number;
+  desensitizationPoints: number;
   lastCheckIn: string | null;
   colorTheme: string;
   subscriptionStatus: string;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useDesensImage, useLogUrgeSurf } from '../hooks/useApi';
+import { useDesensImage, useLogUrgeSurf, useCompleteDesens } from '../hooks/useApi';
 
 // Time-based mindfulness prompts (5-second intervals for 30s exercise)
 const TIMED_MINDFULNESS_PROMPTS = [
@@ -74,6 +74,8 @@ export function Desensitize() {
   const dayNum = Math.min((user?.totalDaysWon || 0) + 1, 365);
   const { data: image, isLoading, error } = useDesensImage(dayNum);
   const logUrgeSurf = useLogUrgeSurf();
+  const completeDesens = useCompleteDesens();
+  const desensPoints = user?.desensitizationPoints ?? 0;
 
   // Exercise states
   const [phase, setPhase] = useState<'first-intro' | 'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
@@ -87,6 +89,10 @@ export function Desensitize() {
   const [breathingPhase, setBreathingPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [breathingCircleScale, setBreathingCircleScale] = useState(1);
   const [exerciseTimerPaused, setExerciseTimerPaused] = useState(0);
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [exerciseDuration, setExerciseDuration] = useState(0);
+  const [pointsEarned, setPointsEarned] = useState<number | null>(null);
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
 
   const difficulty = getDifficultyLevel(dayNum);
 
@@ -125,6 +131,22 @@ export function Desensitize() {
 
     return () => clearInterval(timer);
   }, [phase, timeRemaining]);
+
+  // Overlay text timing: 3s delay, visible for 6s, then fades out
+  useEffect(() => {
+    if (phase !== 'exercise') {
+      setOverlayVisible(false);
+      return;
+    }
+
+    const showTimer = setTimeout(() => setOverlayVisible(true), 3000);
+    const hideTimer = setTimeout(() => setOverlayVisible(false), 9000);
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [phase]);
 
   // Urge surf timer countdown
   useEffect(() => {
@@ -165,9 +187,12 @@ export function Desensitize() {
   }, [phase]);
 
   const startExercise = useCallback(() => {
-    setTimeRemaining(difficulty.duration);
+    const duration = Math.floor(Math.random() * 21) + 10; // Random 10-30 seconds
+    setExerciseDuration(duration);
+    setTimeRemaining(duration);
+    setOverlayVisible(false);
     setPhase('exercise');
-  }, [difficulty.duration]);
+  }, []);
 
   const enterUrgeSurf = useCallback(() => {
     setExerciseTimerPaused(timeRemaining);
@@ -186,6 +211,7 @@ export function Desensitize() {
 
   const continueExercise = useCallback(() => {
     setTimeRemaining(exerciseTimerPaused);
+    setOverlayVisible(false);
     setPhase('exercise');
 
     // Log that they resumed
@@ -206,7 +232,7 @@ export function Desensitize() {
     setPhase('feedback');
   }, [urgeSurfTimeRemaining, image, dayNum, logUrgeSurf]);
 
-  const handleFeedback = (score: number) => {
+  const handleFeedback = async (score: number) => {
     const newSession = { day: dayNum, score, date: new Date().toISOString() };
     const newProgress: ProgressData = {
       sessions: [...progress.sessions, newSession],
@@ -215,6 +241,19 @@ export function Desensitize() {
 
     setProgress(newProgress);
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(newProgress));
+
+    // Award desensitization points
+    if (image) {
+      try {
+        const result = await completeDesens.mutateAsync(image.id);
+        setPointsEarned(result.pointsEarned);
+        setShowPointsAnimation(true);
+        setTimeout(() => setShowPointsAnimation(false), 3000);
+      } catch {
+        console.error('Failed to award desensitization points');
+      }
+    }
+
     setPhase('complete');
   };
 
@@ -441,6 +480,36 @@ export function Desensitize() {
             You faced the trigger and chose your values. That's real strength.
           </p>
 
+          {/* Points animation */}
+          {showPointsAnimation && pointsEarned !== null && pointsEarned > 0 && (
+            <div className="animate-bounce bg-primary-100 rounded-lg p-3 mb-4">
+              <p className="text-lg font-bold text-primary-700">
+                +{pointsEarned} point{pointsEarned !== 1 ? 's' : ''} earned!
+              </p>
+            </div>
+          )}
+
+          {/* Desensitization progress bar */}
+          <div className="bg-white rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Desensitization Progress</span>
+              <span className="text-sm font-bold text-primary-600">{desensPoints}/300</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className={`h-3 rounded-full transition-all duration-700 ${
+                  desensPoints >= 300 ? 'bg-green-500' : 'bg-primary-600'
+                }`}
+                style={{ width: `${Math.min((desensPoints / 300) * 100, 100)}%` }}
+              />
+            </div>
+            {desensPoints >= 300 && (
+              <p className="text-green-600 font-bold text-sm mt-2">
+                Impervious to the Pixels!
+              </p>
+            )}
+          </div>
+
           {improvement !== null && improvement > 0 && (
             <div className="bg-white rounded-lg p-4 mb-4">
               <p className="text-lg font-semibold text-primary-600">
@@ -474,9 +543,9 @@ export function Desensitize() {
 
   // Exercise Phase
   if (phase === 'exercise') {
-    const progressPercent = ((difficulty.duration - timeRemaining) / difficulty.duration) * 100;
-    const elapsedTime = difficulty.duration - timeRemaining;
-    const currentPrompt = getPromptForTime(elapsedTime, difficulty.duration);
+    const progressPercent = exerciseDuration > 0 ? ((exerciseDuration - timeRemaining) / exerciseDuration) * 100 : 0;
+    const elapsedTime = exerciseDuration - timeRemaining;
+    const currentPrompt = getPromptForTime(elapsedTime, exerciseDuration);
 
     return (
       <div className="max-w-2xl mx-auto space-y-4">
@@ -509,7 +578,10 @@ export function Desensitize() {
               alt="Desensitization exercise"
               className="w-full"
             />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-8">
+            <div
+              className="absolute inset-0 bg-black/40 flex items-center justify-center p-8 transition-opacity duration-700"
+              style={{ opacity: overlayVisible ? 1 : 0 }}
+            >
               <p className="text-white text-2xl font-bold text-center drop-shadow-lg">
                 {image.overlayText}
               </p>
@@ -557,6 +629,27 @@ export function Desensitize() {
           Day {dayNum} Desensitization
         </h2>
 
+        {/* Desensitization progress bar */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Desensitization Progress</span>
+            <span className="text-sm font-bold text-primary-600">{desensPoints}/300</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div
+              className={`h-3 rounded-full transition-all duration-500 ${
+                desensPoints >= 300 ? 'bg-green-500' : 'bg-primary-600'
+              }`}
+              style={{ width: `${Math.min((desensPoints / 300) * 100, 100)}%` }}
+            />
+          </div>
+          {desensPoints >= 300 && (
+            <p className="text-green-600 font-bold text-sm mt-2">
+              Impervious to the Pixels!
+            </p>
+          )}
+        </div>
+
         {/* Why am I doing this? - Collapsible */}
         <button
           onClick={() => setShowWhyThis(!showWhyThis)}
@@ -598,7 +691,7 @@ export function Desensitize() {
             {difficulty.level}
           </div>
           <span className="text-sm text-gray-600">{difficulty.description}</span>
-          <span className="text-sm text-gray-500 ml-auto">{difficulty.duration}s exercise</span>
+          <span className="text-sm text-gray-500 ml-auto">10-30s exercise</span>
         </div>
 
         {/* Progress Stats */}
@@ -621,9 +714,9 @@ export function Desensitize() {
 
         <div className="bg-amber-50 rounded-lg p-4 mb-6">
           <p className="text-sm text-amber-800">
-            <strong>How it works:</strong> View the image for {difficulty.duration} seconds while focusing on
-            the overlay text and mindfulness prompts. This builds your ability to experience triggers
-            without reacting compulsively.
+            <strong>How it works:</strong> View the image for 10-30 seconds while focusing on
+            the mindfulness prompts. The overlay text will appear briefly during the exercise.
+            This builds your ability to experience triggers without reacting compulsively.
           </p>
         </div>
 

@@ -14,7 +14,8 @@ model User {
   referralCode    String    @unique @default(cuid())
   displayName     String    @default("")
   currentStreak   Int       @default(0)
-  totalDaysWon    Int       @default(0)
+  totalDaysWon            Int       @default(0)
+  desensitizationPoints   Int       @default(0)
   lastCheckIn     DateTime?
   lastLoginAt     DateTime  @default(now())
   createdAt       DateTime  @default(now())
@@ -39,7 +40,8 @@ model User {
   supportReceived Support[] @relation("receiver")
   referralRewardsGiven    ReferralReward[] @relation("referrer")
   referralRewardsReceived ReferralReward[] @relation("referred")
-  urgeSurfEvents  UrgeSurfEvent[]
+  urgeSurfEvents      UrgeSurfEvent[]
+  desensitizationLogs DesensitizationLog[]
 }
 
 model CheckIn {
@@ -62,7 +64,21 @@ model DesensImage {
   dayNum      Int    @unique
   imageUrl    String
   overlayText String
-  difficulty  String @default("beginner") // beginner | intermediate | advanced | mixed
+  difficulty  Int    @default(2) // 1=easy(1pt), 2=medium(2pts), 3=hard(3pts)
+
+  desensitizationLogs DesensitizationLog[]
+}
+
+model DesensitizationLog {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  imageId      String
+  image        DesensImage @relation(fields: [imageId], references: [id])
+  pointsEarned Int
+  completedAt  DateTime    @default(now())
+
+  @@index([userId])
 }
 
 model UrgeSurfEvent {

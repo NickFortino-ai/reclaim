@@ -100,6 +100,19 @@ export function useLogUrgeSurf() {
   });
 }
 
+export function useCompleteDesens() {
+  const { token, updateUser } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (imageId: string) => api.content.completeDesens(token!, imageId),
+    onSuccess: (data) => {
+      updateUser({ desensitizationPoints: data.totalPoints });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
 // Admin hooks
 export function useAdminStats() {
   const { token, isAdmin } = useAuth();
@@ -161,7 +174,7 @@ export function useSaveImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ dayNum, overlayText, difficulty, imageFile, imageUrl }: { dayNum: number; overlayText: string; difficulty: string; imageFile?: File; imageUrl?: string }) =>
+    mutationFn: ({ dayNum, overlayText, difficulty, imageFile, imageUrl }: { dayNum: number; overlayText: string; difficulty: number; imageFile?: File; imageUrl?: string }) =>
       api.admin.saveImage(token!, dayNum, overlayText, difficulty, imageFile, imageUrl),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'images'] });

@@ -48,12 +48,15 @@ export function Landing() {
             >
               Try Demo
             </button>
-            <Link
-              to="/register"
-              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-600/25 hover:shadow-blue-500/40 text-center"
-            >
-              Start Your Journey — $0.69/week
-            </Link>
+            <div className="flex flex-col items-center">
+              <Link
+                to="/register"
+                className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-600/25 hover:shadow-blue-500/40 text-center"
+              >
+                Start Your Journey — $0.69/week
+              </Link>
+              <span className="text-slate-400 text-sm mt-2">Billed monthly</span>
+            </div>
           </div>
 
           {/* Trust Indicators */}
@@ -186,7 +189,7 @@ export function Landing() {
         <div className="max-w-md mx-auto">
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
             <div className="text-4xl font-bold text-white mb-2">$0.69<span className="text-xl text-slate-400">/week</span></div>
-            <p className="text-slate-400 mb-6">Billed monthly at $2.99 • First day free</p>
+            <p className="text-slate-400 mb-6">Billed monthly • First day free</p>
 
             <ul className="text-left space-y-3 mb-8">
               <li className="flex items-center gap-3 text-slate-300">
@@ -248,9 +251,12 @@ export function Landing() {
               Login here
             </Link>
           </p>
-          <p className="text-slate-600 text-sm">
-            Reclaim — Built for men, by men.
-          </p>
+          <div className="flex items-center gap-4 text-sm">
+            <Link to="/faq" className="text-slate-400 hover:text-white">
+              FAQ
+            </Link>
+            <span className="text-slate-600">Reclaim — Built for men, by men.</span>
+          </div>
         </div>
       </div>
     </div>

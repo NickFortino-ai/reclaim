@@ -17,6 +17,7 @@ import { Resources } from './pages/Resources';
 import { Community } from './pages/Community';
 import { Settings } from './pages/Settings';
 import { Celebration } from './pages/Celebration';
+import { FAQ } from './pages/FAQ';
 
 // Demo Pages
 import { DemoDashboard } from './pages/demo/DemoDashboard';
@@ -120,6 +121,7 @@ function AppRoutes() {
         />
         <Route path="/register/success" element={<RegisterSuccess />} />
         <Route path="/register/cancel" element={<RegisterCancel />} />
+        <Route path="/faq" element={<FAQ />} />
 
         {/* Demo routes */}
         <Route

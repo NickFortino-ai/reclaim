@@ -6,10 +6,9 @@ import {
 } from '../../hooks/useApi';
 
 const DIFFICULTY_OPTIONS = [
-  { value: 'beginner', label: 'Beginner (Days 1-30)', color: 'bg-green-100 text-green-700' },
-  { value: 'intermediate', label: 'Intermediate (Days 31-90)', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'advanced', label: 'Advanced (Days 91-180)', color: 'bg-orange-100 text-orange-700' },
-  { value: 'mixed', label: 'Mixed (Days 181-365)', color: 'bg-purple-100 text-purple-700' },
+  { value: 1, label: 'Easy (1 point)', color: 'bg-green-100 text-green-700' },
+  { value: 2, label: 'Medium (2 points)', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 3, label: 'Hard (3 points)', color: 'bg-orange-100 text-orange-700' },
 ];
 
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -23,13 +22,13 @@ export function AdminImages() {
 
   const [newDayNum, setNewDayNum] = useState('');
   const [newOverlayText, setNewOverlayText] = useState('');
-  const [newDifficulty, setNewDifficulty] = useState('beginner');
+  const [newDifficulty, setNewDifficulty] = useState(2);
   const [inputMode, setInputMode] = useState<ImageInputMode>('url');
   const [imageUrl, setImageUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [filterDifficulty, setFilterDifficulty] = useState('all');
+  const [filterDifficulty, setFilterDifficulty] = useState<number | 'all'>('all');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,7 +37,7 @@ export function AdminImages() {
   const difficultyCount = DIFFICULTY_OPTIONS.reduce((acc, opt) => {
     acc[opt.value] = images?.filter(img => img.difficulty === opt.value).length || 0;
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<number, number>);
 
   // Filter images by difficulty
   const filteredImages = images?.filter(img =>
@@ -136,7 +135,7 @@ export function AdminImages() {
       await saveImage.mutateAsync({
         dayNum,
         overlayText: newOverlayText.trim(),
-        difficulty: newDifficulty,
+        difficulty: newDifficulty as number,
         imageFile: inputMode === 'upload' && selectedFile ? selectedFile : undefined,
         imageUrl: inputMode === 'url' ? imageUrl.trim() : undefined,
       });
@@ -144,7 +143,7 @@ export function AdminImages() {
       // Reset form
       setNewDayNum('');
       setNewOverlayText('');
-      setNewDifficulty('beginner');
+      setNewDifficulty(2);
       setImageUrl('');
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -170,7 +169,7 @@ export function AdminImages() {
     setShowAdd(false);
     setNewDayNum('');
     setNewOverlayText('');
-    setNewDifficulty('beginner');
+    setNewDifficulty(2);
     setInputMode('url');
     setImageUrl('');
     setSelectedFile(null);
@@ -207,7 +206,7 @@ export function AdminImages() {
         <div className="flex gap-2">
           <select
             value={filterDifficulty}
-            onChange={(e) => setFilterDifficulty(e.target.value)}
+            onChange={(e) => setFilterDifficulty(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
             className="input"
           >
             <option value="all">All Difficulties</option>
@@ -227,10 +226,10 @@ export function AdminImages() {
       </div>
 
       {/* Difficulty coverage stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {DIFFICULTY_OPTIONS.map(opt => (
           <div key={opt.value} className={`p-4 rounded-lg ${opt.color}`}>
-            <div className="font-semibold capitalize">{opt.value}</div>
+            <div className="font-semibold">{opt.label.split(' (')[0]}</div>
             <div className="text-2xl font-bold">{difficultyCount[opt.value]}</div>
             <div className="text-xs opacity-75">images</div>
           </div>
@@ -269,7 +268,7 @@ export function AdminImages() {
                 </label>
                 <select
                   value={newDifficulty}
-                  onChange={(e) => setNewDifficulty(e.target.value)}
+                  onChange={(e) => setNewDifficulty(parseInt(e.target.value))}
                   className="input"
                   required
                 >
@@ -427,7 +426,7 @@ export function AdminImages() {
 
       <div className="card">
         <p className="text-sm text-gray-600 mb-4">
-          {filteredImages?.length || 0} images {filterDifficulty !== 'all' ? `(${filterDifficulty})` : 'total'} · {images?.length || 0} of 365 uploaded
+          {filteredImages?.length || 0} images {filterDifficulty !== 'all' ? `(${filterDifficulty}pt)` : 'total'} · {images?.length || 0} of 365 uploaded
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -451,7 +450,7 @@ export function AdminImages() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-900">Day {img.dayNum}</span>
                     <span className={`px-2 py-0.5 rounded text-xs ${diffOption?.color || 'bg-gray-100 text-gray-700'}`}>
-                      {img.difficulty || 'beginner'}
+                      {img.difficulty}pt
                     </span>
                   </div>
                   <button
@@ -468,7 +467,7 @@ export function AdminImages() {
             <div className="col-span-full py-8 text-center text-gray-500">
               {filterDifficulty === 'all'
                 ? 'No images yet. Add your first one above.'
-                : `No ${filterDifficulty} images yet.`}
+                : `No ${filterDifficulty}pt images yet.`}
             </div>
           )}
         </div>

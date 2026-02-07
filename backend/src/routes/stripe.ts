@@ -98,6 +98,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
           totalDaysWon: existingUser.totalDaysWon,
           colorTheme: existingUser.colorTheme,
           referralCode: existingUser.referralCode,
+          desensitizationPoints: existingUser.desensitizationPoints,
         },
       });
       return;
@@ -192,6 +193,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
         totalDaysWon: user.totalDaysWon,
         colorTheme: user.colorTheme,
         referralCode: user.referralCode,
+        desensitizationPoints: user.desensitizationPoints,
       },
       referralApplied,
     });
@@ -228,6 +230,9 @@ router.post(
     }
 
     try {
+      // IMPORTANT: Auto-cancellation is based on user.totalDaysWon reaching 365,
+      // NOT on calendar days since signup. Users who reset their streak stay
+      // subscribed until they accumulate 365 Total Days Won.
       switch (event.type) {
         case 'customer.subscription.updated': {
           const subscription = event.data.object;
@@ -238,9 +243,27 @@ router.post(
           });
 
           if (user) {
+            // Never overwrite 'completed' status from 365-day goal achievement
+            if (user.completedAt || user.subscriptionStatus === 'completed') {
+              break;
+            }
+
             let status = 'active';
             if (subscription.status === 'trialing') status = 'trialing';
-            else if (subscription.status === 'canceled') status = 'canceled';
+            else if (subscription.status === 'canceled') {
+              // If user has reached 365 Total Days Won, mark as completed
+              if (user.totalDaysWon >= 365) {
+                await prisma.user.update({
+                  where: { id: user.id },
+                  data: {
+                    subscriptionStatus: 'completed',
+                    completedAt: new Date(),
+                  },
+                });
+                break;
+              }
+              status = 'canceled';
+            }
             else if (subscription.status === 'active') status = 'active';
 
             await prisma.user.update({
@@ -259,11 +282,27 @@ router.post(
             where: { stripeCustomerId: customerId },
           });
 
-          if (user && !user.completedAt) {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { subscriptionStatus: 'canceled' },
-            });
+          if (user) {
+            // Never overwrite 'completed' status
+            if (user.completedAt || user.subscriptionStatus === 'completed') {
+              break;
+            }
+
+            // If user reached 365 Total Days Won, mark as completed (not canceled)
+            if (user.totalDaysWon >= 365) {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  subscriptionStatus: 'completed',
+                  completedAt: new Date(),
+                },
+              });
+            } else {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { subscriptionStatus: 'canceled' },
+              });
+            }
           }
           break;
         }
@@ -291,7 +330,7 @@ router.post(
   }
 );
 
-// Cancel subscription (for 365-day completion or user request)
+// Cancel subscription (user-initiated only; 365-day completion is handled in check-in/missed-days routes)
 router.post('/cancel', async (req: Request, res: Response) => {
   try {
     const { userId } = req.body;
