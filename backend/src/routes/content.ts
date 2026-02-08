@@ -210,7 +210,7 @@ router.get('/resources', async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { createdAt: true },
+      select: { totalDaysWon: true },
     });
 
     if (!user) {
@@ -218,7 +218,7 @@ router.get('/resources', async (req: Request, res: Response) => {
       return;
     }
 
-    const week = getUserWeek(user.createdAt);
+    const week = getUserWeek(user.totalDaysWon);
 
     const resources = await prisma.resource.findMany({
       where: { week },
