@@ -1,323 +1,178 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useResources, useToggleBookmark } from '../hooks/useApi';
+import type { Resource } from '../api/client';
 
 type Tab = 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
 
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'studies', label: 'Scientific Studies' },
+  { key: 'testosterone', label: 'Testosterone' },
+  { key: 'intimacy', label: 'Real Intimacy' },
+  { key: 'wisdom', label: 'Wisdom' },
+];
+
 export function Resources() {
   const [activeTab, setActiveTab] = useState<Tab>('studies');
+  const { data, isLoading, error } = useResources();
+  const toggleBookmark = useToggleBookmark();
+
+  const filteredResources = data?.resources.filter(r => r.category === activeTab) || [];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto text-center py-12">
+        <p className="text-red-600">Failed to load resources. Please try again.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Resources</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Week {data?.week} Resources
+        </h1>
+        <Link to="/bookmarks" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+          View My Bookmarks
+        </Link>
+      </div>
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto">
-        <TabButton
-          active={activeTab === 'studies'}
-          onClick={() => setActiveTab('studies')}
-        >
-          Scientific Studies
-        </TabButton>
-        <TabButton
-          active={activeTab === 'testosterone'}
-          onClick={() => setActiveTab('testosterone')}
-        >
-          Testosterone
-        </TabButton>
-        <TabButton
-          active={activeTab === 'intimacy'}
-          onClick={() => setActiveTab('intimacy')}
-        >
-          Real Intimacy
-        </TabButton>
-        <TabButton
-          active={activeTab === 'wisdom'}
-          onClick={() => setActiveTab('wisdom')}
-        >
-          Wisdom
-        </TabButton>
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeTab === tab.key
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'studies' && <StudiesContent />}
-      {activeTab === 'testosterone' && <TestosteroneContent />}
-      {activeTab === 'intimacy' && <IntimacyContent />}
-      {activeTab === 'wisdom' && <WisdomContent />}
-    </div>
-  );
-}
+      {filteredResources.length === 0 ? (
+        <div className="card text-center py-12">
+          <p className="text-gray-500">No resources for this week yet. Check back later or browse your bookmarks.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {activeTab === 'testosterone' ? (
+            <>
+              <div className="card bg-primary-50 border-primary-200">
+                <p className="text-primary-800 text-sm">
+                  <strong>Note:</strong> Individual experiences vary. The goal isn't just testosterone — it's reclaiming your energy, focus, and self-control.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {filteredResources.map(r => (
+                  <ResourceCard key={r.id} resource={r} onBookmark={() => toggleBookmark.mutate(r.id)} />
+                ))}
+              </div>
+            </>
+          ) : activeTab === 'intimacy' ? (
+            <>
+              <div className="card bg-primary-50 border-primary-200">
+                <p className="text-primary-800 text-sm">
+                  <strong>Why This Matters:</strong> Quitting porn isn't just about stopping a bad habit — it's about preparing yourself for real, fulfilling intimacy.
+                </p>
+              </div>
+              {filteredResources.map(r => (
+                <ResourceCard key={r.id} resource={r} onBookmark={() => toggleBookmark.mutate(r.id)} />
+              ))}
+            </>
+          ) : (
+            filteredResources.map(r => (
+              <ResourceCard key={r.id} resource={r} onBookmark={() => toggleBookmark.mutate(r.id)} />
+            ))
+          )}
+        </div>
+      )}
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-        active
-          ? 'bg-white text-gray-900 shadow-sm'
-          : 'text-gray-600 hover:text-gray-900'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function StudiesContent() {
-  const studies = [
-    {
-      title: 'Neuroscience of Internet Pornography Addiction',
-      source: 'Behavioral Sciences, 2015',
-      summary: 'Research shows pornography consumption can lead to neuroplastic changes in the brain similar to substance addiction, affecting dopamine pathways and reward circuits.',
-      link: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4600144/',
-    },
-    {
-      title: 'Pornography and the Male Sexual Script',
-      source: 'Archives of Sexual Behavior, 2016',
-      summary: 'Study found that higher pornography use was associated with lower sexual satisfaction and less positive attitudes toward one\'s partner.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/25466233/',
-    },
-    {
-      title: 'Is Internet Pornography Causing Sexual Dysfunctions?',
-      source: 'Behavioral Sciences, 2016',
-      summary: 'Clinical reports suggest a rise in erectile dysfunction and delayed ejaculation in young men, with internet pornography as a potential contributing factor.',
-      link: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5039517/',
-    },
-    {
-      title: 'Brain Structure and Functional Connectivity',
-      source: 'JAMA Psychiatry, 2014',
-      summary: 'Research found that higher pornography consumption was associated with less gray matter volume in the striatum and reduced functional connectivity.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/24871202/',
-    },
-  ];
-
-  return (
-    <div className="space-y-4">
-      {studies.map((study, index) => (
-        <div key={index} className="card">
-          <h3 className="font-semibold text-gray-900 mb-1">{study.title}</h3>
-          <p className="text-sm text-primary-600 mb-2">{study.source}</p>
-          <p className="text-gray-600 text-sm mb-3">{study.summary}</p>
+      {/* Submit Wisdom section */}
+      {activeTab === 'wisdom' && (
+        <div className="card bg-primary-50 border-primary-200 text-center mt-6">
+          <p className="text-primary-800 text-sm mb-3">
+            Have wisdom to share with the community? Submit your own quote or lesson.
+          </p>
           <a
-            href={study.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-primary-600 hover:underline"
+            href="mailto:support@reclaim365.app?subject=Wisdom%20Submission&body=Quote:%0A%0ASource%20(optional,%20e.g.%20Marcus%20Aurelius,%20your%20therapist):%0A%0ALesson/Explanation:%0A"
+            className="btn btn-primary inline-block"
           >
-            Read full study →
+            Submit Wisdom
           </a>
         </div>
-      ))}
+      )}
     </div>
   );
 }
 
-function TestosteroneContent() {
-  const facts = [
-    {
-      title: 'The 7-Day Spike',
-      content: 'Research published in the Journal of Zhejiang University found that abstaining from ejaculation for 7 days resulted in a 145.7% spike in serum testosterone levels on the seventh day.',
-    },
-    {
-      title: 'Androgen Receptors',
-      content: 'Chronic overstimulation from pornography may lead to downregulation of androgen receptors, making your body less sensitive to the testosterone you produce.',
-    },
-    {
-      title: 'Prolactin Connection',
-      content: 'Orgasm triggers prolactin release, which temporarily suppresses dopamine and can affect motivation and energy. Frequent orgasms may lead to chronically elevated prolactin.',
-    },
-    {
-      title: 'Energy & Focus',
-      content: 'Many men report increased energy, motivation, and mental clarity during abstinence periods. This may be related to stabilized dopamine levels and hormonal balance.',
-    },
-    {
-      title: 'Physical Performance',
-      content: 'Historically, athletes have practiced abstinence before competitions. Some research suggests this may be related to testosterone optimization and increased aggression.',
-    },
-    {
-      title: 'Sleep Quality',
-      content: 'Better sleep is commonly reported during abstinence. Quality sleep is crucial for testosterone production, creating a positive feedback loop.',
-    },
-  ];
+function ResourceCard({ resource, onBookmark }: { resource: Resource; onBookmark: () => void }) {
+  const isWisdom = resource.category === 'wisdom';
 
   return (
-    <div className="space-y-4">
-      <div className="card bg-primary-50 border-primary-200">
-        <p className="text-primary-800 text-sm">
-          <strong>Note:</strong> Individual experiences vary. The goal isn't just testosterone—it's reclaiming your energy, focus, and self-control. These are observed patterns, not guaranteed outcomes.
-        </p>
-      </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        {facts.map((fact, index) => (
-          <div key={index} className="card">
-            <h3 className="font-semibold text-gray-900 mb-2">{fact.title}</h3>
-            <p className="text-gray-600 text-sm">{fact.content}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+    <div className="card relative">
+      {/* Bookmark heart */}
+      <button
+        onClick={onBookmark}
+        className="absolute top-3 right-3 p-1 hover:scale-110 transition-transform"
+        title={resource.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+      >
+        <svg
+          className={`w-5 h-5 ${resource.isBookmarked ? 'text-red-500 fill-red-500' : 'text-gray-300 hover:text-gray-400'}`}
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          fill={resource.isBookmarked ? 'currentColor' : 'none'}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </button>
 
-function IntimacyContent() {
-  const studies = [
-    {
-      title: 'Oxytocin and Pair Bonding in Humans',
-      source: 'Psychoneuroendocrinology, 2012',
-      summary: 'Physical intimacy with a real partner triggers sustained oxytocin release, strengthening emotional bonds and attachment. This "bonding hormone" creates lasting connection that pornography cannot replicate.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/22115921/',
-    },
-    {
-      title: 'Sexual Satisfaction and Relationship Quality',
-      source: 'Journal of Sex Research, 2017',
-      summary: 'Couples who engage in affectionate touch and real intimacy report significantly higher relationship satisfaction. Emotional presence during sex predicts long-term relationship success.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/28276929/',
-    },
-    {
-      title: 'Recovery from Porn-Induced Erectile Dysfunction',
-      source: 'Behavioral Sciences, 2016',
-      summary: 'Men who abstain from pornography often report full recovery of erectile function with real partners within 2-6 months. The brain\'s reward system recalibrates to respond to natural stimuli.',
-      link: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5039517/',
-    },
-    {
-      title: 'Performance Anxiety and Sexual Function',
-      source: 'Journal of Sexual Medicine, 2015',
-      summary: 'Performance anxiety from porn-induced expectations is a leading cause of sexual dysfunction in young men. Mindfulness and present-moment awareness with a partner significantly reduces anxiety.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/25545022/',
-    },
-    {
-      title: 'The Neuroscience of Human Touch',
-      source: 'Nature Neuroscience, 2014',
-      summary: 'Skin-to-skin contact activates C-tactile afferents that trigger dopamine and serotonin release in ways that visual stimulation cannot. Real touch creates neurochemical rewards that build genuine satisfaction.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/24997764/',
-    },
-    {
-      title: 'Pornography Use and Intimacy Avoidance',
-      source: 'Archives of Sexual Behavior, 2017',
-      summary: 'Higher pornography consumption is correlated with reduced desire for real intimacy and avoidance of emotional vulnerability. Quitting porn often restores interest in genuine connection.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/28677048/',
-    },
-    {
-      title: 'Benefits of Committed Relationships on Male Health',
-      source: 'Health Psychology, 2018',
-      summary: 'Men in committed intimate relationships show lower cortisol, better immune function, and longer lifespan. Real partnership provides health benefits that solitary behaviors cannot.',
-      link: 'https://pubmed.ncbi.nlm.nih.gov/29369662/',
-    },
-  ];
-
-  const tips = [
-    {
-      title: 'Presence Over Performance',
-      content: 'Real intimacy isn\'t about performing like in porn. It\'s about being fully present with another person. Focus on connection, not technique.',
-    },
-    {
-      title: 'Rewiring Takes Time',
-      content: 'Your brain needs time to recalibrate. Many men report that attraction to real partners intensifies after 60-90 days of abstaining from porn.',
-    },
-    {
-      title: 'Emotional Vulnerability',
-      content: 'True intimacy requires emotional openness—something porn trains you to avoid. Practice being vulnerable in small ways to rebuild this capacity.',
-    },
-    {
-      title: 'Touch Without Expectation',
-      content: 'Learn to enjoy physical affection without it needing to lead to sex. Holding hands, cuddling, and casual touch rebuild healthy intimacy patterns.',
-    },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="card bg-primary-50 border-primary-200">
-        <p className="text-primary-800 text-sm">
-          <strong>Why This Matters:</strong> Quitting porn isn't just about stopping a bad habit—it's about preparing yourself for real, fulfilling intimacy with a real partner. These studies show what you're working toward.
-        </p>
-      </div>
-
-      {/* Studies Section */}
-      <h3 className="text-lg font-semibold text-gray-900">Research on Real Intimacy</h3>
-      <div className="space-y-4">
-        {studies.map((study, index) => (
-          <div key={index} className="card">
-            <h3 className="font-semibold text-gray-900 mb-1">{study.title}</h3>
-            <p className="text-sm text-primary-600 mb-2">{study.source}</p>
-            <p className="text-gray-600 text-sm mb-3">{study.summary}</p>
+      {isWisdom ? (
+        <>
+          <blockquote className="text-lg text-gray-900 italic mb-2 pr-8">
+            "{resource.summary}"
+          </blockquote>
+          {resource.source && (
+            <p className="text-sm text-primary-600 mb-2">-- {resource.source}</p>
+          )}
+          {resource.link && (
+            <p className="text-gray-600 text-sm">{resource.link}</p>
+          )}
+        </>
+      ) : (
+        <>
+          <h3 className="font-semibold text-gray-900 mb-1 pr-8">{resource.title}</h3>
+          {resource.source && (
+            <p className="text-sm text-primary-600 mb-2">{resource.source}</p>
+          )}
+          <p className="text-gray-600 text-sm mb-3">{resource.summary}</p>
+          {resource.link && (
             <a
-              href={study.link}
+              href={resource.link}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-primary-600 hover:underline"
             >
               Read full study →
             </a>
-          </div>
-        ))}
-      </div>
-
-      {/* Tips Section */}
-      <h3 className="text-lg font-semibold text-gray-900 mt-8">Rebuilding Real Connection</h3>
-      <div className="grid md:grid-cols-2 gap-4">
-        {tips.map((tip, index) => (
-          <div key={index} className="card">
-            <h4 className="font-semibold text-gray-900 mb-2">{tip.title}</h4>
-            <p className="text-gray-600 text-sm">{tip.content}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function WisdomContent() {
-  const wisdom = [
-    {
-      quote: "The urge is temporary. The regret lasts much longer.",
-      lesson: "When you feel the pull, remember: this feeling will pass in minutes, but breaking your streak affects your momentum for days.",
-    },
-    {
-      quote: "You're not giving something up. You're getting your life back.",
-      lesson: "Reframe the journey. This isn't about deprivation—it's about reclaiming time, energy, and mental clarity.",
-    },
-    {
-      quote: "The first week is the hardest. After that, it gets easier—but never let your guard down.",
-      lesson: "Early days require constant vigilance. Later stages require wisdom to avoid overconfidence.",
-    },
-    {
-      quote: "Replace the habit, don't just remove it.",
-      lesson: "Fill the time and energy you reclaim with exercise, learning, socializing, or creative pursuits.",
-    },
-    {
-      quote: "Your brain will lie to you. It will say 'just once' or 'you deserve this.'",
-      lesson: "Recognize these thoughts as the addiction speaking. They're not your true desires.",
-    },
-    {
-      quote: "Track your triggers. Know your enemy.",
-      lesson: "Boredom, stress, loneliness, and late nights are common triggers. Identify yours and have a plan.",
-    },
-    {
-      quote: "Physical exercise is your best weapon.",
-      lesson: "When urges hit, intense physical activity can redirect that energy productively.",
-    },
-    {
-      quote: "It's not about perfection. It's about progress.",
-      lesson: "If you slip, don't spiral. Learn what went wrong, adjust your strategy, and continue forward.",
-    },
-  ];
-
-  return (
-    <div className="space-y-4">
-      {wisdom.map((item, index) => (
-        <div key={index} className="card">
-          <blockquote className="text-lg text-gray-900 italic mb-2">
-            "{item.quote}"
-          </blockquote>
-          <p className="text-gray-600 text-sm">{item.lesson}</p>
-        </div>
-      ))}
+          )}
+        </>
+      )}
     </div>
   );
 }

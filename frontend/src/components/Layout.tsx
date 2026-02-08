@@ -115,6 +115,9 @@ export function Layout({ children }: LayoutProps) {
                   <NavLink to="/admin/images" current={location.pathname === '/admin/images'}>
                     Images
                   </NavLink>
+                  <NavLink to="/admin/resources" current={location.pathname === '/admin/resources'}>
+                    Resources
+                  </NavLink>
                 </div>
               </div>
               <div className="flex items-center">

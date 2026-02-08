@@ -42,6 +42,7 @@ model User {
   referralRewardsReceived ReferralReward[] @relation("referred")
   urgeSurfEvents      UrgeSurfEvent[]
   desensitizationLogs DesensitizationLog[]
+  bookmarks           Bookmark[]
 }
 
 model CheckIn {
@@ -119,4 +120,31 @@ model ReferralReward {
   stripeApplied Boolean  @default(false)
 
   @@unique([referrerId, referredId])
+}
+
+model Resource {
+  id        String     @id @default(cuid())
+  week      Int
+  category  String     // 'studies' | 'testosterone' | 'intimacy' | 'wisdom'
+  title     String
+  source    String?
+  summary   String
+  link      String?
+  createdAt DateTime   @default(now())
+
+  bookmarks Bookmark[]
+
+  @@index([week, category])
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  resourceId String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, resourceId])
+  @@index([userId])
 }

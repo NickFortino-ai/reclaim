@@ -194,6 +194,98 @@ export function useDeleteImage() {
   });
 }
 
+// Resource hooks
+export function useResources() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['resources'],
+    queryFn: () => api.content.getResources(token!),
+    enabled: !!token,
+  });
+}
+
+export function useToggleBookmark() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (resourceId: string) => api.content.toggleBookmark(token!, resourceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+    },
+  });
+}
+
+export function useBookmarks() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['bookmarks'],
+    queryFn: () => api.content.getBookmarks(token!),
+    enabled: !!token,
+  });
+}
+
+// Admin resource hooks
+export function useAdminResources(week?: number) {
+  const { token, isAdmin } = useAuth();
+
+  return useQuery({
+    queryKey: ['admin', 'resources', week],
+    queryFn: () => api.admin.getResources(token!, week),
+    enabled: !!token && isAdmin,
+  });
+}
+
+export function useSaveResource() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      id?: string;
+      week: number;
+      category: string;
+      title: string;
+      source?: string;
+      summary: string;
+      link?: string;
+    }) => api.admin.saveResource(token!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'resources'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    },
+  });
+}
+
+export function useDeleteResource() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.admin.deleteResource(token!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'resources'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    },
+  });
+}
+
+export function useMoveResource() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, week }: { id: string; week: number }) =>
+      api.admin.moveResource(token!, id, week),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'resources'] });
+    },
+  });
+}
+
 // Referral hooks
 export function useReferralStats() {
   const { token } = useAuth();

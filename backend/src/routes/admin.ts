@@ -4,6 +4,7 @@ import multer from 'multer';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
 import { uploadImage, deleteImage } from '../services/supabase.js';
+import { isValidCategory } from '../utils/week.js';
 
 const router = Router();
 
@@ -232,6 +233,11 @@ router.get('/stats', async (_req: Request, res: Response) => {
     // Affirmation and image coverage
     const affirmationCount = await prisma.affirmation.count();
     const imageCount = await prisma.desensImage.count();
+    const resourceCount = await prisma.resource.count();
+    const resourceWeeksCovered = await prisma.resource.groupBy({
+      by: ['week'],
+      _count: { id: true },
+    });
 
     res.json({
       users: {
@@ -254,6 +260,8 @@ router.get('/stats', async (_req: Request, res: Response) => {
       content: {
         affirmations: affirmationCount,
         images: imageCount,
+        resources: resourceCount,
+        resourceWeeksCovered: `${resourceWeeksCovered.length}/52`,
         affirmationCoverage: `${Math.round((affirmationCount / 365) * 100)}%`,
         imageCoverage: `${Math.round((imageCount / 365) * 100)}%`,
       },
@@ -284,6 +292,100 @@ router.post('/create-admin', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Create admin error:', error);
     res.status(500).json({ error: 'Failed to create admin' });
+  }
+});
+
+// Get resources (optionally filtered by week)
+router.get('/resources', async (req: Request, res: Response) => {
+  try {
+    const week = req.query.week ? parseInt(req.query.week as string) : undefined;
+    const where = week ? { week } : {};
+
+    const resources = await prisma.resource.findMany({
+      where,
+      orderBy: [{ week: 'asc' }, { category: 'asc' }],
+    });
+
+    const weekCounts = await prisma.resource.groupBy({
+      by: ['week'],
+      _count: { id: true },
+      orderBy: { week: 'asc' },
+    });
+
+    res.json({ resources, weekCounts });
+  } catch (error) {
+    console.error('Admin get resources error:', error);
+    res.status(500).json({ error: 'Failed to fetch resources' });
+  }
+});
+
+// Create or update a resource
+router.post('/resources', async (req: Request, res: Response) => {
+  try {
+    const { id, week, category, title, source, summary, link } = req.body;
+
+    if (!week || week < 1 || week > 52) {
+      res.status(400).json({ error: 'Week must be between 1 and 52' });
+      return;
+    }
+    if (!category || !isValidCategory(category)) {
+      res.status(400).json({ error: 'Invalid category' });
+      return;
+    }
+    if (!title || !summary) {
+      res.status(400).json({ error: 'Title and summary are required' });
+      return;
+    }
+
+    let resource;
+    if (id) {
+      resource = await prisma.resource.update({
+        where: { id },
+        data: { week, category, title, source: source || null, summary, link: link || null },
+      });
+    } else {
+      resource = await prisma.resource.create({
+        data: { week, category, title, source: source || null, summary, link: link || null },
+      });
+    }
+
+    res.json(resource);
+  } catch (error) {
+    console.error('Admin save resource error:', error);
+    res.status(500).json({ error: 'Failed to save resource' });
+  }
+});
+
+// Delete a resource
+router.delete('/resources/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.resource.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Resource deleted' });
+  } catch (error) {
+    console.error('Admin delete resource error:', error);
+    res.status(500).json({ error: 'Failed to delete resource' });
+  }
+});
+
+// Move a resource to a different week
+router.patch('/resources/:id/move', async (req: Request, res: Response) => {
+  try {
+    const { week } = req.body;
+
+    if (!week || week < 1 || week > 52) {
+      res.status(400).json({ error: 'Week must be between 1 and 52' });
+      return;
+    }
+
+    const resource = await prisma.resource.update({
+      where: { id: req.params.id },
+      data: { week },
+    });
+
+    res.json(resource);
+  } catch (error) {
+    console.error('Admin move resource error:', error);
+    res.status(500).json({ error: 'Failed to move resource' });
   }
 });
 

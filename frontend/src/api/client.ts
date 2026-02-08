@@ -169,6 +169,36 @@ export interface DesensCompleteResponse {
   isComplete: boolean;
 }
 
+// Resources
+export interface Resource {
+  id: string;
+  week: number;
+  category: 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
+  title: string;
+  source: string | null;
+  summary: string;
+  link: string | null;
+  isBookmarked: boolean;
+}
+
+export interface ResourcesResponse {
+  week: number;
+  resources: Resource[];
+}
+
+export interface BookmarksResponse {
+  resources: Resource[];
+}
+
+export interface BookmarkToggleResponse {
+  bookmarked: boolean;
+}
+
+export interface AdminResourcesResponse {
+  resources: Resource[];
+  weekCounts: { week: number; _count: { id: number } }[];
+}
+
 export const content = {
   getAffirmation: (token: string, day: number) =>
     request<Affirmation>(`/api/content/affirmation/${day}`, { token }),
@@ -189,6 +219,18 @@ export const content = {
       token,
       body: { imageId },
     }),
+
+  getResources: (token: string) =>
+    request<ResourcesResponse>('/api/content/resources', { token }),
+
+  toggleBookmark: (token: string, resourceId: string) =>
+    request<BookmarkToggleResponse>(`/api/content/resources/${resourceId}/bookmark`, {
+      method: 'POST',
+      token,
+    }),
+
+  getBookmarks: (token: string) =>
+    request<BookmarksResponse>('/api/content/bookmarks', { token }),
 };
 
 // Stripe
@@ -262,6 +304,8 @@ export interface AdminStats {
   content: {
     affirmations: number;
     images: number;
+    resources: number;
+    resourceWeeksCovered: string;
     affirmationCoverage: string;
     imageCoverage: string;
   };
@@ -325,6 +369,37 @@ export const admin = {
 
   deleteImage: (token: string, id: string) =>
     request<{ message: string }>(`/api/admin/images/${id}`, { method: 'DELETE', token }),
+
+  getResources: (token: string, week?: number) =>
+    request<AdminResourcesResponse>(
+      `/api/admin/resources${week ? `?week=${week}` : ''}`,
+      { token }
+    ),
+
+  saveResource: (token: string, data: {
+    id?: string;
+    week: number;
+    category: string;
+    title: string;
+    source?: string;
+    summary: string;
+    link?: string;
+  }) =>
+    request<Resource>('/api/admin/resources', {
+      method: 'POST',
+      token,
+      body: data,
+    }),
+
+  deleteResource: (token: string, id: string) =>
+    request<{ message: string }>(`/api/admin/resources/${id}`, { method: 'DELETE', token }),
+
+  moveResource: (token: string, id: string, week: number) =>
+    request<Resource>(`/api/admin/resources/${id}/move`, {
+      method: 'PATCH',
+      token,
+      body: { week },
+    }),
 };
 
 export { ApiError };

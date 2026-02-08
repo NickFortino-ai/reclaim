@@ -31,6 +31,8 @@ import { AdminLogin } from './pages/admin/AdminLogin';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminAffirmations } from './pages/admin/AdminAffirmations';
 import { AdminImages } from './pages/admin/AdminImages';
+import { AdminResources } from './pages/admin/AdminResources';
+import { Bookmarks } from './pages/Bookmarks';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -195,6 +197,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/bookmarks"
+          element={
+            <ProtectedRoute>
+              <Bookmarks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/celebration"
           element={
             <ProtectedRoute>
@@ -226,6 +236,14 @@ function AppRoutes() {
           element={
             <AdminRoute>
               <AdminImages />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/resources"
+          element={
+            <AdminRoute>
+              <AdminResources />
             </AdminRoute>
           }
         />

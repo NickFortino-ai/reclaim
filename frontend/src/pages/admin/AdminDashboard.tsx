@@ -113,6 +113,18 @@ export function AdminDashboard() {
                 />
               </div>
             </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-600">Resources</span>
+                <span className="font-medium">{stats.content.resources} ({stats.content.resourceWeeksCovered} weeks)</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${(parseInt(stats.content.resourceWeeksCovered) / 52) * 100}%` }}
+                />
+              </div>
+            </div>
           </div>
           <p className="mt-4 text-sm text-gray-500">
             Average total days won: {stats.totalDaysAverage}

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { getCurrentWeek } from '../utils/week.js';
 
 const router = Router();
 
@@ -189,6 +190,102 @@ router.post('/urge-surf', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Log urge surf event error:', error);
     res.status(500).json({ error: 'Failed to log event' });
+  }
+});
+
+// Get current week's resources with bookmark flags
+router.get('/resources', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const week = getCurrentWeek();
+
+    const resources = await prisma.resource.findMany({
+      where: { week },
+      orderBy: { category: 'asc' },
+      include: {
+        bookmarks: {
+          where: { userId },
+          select: { id: true },
+        },
+      },
+    });
+
+    const result = resources.map(r => ({
+      id: r.id,
+      week: r.week,
+      category: r.category,
+      title: r.title,
+      source: r.source,
+      summary: r.summary,
+      link: r.link,
+      isBookmarked: r.bookmarks.length > 0,
+    }));
+
+    res.json({ week, resources: result });
+  } catch (error) {
+    console.error('Get resources error:', error);
+    res.status(500).json({ error: 'Failed to get resources' });
+  }
+});
+
+// Toggle bookmark on a resource
+router.post('/resources/:id/bookmark', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const resourceId = req.params.id;
+
+    const resource = await prisma.resource.findUnique({
+      where: { id: resourceId },
+    });
+
+    if (!resource) {
+      res.status(404).json({ error: 'Resource not found' });
+      return;
+    }
+
+    const existing = await prisma.bookmark.findUnique({
+      where: { userId_resourceId: { userId, resourceId } },
+    });
+
+    if (existing) {
+      await prisma.bookmark.delete({ where: { id: existing.id } });
+      res.json({ bookmarked: false });
+    } else {
+      await prisma.bookmark.create({ data: { userId, resourceId } });
+      res.json({ bookmarked: true });
+    }
+  } catch (error) {
+    console.error('Toggle bookmark error:', error);
+    res.status(500).json({ error: 'Failed to toggle bookmark' });
+  }
+});
+
+// Get user's bookmarked resources
+router.get('/bookmarks', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const bookmarks = await prisma.bookmark.findMany({
+      where: { userId },
+      include: { resource: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const resources = bookmarks.map(b => ({
+      id: b.resource.id,
+      week: b.resource.week,
+      category: b.resource.category,
+      title: b.resource.title,
+      source: b.resource.source,
+      summary: b.resource.summary,
+      link: b.resource.link,
+      isBookmarked: true,
+    }));
+
+    res.json({ resources });
+  } catch (error) {
+    console.error('Get bookmarks error:', error);
+    res.status(500).json({ error: 'Failed to get bookmarks' });
   }
 });
 
