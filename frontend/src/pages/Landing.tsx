@@ -41,7 +41,7 @@ export function Landing() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center sm:items-start mb-16">
             <button
               onClick={handleTryDemo}
               className="w-full sm:w-auto px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all border border-slate-600 hover:border-slate-500"
@@ -254,6 +254,12 @@ export function Landing() {
           <div className="flex items-center gap-4 text-sm">
             <Link to="/faq" className="text-slate-400 hover:text-white">
               FAQ
+            </Link>
+            <Link to="/privacy" className="text-slate-400 hover:text-white">
+              Privacy
+            </Link>
+            <Link to="/terms" className="text-slate-400 hover:text-white">
+              Terms
             </Link>
             <span className="text-slate-600">Reclaim — Built for men, by men.</span>
           </div>

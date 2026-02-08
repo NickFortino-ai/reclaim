@@ -18,6 +18,8 @@ import { Community } from './pages/Community';
 import { Settings } from './pages/Settings';
 import { Celebration } from './pages/Celebration';
 import { FAQ } from './pages/FAQ';
+import { Privacy } from './pages/Privacy';
+import { Terms } from './pages/Terms';
 
 // Demo Pages
 import { DemoDashboard } from './pages/demo/DemoDashboard';
@@ -122,6 +124,8 @@ function AppRoutes() {
         <Route path="/register/success" element={<RegisterSuccess />} />
         <Route path="/register/cancel" element={<RegisterCancel />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Demo routes */}
         <Route
