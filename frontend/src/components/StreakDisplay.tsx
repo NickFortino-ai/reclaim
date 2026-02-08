@@ -4,7 +4,7 @@ interface StreakDisplayProps {
 }
 
 export function StreakDisplay({ currentStreak, totalDaysWon }: StreakDisplayProps) {
-  const progress = Math.min((totalDaysWon / 365) * 100, 100);
+  const progress = Math.min((currentStreak / 365) * 100, 100);
 
   return (
     <div className="card">
@@ -22,7 +22,7 @@ export function StreakDisplay({ currentStreak, totalDaysWon }: StreakDisplayProp
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Progress to Freedom</span>
-          <span className="font-medium text-primary-600">{totalDaysWon}/365 days</span>
+          <span className="font-medium text-primary-600">{currentStreak}/365 days</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <div
@@ -31,7 +31,7 @@ export function StreakDisplay({ currentStreak, totalDaysWon }: StreakDisplayProp
           />
         </div>
         <p className="text-sm text-gray-500 text-center">
-          {365 - totalDaysWon} more days to earn — subscription auto-cancels at 365
+          {365 - currentStreak} more streak days — subscription auto-cancels at 365-day streak
         </p>
       </div>
     </div>

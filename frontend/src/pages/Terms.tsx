@@ -40,10 +40,10 @@ export function Terms() {
                 canceled. You can cancel at any time through the app settings.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                <strong>365-day completion:</strong> When you reach 365 Total Days Won (accumulated days where
-                you checked in and stayed strong), your subscription is automatically canceled and your account
-                is marked as completed. This is based on your total days won, not calendar days since signup.
-                If you reset your streak, you keep your subscription until you accumulate 365 total days.
+                <strong>365-day completion:</strong> When you achieve an unbroken 365-day streak (365 consecutive days
+                where you checked in and stayed strong), your subscription is automatically canceled and your account
+                is marked as completed. If you reset your streak, the completion progress resets and you stay
+                subscribed until you complete a full 365-day streak.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 <strong>Referral program:</strong> You can earn free weeks by referring others. Refer 10 people

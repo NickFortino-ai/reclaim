@@ -173,9 +173,9 @@ export function Settings() {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-500">Progress</p>
-              <p className="text-sm text-gray-500">Total Days Won</p>
-              <p className="text-lg font-bold text-primary-600">{user?.totalDaysWon || 0} / 365</p>
+              <p className="text-sm text-gray-500">Streak Progress</p>
+              <p className="text-sm text-gray-500">Current Streak</p>
+              <p className="text-lg font-bold text-primary-600">{user?.currentStreak || 0} / 365</p>
             </div>
           </div>
 
@@ -411,7 +411,7 @@ function ReferralSection() {
       {!data.lifetimeAccess && (
         <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
           <p className="text-sm text-purple-800">
-            <span className="font-medium">Lifetime Access:</span> Complete 365 days and refer 3 brothers
+            <span className="font-medium">Lifetime Access:</span> Complete a 365-day streak and refer 3 brothers
             to unlock free lifetime access to Reclaim.
           </p>
         </div>

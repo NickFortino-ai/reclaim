@@ -23,7 +23,7 @@ const sections: FAQSection[] = [
       {
         question: 'How does billing work?',
         answer:
-          'Just $0.69 per week (billed monthly). Your subscription automatically cancels when you reach 365 Total Days Won \u2014 not 365 calendar days. If you reset your streak, you stay subscribed until you earn all 365 days of freedom. First day is free.',
+          'Just $0.69 per week (billed monthly). Your subscription automatically cancels when you achieve an unbroken 365-day streak. If you reset your streak, the progress bar resets and you stay subscribed until you complete a full 365-day streak. First day is free.',
       },
       {
         question: 'Can I cancel anytime?',
@@ -43,7 +43,7 @@ const sections: FAQSection[] = [
       {
         question: 'What if I reset my streak?',
         answer:
-          "Resets happen \u2014 they\u2019re part of the journey, not the end of it. When you reset, your current streak goes to Day 1, but your Total Days Won keeps climbing. You stay subscribed until you complete 365 Total Days Won. The brotherhood is here to support you through every reset and victory.",
+          "Resets happen \u2014 they\u2019re part of the journey, not the end of it. When you reset, your current streak goes to Day 1, but your Total Days Won keeps climbing. You stay subscribed until you complete an unbroken 365-day streak. The brotherhood is here to support you through every reset and victory.",
       },
       {
         question: 'Why 365 days specifically?',

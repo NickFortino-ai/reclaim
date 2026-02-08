@@ -204,7 +204,7 @@ VITE_STRIPE_PUBLIC_KEY=pk_test_...
 - **Anonymous Auth**: Users identified only by 8-character access codes
 - **Streak Tracking**: Current streak and total days won
 - **Missed Days Detection**: Prompts users who haven't checked in
-- **365-Day Completion**: Auto-cancels subscription when Total Days Won reaches 365 (resets don't count — users stay subscribed until they earn all 365 days)
+- **365-Day Completion**: Auto-cancels subscription when user achieves an unbroken 365-day streak (resets restart the progress — users stay subscribed until they complete a full streak)
 - **12 Color Themes**: Personalize your experience
 - **Community Support**: Anonymous encouragement between users
 - **Desensitization Exercises**: Daily exposure therapy content

@@ -230,9 +230,9 @@ router.post(
     }
 
     try {
-      // IMPORTANT: Auto-cancellation is based on user.totalDaysWon reaching 365,
-      // NOT on calendar days since signup. Users who reset their streak stay
-      // subscribed until they accumulate 365 Total Days Won.
+      // IMPORTANT: Auto-cancellation is based on achieving a 365-day unbroken streak.
+      // Users who reset their streak stay subscribed until they complete a full
+      // 365-day streak without resetting.
       switch (event.type) {
         case 'customer.subscription.updated': {
           const subscription = event.data.object;
@@ -243,7 +243,7 @@ router.post(
           });
 
           if (user) {
-            // Never overwrite 'completed' status from 365-day goal achievement
+            // Never overwrite 'completed' status from 365-day streak achievement
             if (user.completedAt || user.subscriptionStatus === 'completed') {
               break;
             }
@@ -251,8 +251,8 @@ router.post(
             let status = 'active';
             if (subscription.status === 'trialing') status = 'trialing';
             else if (subscription.status === 'canceled') {
-              // If user has reached 365 Total Days Won, mark as completed
-              if (user.totalDaysWon >= 365) {
+              // If user achieved 365-day streak, mark as completed
+              if (user.currentStreak >= 365) {
                 await prisma.user.update({
                   where: { id: user.id },
                   data: {
@@ -288,8 +288,8 @@ router.post(
               break;
             }
 
-            // If user reached 365 Total Days Won, mark as completed (not canceled)
-            if (user.totalDaysWon >= 365) {
+            // If user achieved 365-day streak, mark as completed (not canceled)
+            if (user.currentStreak >= 365) {
               await prisma.user.update({
                 where: { id: user.id },
                 data: {

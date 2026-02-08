@@ -113,10 +113,10 @@ router.post('/checkin', async (req: Request, res: Response) => {
       },
     });
 
-    // Check for 365-day completion (Total Days Won, not calendar days)
+    // Check for 365-day streak completion
     let completed = false;
-    if (newTotalDaysWon >= 365 && !user.completedAt) {
-      // Auto-cancel subscription — user earned 365 Total Days Won
+    if (newStreak >= 365 && !user.completedAt) {
+      // Auto-cancel subscription — user achieved 365-day unbroken streak
       if (user.stripeSubscriptionId) {
         try {
           await stripe.subscriptions.cancel(user.stripeSubscriptionId);
@@ -169,7 +169,7 @@ router.post('/missed-days', async (req: Request, res: Response) => {
     if (stayedStrong) {
       // Add missed days to streak and total
       const newStreak = user.currentStreak + missedDays;
-      const newTotalDaysWon = Math.min(user.totalDaysWon + missedDays, 365);
+      const newTotalDaysWon = user.totalDaysWon + missedDays;
 
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
@@ -189,9 +189,9 @@ router.post('/missed-days', async (req: Request, res: Response) => {
         },
       });
 
-      // Check for 365-day completion (Total Days Won, not calendar days)
+      // Check for 365-day streak completion
       let completed = false;
-      if (newTotalDaysWon >= 365 && !user.completedAt) {
+      if (newStreak >= 365 && !user.completedAt) {
         if (user.stripeSubscriptionId) {
           try {
             await stripe.subscriptions.cancel(user.stripeSubscriptionId);

@@ -163,7 +163,7 @@ export function Layout({ children }: LayoutProps) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600 hidden sm:block">
-                  Day {user.totalDaysWon + 1} of 365
+                  Streak: {user.currentStreak} / 365
                 </span>
                 <Link
                   to="/settings"
