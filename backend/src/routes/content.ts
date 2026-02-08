@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { getCurrentWeek } from '../utils/week.js';
+import { getUserWeek } from '../utils/week.js';
 
 const router = Router();
 
@@ -207,7 +207,18 @@ router.post('/urge-surf', async (req: Request, res: Response) => {
 router.get('/resources', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    const week = getCurrentWeek();
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const week = getUserWeek(user.createdAt);
 
     const resources = await prisma.resource.findMany({
       where: { week },

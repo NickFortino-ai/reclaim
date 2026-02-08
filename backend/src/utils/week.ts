@@ -1,7 +1,7 @@
-export function getCurrentWeek(): number {
-  const epoch = new Date('2026-01-01T00:00:00Z');
+/** Returns the user's personal week (1-52) based on their signup date. Cycles after 52. */
+export function getUserWeek(createdAt: Date): number {
   const now = new Date();
-  const diffMs = now.getTime() - epoch.getTime();
+  const diffMs = now.getTime() - createdAt.getTime();
   const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
   return (diffWeeks % 52) + 1;
 }
