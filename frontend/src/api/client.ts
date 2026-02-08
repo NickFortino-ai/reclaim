@@ -311,9 +311,21 @@ export interface AdminStats {
   };
 }
 
+export interface AdminUserResult {
+  id: string;
+  displayName: string;
+  accessCode: string;
+  currentStreak: number;
+  totalDaysWon: number;
+  createdAt: string;
+}
+
 export const admin = {
   getStats: (token: string) =>
     request<AdminStats>('/api/admin/stats', { token }),
+
+  searchUsers: (token: string, q: string) =>
+    request<AdminUserResult[]>(`/api/admin/users/search?q=${encodeURIComponent(q)}`, { token }),
 
   getAffirmations: (token: string) =>
     request<Affirmation[]>('/api/admin/affirmations', { token }),

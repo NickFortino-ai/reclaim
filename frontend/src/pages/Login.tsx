@@ -41,11 +41,13 @@ export function Login() {
             <input
               id="accessCode"
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-              placeholder="XXXXXXXX"
-              className="input text-center text-xl tracking-widest uppercase"
-              maxLength={8}
+              onChange={(e) => setAccessCode(e.target.value.replace(/\D/g, ''))}
+              placeholder="0000"
+              className="input text-center text-3xl tracking-[0.5em] font-mono"
+              maxLength={4}
               required
             />
           </div>
@@ -56,7 +58,7 @@ export function Login() {
 
           <button
             type="submit"
-            disabled={loading || accessCode.length !== 8}
+            disabled={loading || accessCode.length !== 4}
             className="w-full btn btn-primary py-3"
           >
             {loading ? 'Logging in...' : 'Login'}

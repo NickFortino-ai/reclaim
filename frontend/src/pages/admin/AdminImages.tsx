@@ -6,9 +6,10 @@ import {
 } from '../../hooks/useApi';
 
 const DIFFICULTY_OPTIONS = [
-  { value: 1, label: 'Easy (1 point)', color: 'bg-green-100 text-green-700' },
-  { value: 2, label: 'Medium (2 points)', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 3, label: 'Hard (3 points)', color: 'bg-orange-100 text-orange-700' },
+  { value: 0, label: 'Neutral (0 points)', labelLong: 'Neutral (0 points) - Pattern interrupt', color: 'bg-blue-100 text-blue-700' },
+  { value: 1, label: 'Easy (1 point)', labelLong: 'Easy (1 point)', color: 'bg-green-100 text-green-700' },
+  { value: 2, label: 'Medium (2 points)', labelLong: 'Medium (2 points)', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 3, label: 'Hard (3 points)', labelLong: 'Hard (3 points)', color: 'bg-orange-100 text-orange-700' },
 ];
 
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -226,7 +227,7 @@ export function AdminImages() {
       </div>
 
       {/* Difficulty coverage stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {DIFFICULTY_OPTIONS.map(opt => (
           <div key={opt.value} className={`p-4 rounded-lg ${opt.color}`}>
             <div className="font-semibold">{opt.label.split(' (')[0]}</div>
@@ -273,7 +274,7 @@ export function AdminImages() {
                   required
                 >
                   {DIFFICULTY_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>{opt.labelLong}</option>
                   ))}
                 </select>
               </div>

@@ -64,7 +64,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { accessCode: accessCode.toUpperCase() },
+      where: { accessCode: accessCode.trim() },
     });
 
     if (!user) {

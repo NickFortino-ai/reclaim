@@ -43,61 +43,71 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
       return;
     }
 
-    // Weighted difficulty selection based on day progression
-    let weights: { difficulty: number; weight: number }[];
-    if (dayNum <= 30) {
-      weights = [{ difficulty: 1, weight: 1 }];
-    } else if (dayNum <= 90) {
-      weights = [
-        { difficulty: 1, weight: 0.3 },
-        { difficulty: 2, weight: 0.7 },
-      ];
-    } else if (dayNum <= 180) {
-      weights = [
-        { difficulty: 2, weight: 0.3 },
-        { difficulty: 3, weight: 0.7 },
-      ];
-    } else {
-      weights = [
-        { difficulty: 1, weight: 0.2 },
-        { difficulty: 2, weight: 0.4 },
-        { difficulty: 3, weight: 0.4 },
-      ];
-    }
-
-    // Pick a difficulty tier via weighted random
-    const rand = Math.random();
-    let cumulative = 0;
-    let selectedDifficulty = weights[0].difficulty;
-    for (const w of weights) {
-      cumulative += w.weight;
-      if (rand <= cumulative) {
-        selectedDifficulty = w.difficulty;
-        break;
-      }
-    }
-
-    let image;
-    let images = await prisma.desensImage.findMany({
-      where: { difficulty: selectedDifficulty },
+    // Check if a neutral (difficulty 0) image is assigned to this exact day
+    const neutralImage = await prisma.desensImage.findFirst({
+      where: { dayNum, difficulty: 0 },
     });
 
-    // Fallback: try other tiers in weight order
-    if (images.length === 0) {
-      for (const w of weights) {
-        if (w.difficulty === selectedDifficulty) continue;
-        images = await prisma.desensImage.findMany({
-          where: { difficulty: w.difficulty },
-        });
-        if (images.length > 0) break;
-      }
-    }
+    let image;
 
-    // Final fallback: any image
-    if (images.length === 0) {
-      image = await prisma.desensImage.findFirst();
+    if (neutralImage) {
+      image = neutralImage;
     } else {
-      image = images[Math.floor(Math.random() * images.length)];
+      // Weighted difficulty selection based on day progression
+      let weights: { difficulty: number; weight: number }[];
+      if (dayNum <= 30) {
+        weights = [{ difficulty: 1, weight: 1 }];
+      } else if (dayNum <= 90) {
+        weights = [
+          { difficulty: 1, weight: 0.3 },
+          { difficulty: 2, weight: 0.7 },
+        ];
+      } else if (dayNum <= 180) {
+        weights = [
+          { difficulty: 2, weight: 0.3 },
+          { difficulty: 3, weight: 0.7 },
+        ];
+      } else {
+        weights = [
+          { difficulty: 1, weight: 0.2 },
+          { difficulty: 2, weight: 0.4 },
+          { difficulty: 3, weight: 0.4 },
+        ];
+      }
+
+      // Pick a difficulty tier via weighted random
+      const rand = Math.random();
+      let cumulative = 0;
+      let selectedDifficulty = weights[0].difficulty;
+      for (const w of weights) {
+        cumulative += w.weight;
+        if (rand <= cumulative) {
+          selectedDifficulty = w.difficulty;
+          break;
+        }
+      }
+
+      let images = await prisma.desensImage.findMany({
+        where: { difficulty: selectedDifficulty },
+      });
+
+      // Fallback: try other tiers in weight order
+      if (images.length === 0) {
+        for (const w of weights) {
+          if (w.difficulty === selectedDifficulty) continue;
+          images = await prisma.desensImage.findMany({
+            where: { difficulty: w.difficulty },
+          });
+          if (images.length > 0) break;
+        }
+      }
+
+      // Final fallback: any image
+      if (images.length === 0) {
+        image = await prisma.desensImage.findFirst();
+      } else {
+        image = images[Math.floor(Math.random() * images.length)];
+      }
     }
 
     if (!image) {

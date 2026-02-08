@@ -50,10 +50,10 @@ export function Community() {
     return member?.alreadySupported || justSupported.has(memberId);
   };
 
-  // Filter for active streaks and get top 20
+  // Filter for active streaks and get top 25
   const leaderboard = data.members
     .filter((m) => m.currentStreak > 0)
-    .slice(0, 20);
+    .slice(0, 25);
 
   // Find current user's rank
   const userRank = data.members.findIndex((m) => m.id === user?.id) + 1;
@@ -146,9 +146,9 @@ export function Community() {
             })}
           </div>
 
-          {leaderboard.length === 20 && data.members.filter(m => m.currentStreak > 0).length > 20 && (
+          {leaderboard.length === 25 && data.members.filter(m => m.currentStreak > 0).length > 25 && (
             <p className="text-sm text-gray-500 text-center mt-3">
-              Showing top 20 of {data.members.filter(m => m.currentStreak > 0).length} active warriors
+              Showing top 25 of {data.members.filter(m => m.currentStreak > 0).length} active warriors
             </p>
           )}
         </div>

@@ -1,7 +1,17 @@
-import { useAdminStats } from '../../hooks/useApi';
+import { useState } from 'react';
+import { useAdminStats, useAdminUserSearch } from '../../hooks/useApi';
 
 export function AdminDashboard() {
   const { data: stats, isLoading, error } = useAdminStats();
+  const [search, setSearch] = useState('');
+  const { data: users, isFetching: searchLoading } = useAdminUserSearch(search);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyCode = (code: string, id: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   if (isLoading) {
     return (
@@ -44,6 +54,49 @@ export function AdminDashboard() {
           value={stats.checkInsToday}
           color="amber"
         />
+      </div>
+
+      {/* User Search */}
+      <div className="card">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">User Lookup</h2>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by warrior name..."
+          className="input"
+        />
+        {search.length >= 2 && (
+          <div className="mt-3">
+            {searchLoading ? (
+              <p className="text-sm text-gray-500">Searching...</p>
+            ) : users && users.length > 0 ? (
+              <div className="divide-y divide-gray-100">
+                {users.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between py-3 gap-4">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{u.displayName || 'No name set'}</p>
+                      <p className="text-sm text-gray-500">
+                        Streak: {u.currentStreak} days &middot; Total: {u.totalDaysWon} days &middot; Joined {new Date(u.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{u.accessCode}</code>
+                      <button
+                        onClick={() => copyCode(u.accessCode, u.id)}
+                        className="btn btn-secondary text-xs py-1 px-2"
+                      >
+                        {copiedId === u.id ? 'Copied!' : 'Copy Code'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No users found.</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

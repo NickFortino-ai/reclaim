@@ -68,12 +68,7 @@ export function generateDisplayName(): string {
 }
 
 export function generateAccessCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(crypto.randomInt(0, chars.length));
-  }
-  return code;
+  return String(crypto.randomInt(0, 10000)).padStart(4, '0');
 }
 
 export function differenceInDays(date1: Date, date2: Date): number {

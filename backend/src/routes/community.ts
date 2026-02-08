@@ -39,7 +39,7 @@ router.get('/', async (req: Request, res: Response) => {
         { currentStreak: 'desc' },
         { totalDaysWon: 'desc' },
       ],
-      take: 100,
+      // Fetch all users so rankings are accurate
     });
 
     // Get list of users the current user has supported today

@@ -124,6 +124,16 @@ export function useAdminStats() {
   });
 }
 
+export function useAdminUserSearch(query: string) {
+  const { token, isAdmin } = useAuth();
+
+  return useQuery({
+    queryKey: ['admin', 'users', query],
+    queryFn: () => api.admin.searchUsers(token!, query),
+    enabled: !!token && isAdmin && query.length >= 2,
+  });
+}
+
 export function useAdminAffirmations() {
   const { token, isAdmin } = useAuth();
 

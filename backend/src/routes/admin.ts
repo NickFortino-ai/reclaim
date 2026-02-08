@@ -28,6 +28,38 @@ const upload = multer({
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
+// Search users by warrior name
+router.get('/users/search', async (req: Request, res: Response) => {
+  try {
+    const q = (req.query.q as string || '').trim();
+    if (!q) {
+      res.json([]);
+      return;
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        displayName: { contains: q, mode: 'insensitive' },
+      },
+      select: {
+        id: true,
+        displayName: true,
+        accessCode: true,
+        currentStreak: true,
+        totalDaysWon: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error('User search error:', error);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
 // Get all affirmations
 router.get('/affirmations', async (_req: Request, res: Response) => {
   try {
@@ -112,8 +144,8 @@ router.post('/images', upload.single('image'), async (req: Request, res: Respons
       return;
     }
 
-    if (isNaN(difficultyInt) || difficultyInt < 1 || difficultyInt > 3) {
-      res.status(400).json({ error: 'Invalid difficulty level (must be 1, 2, or 3)' });
+    if (isNaN(difficultyInt) || difficultyInt < 0 || difficultyInt > 3) {
+      res.status(400).json({ error: 'Invalid difficulty level (must be 0, 1, 2, or 3)' });
       return;
     }
 

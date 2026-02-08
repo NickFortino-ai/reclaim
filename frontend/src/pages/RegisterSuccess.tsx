@@ -78,16 +78,16 @@ export function RegisterSuccess() {
           <p className="text-gray-600 mt-2">Your journey to freedom starts now.</p>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h2 className="font-semibold text-yellow-800 mb-2 text-center">
-            ⚠️ Save Your Access Code
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-5 mb-6">
+          <h2 className="font-bold text-yellow-800 mb-1 text-center text-lg">
+            Save Your 4-Digit Code
           </h2>
           <p className="text-sm text-yellow-700 mb-4 text-center">
-            This is your only way to log in. Store it somewhere safe!
+            This code is how you log in. Screenshot it, write it down, or memorize it.
           </p>
 
-          <div className="bg-white rounded-lg p-4 text-center">
-            <code className="text-3xl font-mono font-bold tracking-widest text-gray-900">
+          <div className="bg-white rounded-lg p-6 text-center border border-yellow-200">
+            <code className="text-5xl font-mono font-bold tracking-[0.5em] text-gray-900">
               {accessCode}
             </code>
           </div>
@@ -96,8 +96,12 @@ export function RegisterSuccess() {
             onClick={copyToClipboard}
             className="w-full mt-4 btn btn-secondary"
           >
-            {copied ? '✓ Copied!' : 'Copy to Clipboard'}
+            {copied ? 'Copied!' : 'Copy to Clipboard'}
           </button>
+
+          <p className="text-sm text-red-700 font-semibold text-center mt-4">
+            If you lose this code, contact support@reclaim365.app
+          </p>
         </div>
 
         <button
