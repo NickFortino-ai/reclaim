@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LockedOverlay } from '../../components/LockedOverlay';
 
-type Tab = 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
+type Tab = 'studies' | 'drive' | 'intimacy' | 'wisdom';
 
 export function DemoResources() {
   const [activeTab, setActiveTab] = useState<Tab>('studies');
@@ -20,10 +20,10 @@ export function DemoResources() {
           Scientific Studies
         </TabButton>
         <TabButton
-          active={activeTab === 'testosterone'}
-          onClick={() => setActiveTab('testosterone')}
+          active={activeTab === 'drive'}
+          onClick={() => setActiveTab('drive')}
         >
-          Testosterone
+          Drive
         </TabButton>
         <TabButton
           active={activeTab === 'intimacy'}
@@ -41,7 +41,7 @@ export function DemoResources() {
 
       {/* Tab Content */}
       {activeTab === 'studies' && <DemoStudiesContent />}
-      {activeTab === 'testosterone' && <DemoTestosteroneContent />}
+      {activeTab === 'drive' && <DemoDriveContent />}
       {activeTab === 'intimacy' && <DemoIntimacyContent />}
       {activeTab === 'wisdom' && <DemoWisdomContent />}
 
@@ -121,20 +121,20 @@ function DemoStudiesContent() {
   );
 }
 
-function DemoTestosteroneContent() {
+function DemoDriveContent() {
   return (
     <div className="space-y-4">
       <div className="card bg-primary-50 border-primary-200">
         <p className="text-primary-800 text-sm">
-          <strong>Note:</strong> Individual experiences vary. The goal isn't just testosterone—it's reclaiming your energy, focus, and self-control.
+          <strong>Note:</strong> Individual experiences vary. The goal isn't just hormones — it's reclaiming your energy, drive, and self-control.
         </p>
       </div>
 
       {/* Show one fact */}
       <div className="card">
-        <h3 className="font-semibold text-gray-900 mb-2">The 7-Day Spike</h3>
+        <h3 className="font-semibold text-gray-900 mb-2">The Dopamine Reset</h3>
         <p className="text-gray-600 text-sm">
-          Research published in the Journal of Zhejiang University found that abstaining from ejaculation for 7 days resulted in a 145.7% spike in serum testosterone levels on the seventh day.
+          Neuroscience research shows that frequent pornography use downregulates dopamine D2 receptors, reducing motivation and drive. Recovery allows these receptors to resensitize, restoring natural energy and ambition.
         </p>
       </div>
 

@@ -9,7 +9,7 @@ import type { Resource } from '../../api/client';
 
 const CATEGORIES = [
   { key: 'studies', label: 'Scientific Studies' },
-  { key: 'testosterone', label: 'Testosterone' },
+  { key: 'drive', label: 'Drive' },
   { key: 'intimacy', label: 'Real Intimacy' },
   { key: 'wisdom', label: 'Wisdom' },
 ];

@@ -6,7 +6,7 @@ export function getCurrentWeek(): number {
   return (diffWeeks % 52) + 1;
 }
 
-export const VALID_CATEGORIES = ['studies', 'testosterone', 'intimacy', 'wisdom'] as const;
+export const VALID_CATEGORIES = ['studies', 'drive', 'intimacy', 'wisdom'] as const;
 export type ResourceCategory = (typeof VALID_CATEGORIES)[number];
 
 export function isValidCategory(category: string): category is ResourceCategory {

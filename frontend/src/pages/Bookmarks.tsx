@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { useBookmarks, useToggleBookmark } from '../hooks/useApi';
 import type { Resource } from '../api/client';
 
-type Tab = 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
+type Tab = 'studies' | 'drive' | 'intimacy' | 'wisdom';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'studies', label: 'Scientific Studies' },
-  { key: 'testosterone', label: 'Testosterone' },
+  { key: 'drive', label: 'Drive' },
   { key: 'intimacy', label: 'Real Intimacy' },
   { key: 'wisdom', label: 'Wisdom' },
 ];
@@ -83,7 +83,7 @@ export function Bookmarks() {
           </Link>
         </div>
       ) : (
-        <div className={activeTab === 'testosterone' ? 'grid md:grid-cols-2 gap-4' : 'space-y-4'}>
+        <div className={activeTab === 'drive' ? 'grid md:grid-cols-2 gap-4' : 'space-y-4'}>
           {filteredResources.map(r => (
             <BookmarkCard key={r.id} resource={r} onUnbookmark={() => toggleBookmark.mutate(r.id)} />
           ))}

@@ -173,7 +173,7 @@ export interface DesensCompleteResponse {
 export interface Resource {
   id: string;
   week: number;
-  category: 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
+  category: 'studies' | 'drive' | 'intimacy' | 'wisdom';
   title: string;
   source: string | null;
   summary: string;

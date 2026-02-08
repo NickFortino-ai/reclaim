@@ -125,7 +125,7 @@ model ReferralReward {
 model Resource {
   id        String     @id @default(cuid())
   week      Int
-  category  String     // 'studies' | 'testosterone' | 'intimacy' | 'wisdom'
+  category  String     // 'studies' | 'drive' | 'intimacy' | 'wisdom'
   title     String
   source    String?
   summary   String

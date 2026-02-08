@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { useResources, useToggleBookmark } from '../hooks/useApi';
 import type { Resource } from '../api/client';
 
-type Tab = 'studies' | 'testosterone' | 'intimacy' | 'wisdom';
+type Tab = 'studies' | 'drive' | 'intimacy' | 'wisdom';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'studies', label: 'Scientific Studies' },
-  { key: 'testosterone', label: 'Testosterone' },
+  { key: 'drive', label: 'Drive' },
   { key: 'intimacy', label: 'Real Intimacy' },
   { key: 'wisdom', label: 'Wisdom' },
 ];
@@ -70,11 +70,11 @@ export function Resources() {
         </div>
       ) : (
         <div className="space-y-4">
-          {activeTab === 'testosterone' ? (
+          {activeTab === 'drive' ? (
             <>
               <div className="card bg-primary-50 border-primary-200">
                 <p className="text-primary-800 text-sm">
-                  <strong>Note:</strong> Individual experiences vary. The goal isn't just testosterone — it's reclaiming your energy, focus, and self-control.
+                  <strong>Note:</strong> Individual experiences vary. The goal isn't just hormones — it's reclaiming your energy, drive, and self-control.
                 </p>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
