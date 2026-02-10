@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../services/prisma.js';
 import { generateToken } from '../middleware/auth.js';
 import { generateAccessCode } from '../utils/helpers.js';
+import { getTimezoneFromHeader, isValidTimezone } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.post('/register', async (req: Request, res: Response) => {
 // Login with access code
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { accessCode } = req.body;
+    const { accessCode, timezone } = req.body;
 
     if (!accessCode || typeof accessCode !== 'string') {
       res.status(400).json({ error: 'Access code required' });
@@ -72,10 +73,18 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    // Update last login
+    // Resolve timezone: prefer body, then header, then keep existing
+    const resolvedTimezone = (timezone && isValidTimezone(timezone))
+      ? timezone
+      : getTimezoneFromHeader(req);
+
+    // Update last login and timezone
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: {
+        lastLoginAt: new Date(),
+        timezone: resolvedTimezone !== 'UTC' ? resolvedTimezone : user.timezone,
+      },
     });
 
     const token = generateToken({ userId: user.id, type: 'user' });

@@ -21,6 +21,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
   };
 
   if (token) {
@@ -63,7 +64,10 @@ export interface RegisterResponse extends LoginResponse {
 
 export const auth = {
   login: (accessCode: string) =>
-    request<LoginResponse>('/api/auth/login', { method: 'POST', body: { accessCode } }),
+    request<LoginResponse>('/api/auth/login', {
+      method: 'POST',
+      body: { accessCode, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+    }),
 
   adminLogin: (username: string, password: string) =>
     request<{ token: string }>('/api/auth/admin/login', { method: 'POST', body: { username, password } }),
@@ -397,6 +401,7 @@ export const admin = {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
+        'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       body: formData,
     });

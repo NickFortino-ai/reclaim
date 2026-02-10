@@ -86,6 +86,77 @@ export function isSameDay(date1: Date, date2: Date): boolean {
   );
 }
 
+// --- Timezone-aware date helpers ---
+
+function getDatePartsInTimezone(date: Date, timezone: string): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  return {
+    year: parseInt(parts.find(p => p.type === 'year')!.value),
+    month: parseInt(parts.find(p => p.type === 'month')!.value),
+    day: parseInt(parts.find(p => p.type === 'day')!.value),
+  };
+}
+
+function getTimezoneOffsetMs(date: Date, timezone: string): number {
+  const localParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const y = parseInt(localParts.find(p => p.type === 'year')!.value);
+  const m = parseInt(localParts.find(p => p.type === 'month')!.value) - 1;
+  const d = parseInt(localParts.find(p => p.type === 'day')!.value);
+  const h = parseInt(localParts.find(p => p.type === 'hour')!.value);
+  const min = parseInt(localParts.find(p => p.type === 'minute')!.value);
+  const s = parseInt(localParts.find(p => p.type === 'second')!.value);
+
+  const localAsUtcMs = Date.UTC(y, m, d, h, min, s);
+  return localAsUtcMs - date.getTime();
+}
+
+export function isSameDayInTimezone(date1: Date, date2: Date, timezone: string): boolean {
+  const d1 = getDatePartsInTimezone(date1, timezone);
+  const d2 = getDatePartsInTimezone(date2, timezone);
+  return d1.year === d2.year && d1.month === d2.month && d1.day === d2.day;
+}
+
+export function differenceInDaysInTimezone(date1: Date, date2: Date, timezone: string): number {
+  const d1 = getDatePartsInTimezone(date1, timezone);
+  const d2 = getDatePartsInTimezone(date2, timezone);
+  const utc1 = Date.UTC(d1.year, d1.month - 1, d1.day);
+  const utc2 = Date.UTC(d2.year, d2.month - 1, d2.day);
+  return Math.round((utc1 - utc2) / (24 * 60 * 60 * 1000));
+}
+
+export function startOfDayInTimezone(date: Date, timezone: string): Date {
+  const parts = getDatePartsInTimezone(date, timezone);
+  const midnightUtcGuess = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  const offsetMs = getTimezoneOffsetMs(midnightUtcGuess, timezone);
+  const result = new Date(midnightUtcGuess.getTime() - offsetMs);
+  // Verify: offset might differ at the result time (DST transition edge case)
+  const verifyOffset = getTimezoneOffsetMs(result, timezone);
+  if (verifyOffset !== offsetMs) {
+    return new Date(midnightUtcGuess.getTime() - verifyOffset);
+  }
+  return result;
+}
+
+export function endOfDayInTimezone(date: Date, timezone: string): Date {
+  const start = startOfDayInTimezone(date, timezone);
+  return new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
+}
+
 export const motivationalQuotes = [
   "Every day is a new beginning. Take a deep breath and start again.",
   "You are not your mistakes. You are not your struggles. You are so much more.",

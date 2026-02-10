@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { startOfDayInTimezone } from '../utils/helpers.js';
+import { getUserTimezone } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -10,8 +12,12 @@ router.use(authMiddleware);
 router.get('/', async (req: Request, res: Response) => {
   try {
     const currentUserId = req.user!.userId;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const currentUser = await prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: { timezone: true },
+    });
+    const tz = getUserTimezone(req, currentUser?.timezone);
+    const today = startOfDayInTimezone(new Date(), tz);
 
     const users = await prisma.user.findMany({
       where: {
@@ -114,15 +120,19 @@ router.post('/support/:userId', async (req: Request, res: Response) => {
       return;
     }
 
-    // Check if already supported today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Check if already supported today (in supporter's timezone)
+    const supporter = await prisma.user.findUnique({
+      where: { id: supporterId },
+      select: { timezone: true },
+    });
+    const tz = getUserTimezone(req, supporter?.timezone);
+    const todayStart = startOfDayInTimezone(new Date(), tz);
 
     const existingSupport = await prisma.support.findFirst({
       where: {
         supporterId,
         receiverId: userId,
-        createdAt: { gte: today },
+        createdAt: { gte: todayStart },
       },
     });
 

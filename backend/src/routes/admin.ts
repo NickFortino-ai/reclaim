@@ -255,9 +255,9 @@ router.get('/stats', async (_req: Request, res: Response) => {
       where: { currentStreak: { gte: 91 } },
     });
 
-    // Check-ins today
+    // Check-ins today (admin stats use UTC intentionally)
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     const checkInsToday = await prisma.checkIn.count({
       where: { date: { gte: today } },
     });

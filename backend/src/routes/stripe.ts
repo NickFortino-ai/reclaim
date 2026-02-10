@@ -3,6 +3,7 @@ import { stripe } from '../services/stripe.js';
 import { prisma } from '../services/prisma.js';
 import { generateAccessCode, generateUniqueDisplayName } from '../utils/helpers.js';
 import { generateToken, authMiddleware } from '../middleware/auth.js';
+import { getTimezoneFromHeader } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -136,6 +137,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
         stripeSubscriptionId: subscriptionId,
         subscriptionStatus: 'trialing',
         referredById: referrerId || undefined,
+        timezone: getTimezoneFromHeader(req),
       },
     });
 

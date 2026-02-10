@@ -19,6 +19,7 @@ model User {
   desensitizationPoints   Int       @default(0)
   lastCheckIn     DateTime?
   lastLoginAt     DateTime  @default(now())
+  timezone        String    @default("UTC")
   createdAt       DateTime  @default(now())
 
   // Stripe

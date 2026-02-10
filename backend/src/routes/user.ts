@@ -2,7 +2,8 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { stripe } from '../services/stripe.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { differenceInDays, isSameDay, getRandomQuote } from '../utils/helpers.js';
+import { differenceInDays, isSameDay, getRandomQuote, differenceInDaysInTimezone, isSameDayInTimezone, startOfDayInTimezone } from '../utils/helpers.js';
+import { getUserTimezone } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -13,15 +14,6 @@ router.get('/me', async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
-      include: {
-        supportReceived: {
-          where: {
-            createdAt: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            },
-          },
-        },
-      },
     });
 
     if (!user) {
@@ -29,10 +21,21 @@ router.get('/me', async (req: Request, res: Response) => {
       return;
     }
 
+    const tz = getUserTimezone(req, user.timezone);
+    const todayStart = startOfDayInTimezone(new Date(), tz);
+
+    // Count support received today in user's timezone
+    const supportReceivedToday = await prisma.support.count({
+      where: {
+        receiverId: user.id,
+        createdAt: { gte: todayStart },
+      },
+    });
+
     // Get today's affirmation based on totalDaysWon
     // If already checked in today, totalDaysWon was already incremented, so use it directly.
     // If not yet checked in, totalDaysWon reflects yesterday, so add 1.
-    const checkedInToday = user.lastCheckIn ? isSameDay(new Date(), user.lastCheckIn) : false;
+    const checkedInToday = user.lastCheckIn ? isSameDayInTimezone(new Date(), user.lastCheckIn, tz) : false;
     const dayNum = Math.min(checkedInToday ? user.totalDaysWon : user.totalDaysWon + 1, 365);
     const affirmation = await prisma.affirmation.findUnique({
       where: { dayNum },
@@ -42,7 +45,7 @@ router.get('/me', async (req: Request, res: Response) => {
     let missedDays = 0;
     let needsMissedDaysCheck = false;
     if (user.lastCheckIn) {
-      const daysSinceCheckIn = differenceInDays(new Date(), user.lastCheckIn);
+      const daysSinceCheckIn = differenceInDaysInTimezone(new Date(), user.lastCheckIn, tz);
       if (daysSinceCheckIn > 1) {
         missedDays = daysSinceCheckIn - 1;
         needsMissedDaysCheck = true;
@@ -52,7 +55,7 @@ router.get('/me', async (req: Request, res: Response) => {
     // Grace period enforcement: 7 days after completion, auto-cancel if not lifetime
     let gracePeriodDaysRemaining: number | null = null;
     if (user.completedAt && !user.lifetimeAccess) {
-      const daysSinceCompletion = differenceInDays(new Date(), user.completedAt);
+      const daysSinceCompletion = differenceInDaysInTimezone(new Date(), user.completedAt, tz);
       if (daysSinceCompletion <= 7) {
         gracePeriodDaysRemaining = 7 - daysSinceCompletion;
       } else if (user.subscriptionStatus !== 'canceled') {
@@ -83,7 +86,7 @@ router.get('/me', async (req: Request, res: Response) => {
         subscriptionStatus: user.subscriptionStatus,
         completedAt: user.completedAt,
         desensitizationPoints: user.desensitizationPoints,
-        supportReceivedToday: user.supportReceived.length,
+        supportReceivedToday,
         lifetimeAccess: user.lifetimeAccess,
       },
       affirmation: affirmation?.text || null,
@@ -111,8 +114,9 @@ router.post('/checkin', async (req: Request, res: Response) => {
       return;
     }
 
-    // Check if already checked in today
-    if (user.lastCheckIn && isSameDay(new Date(), user.lastCheckIn)) {
+    // Check if already checked in today (in user's timezone)
+    const tz = getUserTimezone(req, user.timezone);
+    if (user.lastCheckIn && isSameDayInTimezone(new Date(), user.lastCheckIn, tz)) {
       res.status(400).json({ error: 'Already checked in today' });
       return;
     }

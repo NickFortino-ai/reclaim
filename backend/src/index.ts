@@ -33,6 +33,7 @@ app.use(cors({
     }
   },
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Timezone'],
 }));
 
 // Stripe webhook needs raw body

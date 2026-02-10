@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { getUserWeek } from '../utils/week.js';
+import { startOfDayInTimezone, endOfDayInTimezone } from '../utils/helpers.js';
+import { getUserTimezone } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -151,11 +153,10 @@ router.post('/desens/complete', async (req: Request, res: Response) => {
       return;
     }
 
-    // Check if user already completed a desensitization exercise today
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    // Check if user already completed a desensitization exercise today (in user's timezone)
+    const tz = getUserTimezone(req, user.timezone);
+    const todayStart = startOfDayInTimezone(new Date(), tz);
+    const todayEnd = endOfDayInTimezone(new Date(), tz);
 
     const alreadyCompletedToday = await prisma.desensitizationLog.findFirst({
       where: {
