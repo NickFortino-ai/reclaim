@@ -3,18 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ThemePicker } from '../components/ThemePicker';
 import { useReferralStats } from '../hooks/useApi';
-import { user as userApi } from '../api/client';
+import { user as userApi, stripe as stripeApi } from '../api/client';
 
 export function Settings() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-
-  // Notification preferences (UI only for now)
-  const [notifications, setNotifications] = useState({
-    dailyReminder: true,
-    milestones: true,
-    encouragement: true,
-  });
 
   // Privacy settings
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
@@ -24,21 +17,37 @@ export function Settings() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDataDialog, setShowDataDialog] = useState(false);
 
-  const handleToggle = (key: keyof typeof notifications) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-    // TODO: Save to backend when push notifications are implemented
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+    setCancelLoading(true);
+    try {
+      await stripeApi.cancelSubscription(user.id);
+      setShowCancelDialog(false);
+      window.location.reload();
+    } catch {
+      alert('Failed to cancel subscription. Please contact support@reclaim365.app.');
+    } finally {
+      setCancelLoading(false);
+    }
   };
 
-  const handleCancelSubscription = () => {
-    // TODO: Implement Stripe subscription cancellation
-    alert('Subscription cancellation will be implemented with Stripe integration.');
-    setShowCancelDialog(false);
-  };
-
-  const handleDownloadData = () => {
-    // TODO: Implement data export endpoint
-    alert('Your data export has been requested. You will receive an email shortly.');
-    setShowDataDialog(false);
+  const handleDownloadData = async () => {
+    if (!token) return;
+    try {
+      const data = await userApi.exportData(token);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reclaim-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setShowDataDialog(false);
+    } catch {
+      alert('Failed to export data. Please try again.');
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -53,7 +62,7 @@ export function Settings() {
     }
   };
 
-  const supportEmail = 'support@reclaimapp.com';
+  const supportEmail = 'support@reclaim365.app';
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -71,34 +80,12 @@ export function Settings() {
       {/* Notifications Section */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Notifications</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          Configure how and when you receive reminders.
-        </p>
-
-        <div className="space-y-4">
-          <ToggleRow
-            label="Daily Check-in Reminders"
-            description="Get reminded to check in each day"
-            enabled={notifications.dailyReminder}
-            onToggle={() => handleToggle('dailyReminder')}
-          />
-          <ToggleRow
-            label="Milestone Celebrations"
-            description="Celebrate when you hit Day 7, 30, 90, and more"
-            enabled={notifications.milestones}
-            onToggle={() => handleToggle('milestones')}
-          />
-          <ToggleRow
-            label="Encouragement Messages"
-            description="Receive motivational messages during tough times"
-            enabled={notifications.encouragement}
-            onToggle={() => handleToggle('encouragement')}
-          />
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600 font-medium mb-1">Push Notifications — Coming Soon</p>
+          <p className="text-sm text-gray-500">
+            Daily check-in reminders, milestone celebrations, and encouragement messages will be available in a future update.
+          </p>
         </div>
-
-        <p className="text-xs text-gray-400 mt-4">
-          Push notifications coming soon. These preferences will be saved.
-        </p>
       </div>
 
       {/* Privacy Section */}
@@ -248,6 +235,7 @@ export function Settings() {
           confirmStyle="orange"
           onConfirm={handleCancelSubscription}
           onCancel={() => setShowCancelDialog(false)}
+          loading={cancelLoading}
         />
       )}
 
@@ -255,8 +243,8 @@ export function Settings() {
       {showDataDialog && (
         <ConfirmDialog
           title="Download Your Data"
-          message="We'll prepare an export of all your data including check-in history, streak records, and settings. The download link will be sent to your registered email."
-          confirmText="Request Data Export"
+          message="This will download a JSON file containing all your data: check-in history, journal entries, bookmarks, desensitization logs, and urge surf events."
+          confirmText="Download Data"
           confirmStyle="primary"
           onConfirm={handleDownloadData}
           onCancel={() => setShowDataDialog(false)}
@@ -442,6 +430,7 @@ function ConfirmDialog({
   confirmStyle,
   onConfirm,
   onCancel,
+  loading,
 }: {
   title: string;
   message: string;
@@ -449,6 +438,7 @@ function ConfirmDialog({
   confirmStyle: 'primary' | 'red' | 'orange';
   onConfirm: () => void;
   onCancel: () => void;
+  loading?: boolean;
 }) {
   const buttonStyles = {
     primary: 'bg-primary-600 hover:bg-primary-700 text-white',
@@ -462,11 +452,11 @@ function ConfirmDialog({
         <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
         <p className="text-gray-600 mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
-          <button onClick={onCancel} className="btn btn-secondary">
+          <button onClick={onCancel} className="btn btn-secondary" disabled={loading}>
             Cancel
           </button>
-          <button onClick={onConfirm} className={`btn ${buttonStyles[confirmStyle]}`}>
-            {confirmText}
+          <button onClick={onConfirm} className={`btn ${buttonStyles[confirmStyle]}`} disabled={loading}>
+            {loading ? 'Processing...' : confirmText}
           </button>
         </div>
       </div>

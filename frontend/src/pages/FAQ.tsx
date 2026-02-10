@@ -138,7 +138,7 @@ export function FAQ() {
         <div className="text-center mt-12 space-y-4">
           <p className="text-gray-500 text-sm">Still have questions?</p>
           <a
-            href="mailto:support@reclaimapp.com?subject=Reclaim App Question"
+            href="mailto:support@reclaim365.app?subject=Reclaim App Question"
             className="inline-block btn btn-outline"
           >
             Contact Support

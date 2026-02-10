@@ -43,6 +43,7 @@ model User {
   urgeSurfEvents      UrgeSurfEvent[]
   desensitizationLogs DesensitizationLog[]
   bookmarks           Bookmark[]
+  journalEntries      JournalEntry[]
 }
 
 model CheckIn {
@@ -147,4 +148,16 @@ model Bookmark {
 
   @@unique([userId, resourceId])
   @@index([userId])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  mood      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
 }

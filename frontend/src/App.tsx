@@ -18,6 +18,8 @@ import { Community } from './pages/Community';
 import { Settings } from './pages/Settings';
 import { Celebration } from './pages/Celebration';
 import { FAQ } from './pages/FAQ';
+import { UrgeSurf } from './pages/UrgeSurf';
+import { Journal } from './pages/Journal';
 import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
 
@@ -185,6 +187,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Community />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/urge-surf"
+          element={
+            <ProtectedRoute>
+              <UrgeSurf />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/journal"
+          element={
+            <ProtectedRoute>
+              <Journal />
             </ProtectedRoute>
           }
         />

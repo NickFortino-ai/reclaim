@@ -299,6 +299,55 @@ export function useMoveResource() {
   });
 }
 
+// Journal hooks
+export function useJournalEntries() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['journal'],
+    queryFn: () => api.journal.getEntries(token!),
+    enabled: !!token,
+  });
+}
+
+export function useCreateJournalEntry() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ content, mood }: { content: string; mood?: string }) =>
+      api.journal.createEntry(token!, content, mood),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal'] });
+    },
+  });
+}
+
+export function useUpdateJournalEntry() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, content, mood }: { id: string; content?: string; mood?: string }) =>
+      api.journal.updateEntry(token!, id, { content, mood }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal'] });
+    },
+  });
+}
+
+export function useDeleteJournalEntry() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.journal.deleteEntry(token!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal'] });
+    },
+  });
+}
+
 // Referral hooks
 export function useReferralStats() {
   const { token } = useAuth();

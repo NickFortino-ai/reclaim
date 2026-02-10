@@ -6,9 +6,19 @@ import { CheckInButton } from '../components/CheckInButton';
 import { MissedDaysModal } from '../components/MissedDaysModal';
 import { ResetButton } from '../components/ResetButton';
 
+const MILESTONES: Record<number, { title: string; message: string }> = {
+  7: { title: '1 Week Strong', message: 'You\'ve made it a full week. The first week is the hardest — you proved you can do this.' },
+  30: { title: '30 Days — One Month', message: 'A full month of freedom. Your brain is already rewiring. The old patterns are losing their grip.' },
+  60: { title: '60 Days — Two Months', message: 'Two months in. You\'re building something real. The man you\'re becoming would thank you.' },
+  90: { title: '90 Days — The Reboot', message: 'The legendary 90-day mark. Neuroplasticity research shows real neural pathway changes by now. You\'re a different man.' },
+  180: { title: '180 Days — Half Year', message: 'Six months of discipline and freedom. You\'ve proven this isn\'t a phase — it\'s who you are.' },
+  365: { title: '365 Days — You Made It', message: 'One full year. You\'ve reclaimed your life. You are free.' },
+};
+
 export function Dashboard() {
   const { data, isLoading, error } = useUserData();
   const [showMissedDays, setShowMissedDays] = useState(true);
+  const [milestone, setMilestone] = useState<{ title: string; message: string } | null>(null);
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -30,6 +40,13 @@ export function Dashboard() {
   const handleComplete = (completed: boolean) => {
     if (completed) {
       navigate('/celebration');
+    }
+  };
+
+  const handleCheckInSuccess = (totalDaysWon: number) => {
+    const m = MILESTONES[totalDaysWon];
+    if (m) {
+      setMilestone(m);
     }
   };
 
@@ -56,6 +73,7 @@ export function Dashboard() {
       <CheckInButton
         checkedInToday={data.checkedInToday}
         onComplete={handleComplete}
+        onCheckInSuccess={handleCheckInSuccess}
       />
 
       <div className="text-center">
@@ -123,6 +141,23 @@ export function Dashboard() {
           </div>
         </Link>
       </div>
+
+      {/* Milestone Celebration Modal */}
+      {milestone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 text-center">
+            <div className="text-5xl mb-4">🏆</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{milestone.title}</h2>
+            <p className="text-gray-600 mb-6">{milestone.message}</p>
+            <button
+              onClick={() => setMilestone(null)}
+              className="btn btn-primary px-8 py-3"
+            >
+              Keep Going
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

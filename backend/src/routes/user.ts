@@ -311,6 +311,71 @@ router.patch('/theme', async (req: Request, res: Response) => {
   }
 });
 
+// Export all user data
+router.get('/export', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const [user, checkIns, journalEntries, bookmarks, desensLogs, urgeSurfEvents] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          displayName: true,
+          currentStreak: true,
+          totalDaysWon: true,
+          desensitizationPoints: true,
+          colorTheme: true,
+          subscriptionStatus: true,
+          createdAt: true,
+          completedAt: true,
+        },
+      }),
+      prisma.checkIn.findMany({
+        where: { userId },
+        orderBy: { date: 'desc' },
+        select: { date: true, stayedStrong: true, daysAdded: true },
+      }),
+      prisma.journalEntry.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        select: { content: true, mood: true, createdAt: true },
+      }),
+      prisma.bookmark.findMany({
+        where: { userId },
+        include: { resource: { select: { title: true, category: true, week: true } } },
+      }),
+      prisma.desensitizationLog.findMany({
+        where: { userId },
+        orderBy: { completedAt: 'desc' },
+        select: { pointsEarned: true, completedAt: true },
+      }),
+      prisma.urgeSurfEvent.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        select: { sessionDay: true, completedBreathing: true, resumedExercise: true, createdAt: true },
+      }),
+    ]);
+
+    res.json({
+      exportedAt: new Date().toISOString(),
+      profile: user,
+      checkIns,
+      journalEntries,
+      bookmarks: bookmarks.map(b => ({
+        resourceTitle: b.resource.title,
+        category: b.resource.category,
+        week: b.resource.week,
+        bookmarkedAt: b.createdAt,
+      })),
+      desensitizationLogs: desensLogs,
+      urgeSurfEvents,
+    });
+  } catch (error) {
+    console.error('Export data error:', error);
+    res.status(500).json({ error: 'Failed to export data' });
+  }
+});
+
 // Delete account
 router.delete('/account', async (req: Request, res: Response) => {
   try {
@@ -345,6 +410,7 @@ router.delete('/account', async (req: Request, res: Response) => {
 
     // Delete all related records, then the user
     await prisma.$transaction([
+      prisma.journalEntry.deleteMany({ where: { userId } }),
       prisma.desensitizationLog.deleteMany({ where: { userId } }),
       prisma.urgeSurfEvent.deleteMany({ where: { userId } }),
       prisma.bookmark.deleteMany({ where: { userId } }),

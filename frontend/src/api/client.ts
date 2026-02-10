@@ -129,6 +129,9 @@ export const user = {
 
   deleteAccount: (token: string) =>
     request<{ message: string }>('/api/user/account', { method: 'DELETE', token }),
+
+  exportData: (token: string) =>
+    request<Record<string, unknown>>('/api/user/export', { token }),
 };
 
 // Community
@@ -258,6 +261,12 @@ export const stripe = {
     request<CompleteRegistrationResponse>('/api/stripe/complete-registration', {
       method: 'POST',
       body: { sessionId },
+    }),
+
+  cancelSubscription: (userId: string) =>
+    request<{ message: string }>('/api/stripe/cancel', {
+      method: 'POST',
+      body: { userId },
     }),
 };
 
@@ -416,6 +425,37 @@ export const admin = {
       token,
       body: { week },
     }),
+};
+
+// Journal
+export interface JournalEntry {
+  id: string;
+  content: string;
+  mood: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const journal = {
+  getEntries: (token: string) =>
+    request<{ entries: JournalEntry[] }>('/api/journal', { token }),
+
+  createEntry: (token: string, content: string, mood?: string) =>
+    request<JournalEntry>('/api/journal', {
+      method: 'POST',
+      token,
+      body: { content, mood },
+    }),
+
+  updateEntry: (token: string, id: string, data: { content?: string; mood?: string }) =>
+    request<JournalEntry>(`/api/journal/${id}`, {
+      method: 'PATCH',
+      token,
+      body: data,
+    }),
+
+  deleteEntry: (token: string, id: string) =>
+    request<{ message: string }>(`/api/journal/${id}`, { method: 'DELETE', token }),
 };
 
 export { ApiError };
