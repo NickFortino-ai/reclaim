@@ -432,6 +432,7 @@ export interface JournalEntry {
   id: string;
   content: string;
   mood: string | null;
+  trigger: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -440,14 +441,14 @@ export const journal = {
   getEntries: (token: string) =>
     request<{ entries: JournalEntry[] }>('/api/journal', { token }),
 
-  createEntry: (token: string, content: string, mood?: string) =>
+  createEntry: (token: string, content: string, mood?: string, trigger?: string) =>
     request<JournalEntry>('/api/journal', {
       method: 'POST',
       token,
-      body: { content, mood },
+      body: { content, mood, trigger },
     }),
 
-  updateEntry: (token: string, id: string, data: { content?: string; mood?: string }) =>
+  updateEntry: (token: string, id: string, data: { content?: string; mood?: string; trigger?: string }) =>
     request<JournalEntry>(`/api/journal/${id}`, {
       method: 'PATCH',
       token,

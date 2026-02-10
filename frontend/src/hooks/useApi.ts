@@ -315,8 +315,8 @@ export function useCreateJournalEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ content, mood }: { content: string; mood?: string }) =>
-      api.journal.createEntry(token!, content, mood),
+    mutationFn: ({ content, mood, trigger }: { content: string; mood?: string; trigger?: string }) =>
+      api.journal.createEntry(token!, content, mood, trigger),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['journal'] });
     },
@@ -328,8 +328,8 @@ export function useUpdateJournalEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, content, mood }: { id: string; content?: string; mood?: string }) =>
-      api.journal.updateEntry(token!, id, { content, mood }),
+    mutationFn: ({ id, content, mood, trigger }: { id: string; content?: string; mood?: string; trigger?: string }) =>
+      api.journal.updateEntry(token!, id, { content, mood, trigger }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['journal'] });
     },

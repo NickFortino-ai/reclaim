@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Create a new journal entry
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { content, mood } = req.body;
+    const { content, mood, trigger } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       res.status(400).json({ error: 'Content is required' });
@@ -42,6 +42,7 @@ router.post('/', async (req: Request, res: Response) => {
         userId: req.user!.userId,
         content: content.trim(),
         mood: mood || null,
+        trigger: trigger || null,
       },
     });
 
@@ -56,7 +57,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { content, mood } = req.body;
+    const { content, mood, trigger } = req.body;
 
     // Verify ownership
     const existing = await prisma.journalEntry.findUnique({ where: { id } });
@@ -75,6 +76,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
       data: {
         ...(content !== undefined && { content: content.trim() }),
         ...(mood !== undefined && { mood: mood || null }),
+        ...(trigger !== undefined && { trigger: trigger || null }),
       },
     });
 

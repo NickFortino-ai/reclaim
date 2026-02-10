@@ -156,6 +156,7 @@ model JournalEntry {
   user      User     @relation(fields: [userId], references: [id])
   content   String
   mood      String?
+  trigger   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

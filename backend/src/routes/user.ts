@@ -338,7 +338,7 @@ router.get('/export', async (req: Request, res: Response) => {
       prisma.journalEntry.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
-        select: { content: true, mood: true, createdAt: true },
+        select: { content: true, mood: true, trigger: true, createdAt: true },
       }),
       prisma.bookmark.findMany({
         where: { userId },

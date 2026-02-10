@@ -11,6 +11,17 @@ const MOODS = [
   { value: 'tempted', label: 'Tempted', emoji: '⚠️' },
 ];
 
+const TRIGGERS = [
+  { value: 'bored', label: 'Bored', emoji: '😑' },
+  { value: 'stressed', label: 'Stressed', emoji: '😤' },
+  { value: 'lonely', label: 'Lonely', emoji: '🫥' },
+  { value: 'tired', label: 'Tired', emoji: '😴' },
+  { value: 'late-night', label: 'Late Night', emoji: '🌙' },
+  { value: 'social-media', label: 'Social Media', emoji: '📱' },
+  { value: 'after-argument', label: 'After Argument', emoji: '💢' },
+  { value: 'halt', label: 'HALT', emoji: '🛑' },
+];
+
 export function DemoJournal() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -38,6 +49,19 @@ export function DemoJournal() {
                   className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600"
                 >
                   {m.emoji} {m.label}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="mt-3">
+            <p className="text-sm text-gray-500 mb-2">Any triggers today?</p>
+            <div className="flex flex-wrap gap-2">
+              {TRIGGERS.map((t) => (
+                <span
+                  key={t.value}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600"
+                >
+                  {t.emoji} {t.label}
                 </span>
               ))}
             </div>
@@ -70,6 +94,7 @@ export function DemoJournal() {
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-lg">🏆</span>
+              <span className="text-lg">🌙</span>
               <span className="text-xs text-gray-400">10:30 PM</span>
             </div>
           </div>

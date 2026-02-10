@@ -13,6 +13,109 @@ const MOODS = [
   { value: 'tempted', label: 'Tempted', emoji: '⚠️' },
 ];
 
+const TRIGGERS = [
+  { value: 'bored', label: 'Bored', emoji: '😑' },
+  { value: 'stressed', label: 'Stressed', emoji: '😤' },
+  { value: 'lonely', label: 'Lonely', emoji: '🫥' },
+  { value: 'tired', label: 'Tired', emoji: '😴' },
+  { value: 'late-night', label: 'Late Night', emoji: '🌙' },
+  { value: 'social-media', label: 'Social Media', emoji: '📱' },
+  { value: 'after-argument', label: 'After Argument', emoji: '💢' },
+  { value: 'halt', label: 'HALT', emoji: '🛑' },
+];
+
+function PatternInsights({ entries }: { entries: JournalEntry[] }) {
+  const triggerCounts: Record<string, number> = {};
+  const moodCounts: Record<string, number> = {};
+  const hourCounts: Record<number, number> = {};
+
+  for (const entry of entries) {
+    if (entry.trigger) {
+      triggerCounts[entry.trigger] = (triggerCounts[entry.trigger] || 0) + 1;
+    }
+    if (entry.mood) {
+      moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+    }
+    const hour = new Date(entry.createdAt).getHours();
+    hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+  }
+
+  const topTriggers = Object.entries(triggerCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([value, count]) => {
+      const t = TRIGGERS.find(t => t.value === value);
+      return t ? { ...t, count } : null;
+    })
+    .filter(Boolean) as { value: string; label: string; emoji: string; count: number }[];
+
+  const topMoods = Object.entries(moodCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([value, count]) => {
+      const m = MOODS.find(m => m.value === value);
+      return m ? { ...m, count } : null;
+    })
+    .filter(Boolean) as { value: string; label: string; emoji: string; count: number }[];
+
+  const peakHour = Object.entries(hourCounts)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  const formatHour = (h: number) => {
+    if (h === 0) return '12 AM';
+    if (h === 12) return '12 PM';
+    return h > 12 ? `${h - 12} PM` : `${h} AM`;
+  };
+
+  if (topTriggers.length === 0 && topMoods.length === 0) return null;
+
+  return (
+    <div className="card">
+      <h2 className="text-lg font-semibold text-gray-900 mb-3">Your Patterns</h2>
+      <div className="space-y-4">
+        {topTriggers.length > 0 && (
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Top Triggers</p>
+            <div className="flex flex-wrap gap-2">
+              {topTriggers.map((t) => (
+                <span
+                  key={t.value}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium bg-amber-50 text-amber-700"
+                >
+                  {t.emoji} {t.label} ({t.count})
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {topMoods.length > 0 && (
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Most Common Moods</p>
+            <div className="flex flex-wrap gap-2">
+              {topMoods.map((m) => (
+                <span
+                  key={m.value}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium bg-primary-50 text-primary-700"
+                >
+                  {m.emoji} {m.label} ({m.count})
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {peakHour && (
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Most Active Journaling Time</p>
+            <p className="text-sm font-medium text-gray-700">
+              {formatHour(Number(peakHour[0]))} ({peakHour[1]} {Number(peakHour[1]) === 1 ? 'entry' : 'entries'})
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function Journal() {
   const { data, isLoading } = useJournalEntries();
   const createEntry = useCreateJournalEntry();
@@ -21,29 +124,33 @@ export function Journal() {
 
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('');
+  const [trigger, setTrigger] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editMood, setEditMood] = useState('');
+  const [editTrigger, setEditTrigger] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
-    await createEntry.mutateAsync({ content: content.trim(), mood: mood || undefined });
+    await createEntry.mutateAsync({ content: content.trim(), mood: mood || undefined, trigger: trigger || undefined });
     setContent('');
     setMood('');
+    setTrigger('');
   };
 
-  const handleEdit = (entry: { id: string; content: string; mood: string | null }) => {
+  const handleEdit = (entry: { id: string; content: string; mood: string | null; trigger: string | null }) => {
     setEditingId(entry.id);
     setEditContent(entry.content);
     setEditMood(entry.mood || '');
+    setEditTrigger(entry.trigger || '');
   };
 
   const handleSaveEdit = async () => {
     if (!editingId || !editContent.trim()) return;
-    await updateEntry.mutateAsync({ id: editingId, content: editContent.trim(), mood: editMood || undefined });
+    await updateEntry.mutateAsync({ id: editingId, content: editContent.trim(), mood: editMood || undefined, trigger: editTrigger || undefined });
     setEditingId(null);
   };
 
@@ -70,6 +177,11 @@ export function Journal() {
   const getMoodEmoji = (moodValue: string | null) => {
     if (!moodValue) return null;
     return MOODS.find(m => m.value === moodValue)?.emoji || null;
+  };
+
+  const getTriggerEmoji = (triggerValue: string | null) => {
+    if (!triggerValue) return null;
+    return TRIGGERS.find(t => t.value === triggerValue)?.emoji || null;
   };
 
   // Group entries by date
@@ -126,6 +238,27 @@ export function Journal() {
           </div>
         </div>
 
+        {/* Trigger Selector */}
+        <div className="mt-3">
+          <p className="text-sm text-gray-500 mb-2">Any triggers today?</p>
+          <div className="flex flex-wrap gap-2">
+            {TRIGGERS.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setTrigger(trigger === t.value ? '' : t.value)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  trigger === t.value
+                    ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {t.emoji} {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-4 flex justify-end">
           <button
             type="submit"
@@ -136,6 +269,11 @@ export function Journal() {
           </button>
         </div>
       </form>
+
+      {/* Pattern Insights */}
+      {data?.entries && data.entries.length >= 3 && (
+        <PatternInsights entries={data.entries} />
+      )}
 
       {/* Entries List */}
       {isLoading ? (
@@ -182,6 +320,22 @@ export function Journal() {
                           </button>
                         ))}
                       </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {TRIGGERS.map((t) => (
+                          <button
+                            key={t.value}
+                            type="button"
+                            onClick={() => setEditTrigger(editTrigger === t.value ? '' : t.value)}
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              editTrigger === t.value
+                                ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-300'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {t.emoji} {t.label}
+                          </button>
+                        ))}
+                      </div>
                       <div className="mt-3 flex gap-2 justify-end">
                         <button onClick={() => setEditingId(null)} className="btn btn-secondary text-sm">
                           Cancel
@@ -202,6 +356,9 @@ export function Journal() {
                         <div className="flex items-center gap-2">
                           {getMoodEmoji(entry.mood) && (
                             <span className="text-lg">{getMoodEmoji(entry.mood)}</span>
+                          )}
+                          {getTriggerEmoji(entry.trigger) && (
+                            <span className="text-lg">{getTriggerEmoji(entry.trigger)}</span>
                           )}
                           <span className="text-xs text-gray-400">{formatTime(entry.createdAt)}</span>
                         </div>
