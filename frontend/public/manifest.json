@@ -2,7 +2,7 @@
   "name": "Reclaim",
   "short_name": "Reclaim",
   "description": "365 days to freedom. Track your progress, join the brotherhood, reclaim your life.",
-  "start_url": "https://reclaim365app.com/",
+  "start_url": "https://reclaim365.app/",
   "id": "reclaim365app",
   "display": "standalone",
   "orientation": "portrait",

@@ -30,7 +30,10 @@ router.get('/me', async (req: Request, res: Response) => {
     }
 
     // Get today's affirmation based on totalDaysWon
-    const dayNum = Math.min(user.totalDaysWon + 1, 365);
+    // If already checked in today, totalDaysWon was already incremented, so use it directly.
+    // If not yet checked in, totalDaysWon reflects yesterday, so add 1.
+    const checkedInToday = user.lastCheckIn ? isSameDay(new Date(), user.lastCheckIn) : false;
+    const dayNum = Math.min(checkedInToday ? user.totalDaysWon : user.totalDaysWon + 1, 365);
     const affirmation = await prisma.affirmation.findUnique({
       where: { dayNum },
     });
@@ -46,12 +49,10 @@ router.get('/me', async (req: Request, res: Response) => {
       }
     }
 
-    // Check if already checked in today
-    const checkedInToday = user.lastCheckIn ? isSameDay(new Date(), user.lastCheckIn) : false;
-
     res.json({
       user: {
         id: user.id,
+        displayName: user.displayName,
         currentStreak: user.currentStreak,
         totalDaysWon: user.totalDaysWon,
         lastCheckIn: user.lastCheckIn,
@@ -307,6 +308,56 @@ router.patch('/theme', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Theme update error:', error);
     res.status(500).json({ error: 'Failed to update theme' });
+  }
+});
+
+// Delete account
+router.delete('/account', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Cancel Stripe subscription
+    if (user.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+      } catch (e) {
+        console.error('Failed to cancel subscription during account deletion:', e);
+      }
+    }
+
+    // Delete Stripe customer
+    if (user.stripeCustomerId) {
+      try {
+        await stripe.customers.del(user.stripeCustomerId);
+      } catch (e) {
+        console.error('Failed to delete Stripe customer during account deletion:', e);
+      }
+    }
+
+    // Delete all related records, then the user
+    await prisma.$transaction([
+      prisma.desensitizationLog.deleteMany({ where: { userId } }),
+      prisma.urgeSurfEvent.deleteMany({ where: { userId } }),
+      prisma.bookmark.deleteMany({ where: { userId } }),
+      prisma.support.deleteMany({ where: { OR: [{ supporterId: userId }, { receiverId: userId }] } }),
+      prisma.checkIn.deleteMany({ where: { userId } }),
+      prisma.referralReward.deleteMany({ where: { OR: [{ referrerId: userId }, { referredId: userId }] } }),
+      prisma.user.delete({ where: { id: userId } }),
+    ]);
+
+    res.json({ message: 'Account deleted' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
   }
 });
 

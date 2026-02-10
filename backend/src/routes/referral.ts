@@ -72,7 +72,7 @@ router.get('/stats', async (req: Request, res: Response) => {
 
     res.json({
       referralCode: user.referralCode,
-      referralLink: `${process.env.FRONTEND_URL || 'https://reclaim365app.com'}/register?ref=${user.referralCode}`,
+      referralLink: `${process.env.FRONTEND_URL || 'https://reclaim365.app'}/register?ref=${user.referralCode}`,
       referralCount,
       referrals: user.referrals.map((r, i) => ({
         number: i + 1,

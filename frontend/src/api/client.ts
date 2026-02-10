@@ -125,6 +125,9 @@ export const user = {
 
   updateTheme: (token: string, theme: string) =>
     request<{ theme: string }>('/api/user/theme', { method: 'PATCH', token, body: { theme } }),
+
+  deleteAccount: (token: string) =>
+    request<{ message: string }>('/api/user/account', { method: 'DELETE', token }),
 };
 
 // Community

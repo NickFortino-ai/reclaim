@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ThemePicker } from '../components/ThemePicker';
 import { useReferralStats } from '../hooks/useApi';
+import { user as userApi } from '../api/client';
 
 export function Settings() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Notification preferences (UI only for now)
   const [notifications, setNotifications] = useState({
@@ -39,11 +42,19 @@ export function Settings() {
     setShowDataDialog(false);
   };
 
-  const handleDeleteAccount = () => {
-    // TODO: Implement account deletion
-    alert('Account deletion will be processed. You will receive a confirmation email.');
-    setShowDeleteDialog(false);
-    logout();
+  const handleDeleteAccount = async () => {
+    if (!token) return;
+    setDeleteLoading(true);
+    try {
+      await userApi.deleteAccount(token);
+      setShowDeleteDialog(false);
+      logout();
+      navigate('/');
+    } catch {
+      alert('Failed to delete account. Please try again or contact support.');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const supportEmail = 'support@reclaimapp.com';

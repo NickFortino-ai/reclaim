@@ -42,6 +42,12 @@ export function Dashboard() {
         />
       )}
 
+      {data.user.displayName && (
+        <h1 className="text-2xl font-bold text-gray-900 text-center">
+          {data.user.displayName}
+        </h1>
+      )}
+
       <StreakDisplay
         currentStreak={data.user.currentStreak}
         totalDaysWon={data.user.totalDaysWon}
