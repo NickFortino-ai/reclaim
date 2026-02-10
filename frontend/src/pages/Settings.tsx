@@ -8,7 +8,6 @@ import { user as userApi } from '../api/client';
 export function Settings() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Notification preferences (UI only for now)
   const [notifications, setNotifications] = useState({
@@ -44,7 +43,6 @@ export function Settings() {
 
   const handleDeleteAccount = async () => {
     if (!token) return;
-    setDeleteLoading(true);
     try {
       await userApi.deleteAccount(token);
       setShowDeleteDialog(false);
@@ -52,8 +50,6 @@ export function Settings() {
       navigate('/');
     } catch {
       alert('Failed to delete account. Please try again or contact support.');
-    } finally {
-      setDeleteLoading(false);
     }
   };
 

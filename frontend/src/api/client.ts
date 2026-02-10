@@ -73,6 +73,7 @@ export const auth = {
 export interface UserData {
   user: {
     id: string;
+    displayName: string;
     currentStreak: number;
     totalDaysWon: number;
     lastCheckIn: string | null;
