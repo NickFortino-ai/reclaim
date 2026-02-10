@@ -2,6 +2,10 @@ import { Link } from 'react-router-dom';
 import { LockedOverlay, LockedFeatureButton } from '../../components/LockedOverlay';
 
 export function DemoDashboard() {
+  const currentStreak = 7;
+  const totalDaysWon = 42;
+  const progress = Math.min((currentStreak / 365) * 100, 100);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Demo Display Name */}
@@ -19,35 +23,57 @@ export function DemoDashboard() {
         </p>
       </div>
 
-      {/* Demo Streak Display */}
-      <div className="card text-center">
-        <div className="mb-4">
-          <div className="text-6xl font-bold text-primary-600">7</div>
-          <div className="text-gray-600 mt-1">Day Streak</div>
+      {/* Demo Streak Display — matches real StreakDisplay component */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-bold text-primary-600">{currentStreak}</h2>
+            <p className="text-gray-600">Current Streak</p>
+          </div>
+          <div className="text-right">
+            <h2 className="text-3xl font-bold text-gray-900">{totalDaysWon}</h2>
+            <p className="text-gray-600">Total Days Won</p>
+          </div>
         </div>
-        <div className="flex justify-center gap-8 text-center">
-          <div>
-            <div className="text-2xl font-bold text-gray-900">42</div>
-            <div className="text-sm text-gray-500">Total Days Won</div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Progress to Freedom</span>
+            <span className="font-medium text-primary-600">{currentStreak}/365 days</span>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">323</div>
-            <div className="text-sm text-gray-500">Days to Go</div>
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div
+              className="h-full bg-primary-500 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
           </div>
+          <p className="text-sm text-gray-500 text-center">
+            {365 - currentStreak} more streak days — subscription auto-cancels at 365-day streak
+          </p>
         </div>
       </div>
 
-      {/* Locked Check-In Button */}
+      {/* Locked Check-In Button — matches real CheckInButton component */}
       <LockedOverlay message="Sign up to check in">
         <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            Daily Check-In
+          </h3>
           <button
             disabled
-            className="w-full py-4 bg-primary-600 text-white font-bold rounded-lg text-lg"
+            className="w-full btn btn-primary py-4 text-lg"
           >
-            Check In for Day 8
+            I'm Still Going Strong
           </button>
         </div>
       </LockedOverlay>
+
+      {/* Demo Reset Button — matches real ResetButton */}
+      <div className="text-center">
+        <span className="text-sm text-gray-500 underline">
+          I need to reset my streak
+        </span>
+      </div>
 
       {/* Demo Support Notification */}
       <div className="card bg-green-50 border border-green-200">
