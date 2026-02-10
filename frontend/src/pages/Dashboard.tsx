@@ -5,7 +5,6 @@ import { StreakDisplay } from '../components/StreakDisplay';
 import { CheckInButton } from '../components/CheckInButton';
 import { MissedDaysModal } from '../components/MissedDaysModal';
 import { ResetButton } from '../components/ResetButton';
-import { ReferralWidget } from '../components/ReferralWidget';
 
 export function Dashboard() {
   const { data, isLoading, error } = useUserData();
@@ -53,6 +52,10 @@ export function Dashboard() {
         onComplete={handleComplete}
       />
 
+      <div className="text-center">
+        <ResetButton />
+      </div>
+
       {data.affirmation && (
         <div className="card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">
@@ -90,11 +93,8 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Referral Widget */}
-      <ReferralWidget />
-
       {/* Quick Access Tools */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Link to="/desensitize" className="card hover:shadow-md transition-shadow">
           <div className="text-center">
             <div className="text-3xl mb-2">🛡️</div>
@@ -109,10 +109,13 @@ export function Dashboard() {
             <p className="text-sm text-gray-600 mt-1">Studies, science, and community wisdom</p>
           </div>
         </Link>
-      </div>
-
-      <div className="text-center pt-4">
-        <ResetButton />
+        <Link to="/community" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">👊</div>
+            <h3 className="font-semibold text-gray-900">Community</h3>
+            <p className="text-sm text-gray-600 mt-1">Brotherhood leaderboard and support</p>
+          </div>
+        </Link>
       </div>
     </div>
   );

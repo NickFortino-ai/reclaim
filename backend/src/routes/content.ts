@@ -151,6 +151,30 @@ router.post('/desens/complete', async (req: Request, res: Response) => {
       return;
     }
 
+    // Check if user already completed a desensitization exercise today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const alreadyCompletedToday = await prisma.desensitizationLog.findFirst({
+      where: {
+        userId,
+        completedAt: { gte: todayStart, lte: todayEnd },
+      },
+    });
+
+    if (alreadyCompletedToday) {
+      res.json({
+        pointsEarned: 0,
+        totalPoints: user.desensitizationPoints,
+        maxPoints: 300,
+        isComplete: user.desensitizationPoints >= 300,
+        alreadyCompleted: true,
+      });
+      return;
+    }
+
     const pointsEarned = image.difficulty; // 1, 2, or 3
     const newTotal = Math.min(user.desensitizationPoints + pointsEarned, 300);
     const actualPointsEarned = newTotal - user.desensitizationPoints;

@@ -88,6 +88,9 @@ export function useDesensImage(dayNum: number) {
     queryKey: ['desens', dayNum],
     queryFn: () => api.content.getDesensImage(token!, dayNum),
     enabled: !!token && dayNum > 0,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }
 

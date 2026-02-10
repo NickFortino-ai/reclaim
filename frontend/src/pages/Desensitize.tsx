@@ -71,7 +71,7 @@ interface ProgressData {
 
 export function Desensitize() {
   const { user } = useAuth();
-  const dayNum = Math.min((user?.totalDaysWon || 0) + 1, 365);
+  const dayNum = Math.min(Math.max(user?.currentStreak || 1, 1), 365);
   const { data: image, isLoading, error } = useDesensImage(dayNum);
   const logUrgeSurf = useLogUrgeSurf();
   const completeDesens = useCompleteDesens();
@@ -544,8 +544,6 @@ export function Desensitize() {
   // Exercise Phase
   if (phase === 'exercise') {
     const progressPercent = exerciseDuration > 0 ? ((exerciseDuration - timeRemaining) / exerciseDuration) * 100 : 0;
-    const elapsedTime = exerciseDuration - timeRemaining;
-    const currentPrompt = getPromptForTime(elapsedTime, exerciseDuration);
 
     return (
       <div className="max-w-2xl mx-auto space-y-4">
@@ -561,13 +559,6 @@ export function Desensitize() {
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-        </div>
-
-        {/* Mindfulness Prompt */}
-        <div className="card bg-primary-50 border-primary-200">
-          <p className="text-center text-primary-800 font-medium text-lg">
-            {currentPrompt}
-          </p>
         </div>
 
         {/* Image with Overlay */}

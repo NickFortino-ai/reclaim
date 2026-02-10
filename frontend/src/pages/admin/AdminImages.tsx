@@ -29,6 +29,7 @@ export function AdminImages() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [filterDifficulty, setFilterDifficulty] = useState<number | 'all'>('all');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -149,6 +150,7 @@ export function AdminImages() {
       setSelectedFile(null);
       setPreviewUrl(null);
       setShowAdd(false);
+      setEditingId(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -166,8 +168,26 @@ export function AdminImages() {
     }
   };
 
+  const handleEdit = (img: { id: string; dayNum: number; overlayText: string; difficulty: number; imageUrl: string }) => {
+    setEditingId(img.id);
+    setShowAdd(true);
+    setNewDayNum(String(img.dayNum));
+    setNewOverlayText(img.overlayText);
+    setNewDifficulty(img.difficulty);
+    setInputMode('url');
+    setImageUrl(img.imageUrl);
+    setPreviewUrl(img.imageUrl);
+    setSelectedFile(null);
+    setUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const resetForm = () => {
     setShowAdd(false);
+    setEditingId(null);
     setNewDayNum('');
     setNewOverlayText('');
     setNewDifficulty(2);
@@ -181,7 +201,7 @@ export function AdminImages() {
     }
   };
 
-  const hasValidImage = inputMode === 'upload' ? !!selectedFile : !!imageUrl.trim();
+  const hasValidImage = !!editingId || (inputMode === 'upload' ? !!selectedFile : !!imageUrl.trim());
 
   if (isLoading) {
     return (
@@ -239,6 +259,9 @@ export function AdminImages() {
 
       {showAdd && (
         <form onSubmit={handleSave} className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {editingId ? 'Edit Image' : 'Add Image'}
+          </h2>
           <div className="grid gap-4">
             {/* Error message */}
             {uploadError && (
@@ -419,7 +442,7 @@ export function AdminImages() {
               disabled={saveImage.isPending || !hasValidImage}
               className="btn btn-primary"
             >
-              {saveImage.isPending ? 'Saving...' : 'Save Image'}
+              {saveImage.isPending ? 'Saving...' : editingId ? 'Update Image' : 'Save Image'}
             </button>
           </div>
         </form>
@@ -454,12 +477,20 @@ export function AdminImages() {
                       {img.difficulty}pt
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleDelete(img.id)}
-                    className="text-red-600 hover:underline text-sm"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleEdit(img)}
+                      className="text-primary-600 hover:underline text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(img.id)}
+                      className="text-red-600 hover:underline text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             );

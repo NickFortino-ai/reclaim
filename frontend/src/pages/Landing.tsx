@@ -1,9 +1,31 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePreview } from '../context/PreviewContext';
+import { useAuth } from '../context/AuthContext';
+import { auth } from '../api/client';
 
 export function Landing() {
   const navigate = useNavigate();
   const { startDemo } = usePreview();
+  const { login } = useAuth();
+  const [accessCode, setAccessCode] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+    try {
+      const response = await auth.login(accessCode);
+      login(response.token, response.user);
+      navigate('/dashboard');
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
 
   const handleTryDemo = () => {
     startDemo();
@@ -41,7 +63,7 @@ export function Landing() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center sm:items-start mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center sm:items-start mb-8">
             <button
               onClick={handleTryDemo}
               className="w-full sm:w-auto px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all border border-slate-600 hover:border-slate-500"
@@ -57,6 +79,33 @@ export function Landing() {
               </Link>
               <span className="text-slate-400 text-sm mt-2">Billed monthly</span>
             </div>
+          </div>
+
+          {/* Returning User Login */}
+          <div className="max-w-xs mx-auto mb-16">
+            <p className="text-slate-400 text-sm text-center mb-3">Already a member?</p>
+            <form onSubmit={handleLogin} className="flex gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={accessCode}
+                onChange={(e) => setAccessCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="4-digit code"
+                maxLength={4}
+                className="flex-1 px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white text-center text-lg tracking-widest font-mono placeholder:text-slate-500 placeholder:tracking-normal placeholder:text-sm placeholder:font-sans focus:outline-none focus:border-blue-400"
+              />
+              <button
+                type="submit"
+                disabled={loginLoading || accessCode.length !== 4}
+                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors border border-slate-600"
+              >
+                {loginLoading ? '...' : 'Login'}
+              </button>
+            </form>
+            {loginError && (
+              <p className="text-red-400 text-sm text-center mt-2">{loginError}</p>
+            )}
           </div>
 
           {/* Trust Indicators */}
@@ -159,7 +208,7 @@ export function Landing() {
               </div>
               <h3 className="text-white font-semibold mb-2">Get Your Code</h3>
               <p className="text-slate-400 text-sm">
-                Receive your unique 8-character access code. No email required.
+                Receive your unique 4-digit access code. No email required.
               </p>
             </div>
             <div className="text-center">
@@ -245,12 +294,6 @@ export function Landing() {
       {/* Footer */}
       <div className="py-8 px-4 border-t border-slate-800">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-slate-500 text-sm">
-            Already have an access code?{' '}
-            <Link to="/login" className="text-slate-400 hover:text-white">
-              Login here
-            </Link>
-          </p>
           <div className="flex items-center gap-4 text-sm">
             <Link to="/faq" className="text-slate-400 hover:text-white">
               FAQ
@@ -261,8 +304,8 @@ export function Landing() {
             <Link to="/terms" className="text-slate-400 hover:text-white">
               Terms
             </Link>
-            <span className="text-slate-600">Reclaim — Built for men, by men.</span>
           </div>
+          <span className="text-slate-600 text-sm">Reclaim — Built for men, by men.</span>
         </div>
       </div>
     </div>
