@@ -159,6 +159,9 @@ export function Layout({ children }: LayoutProps) {
                   <NavLink to="/community" current={location.pathname === '/community'}>
                     Community
                   </NavLink>
+                  <NavLink to="/faq" current={location.pathname === '/faq'}>
+                    FAQ
+                  </NavLink>
                 </div>
               </div>
               <div className="flex items-center gap-3">

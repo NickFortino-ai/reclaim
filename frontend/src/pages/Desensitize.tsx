@@ -465,6 +465,12 @@ export function Desensitize() {
             </div>
           )}
 
+          {pointsEarned === 0 && (
+            <p className="text-sm text-gray-500 mb-4">
+              Points are awarded once per day. Great job practicing again!
+            </p>
+          )}
+
           {/* Desensitization progress bar */}
           <div className="bg-white rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between mb-2">
