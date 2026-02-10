@@ -46,7 +46,8 @@ export function Community() {
   };
 
   const hasSupported = (memberId: string) => {
-    const member = data.members.find((m) => m.id === memberId);
+    const member = data.members.find((m) => m.id === memberId)
+      || data.hallOfFame?.find((m) => m.id === memberId);
     return member?.alreadySupported || justSupported.has(memberId);
   };
 
@@ -66,6 +67,65 @@ export function Community() {
           You're not alone. See others on the same journey and send them encouragement.
         </p>
       </div>
+
+      {/* Hall of Fame Section */}
+      {data.hallOfFame && data.hallOfFame.length > 0 && (
+        <div className="card mb-6 bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🏆</span>
+            <h2 className="text-xl font-bold text-amber-800">Hall of Fame</h2>
+          </div>
+          <p className="text-sm text-amber-700 mb-4">
+            Warriors who completed the 365-day challenge and earned lifetime membership.
+          </p>
+          <div className="space-y-2">
+            {data.hallOfFame.map((member) => {
+              const isCurrentUser = member.id === user?.id;
+              return (
+                <div
+                  key={member.id}
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    isCurrentUser ? 'bg-amber-100 border border-amber-300' : 'bg-amber-50/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                      <span className="text-white text-sm">🏆</span>
+                    </div>
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: getThemeColor(member.colorTheme) }}
+                    />
+                    <span className={`font-medium ${isCurrentUser ? 'text-amber-800' : 'text-gray-700'}`}>
+                      {isCurrentUser ? 'You' : member.displayName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-amber-700">
+                        Best: {member.highestStreak}
+                      </div>
+                      <div className="text-xs text-amber-600">
+                        Current: {member.currentStreak}
+                      </div>
+                    </div>
+                    {!isCurrentUser && (
+                      <SupportButton
+                        memberId={member.id}
+                        hasSupported={hasSupported(member.id)}
+                        isAnimating={animating === member.id}
+                        isPending={sendSupport.isPending}
+                        onSupport={handleSupport}
+                        compact
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Leaderboard Section */}
       {leaderboard.length > 0 && (

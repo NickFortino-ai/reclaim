@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUserData } from '../hooks/useApi';
+import { useUserData, useHandleMissedDays } from '../hooks/useApi';
 import { StreakDisplay } from '../components/StreakDisplay';
 import { CheckInButton } from '../components/CheckInButton';
 import { MissedDaysModal } from '../components/MissedDaysModal';
@@ -17,9 +17,17 @@ const MILESTONES: Record<number, { title: string; message: string }> = {
 
 export function Dashboard() {
   const { data, isLoading, error } = useUserData();
+  const handleMissedDays = useHandleMissedDays();
   const [showMissedDays, setShowMissedDays] = useState(true);
   const [milestone, setMilestone] = useState<{ title: string; message: string } | null>(null);
   const navigate = useNavigate();
+
+  // Auto-handle missed days for lifetime members (skip the modal)
+  useEffect(() => {
+    if (data?.user.lifetimeAccess && data.needsMissedDaysCheck && data.missedDays > 0) {
+      handleMissedDays.mutate({ stayedStrong: true, missedDays: data.missedDays });
+    }
+  }, [data?.user.lifetimeAccess, data?.needsMissedDaysCheck]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -52,11 +60,30 @@ export function Dashboard() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {data.needsMissedDaysCheck && showMissedDays && (
+      {data.needsMissedDaysCheck && showMissedDays && !data.user.lifetimeAccess && (
         <MissedDaysModal
           missedDays={data.missedDays}
           onClose={() => setShowMissedDays(false)}
         />
+      )}
+
+      {data.gracePeriodDaysRemaining !== null && data.gracePeriodDaysRemaining > 0 && (
+        <div className="card bg-amber-50 border border-amber-200">
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">🏆</div>
+            <div className="flex-1">
+              <p className="font-semibold text-amber-800">
+                You've completed the 365-day challenge!
+              </p>
+              <p className="text-sm text-amber-700">
+                {data.gracePeriodDaysRemaining} day{data.gracePeriodDaysRemaining !== 1 ? 's' : ''} remaining to claim lifetime access.
+              </p>
+            </div>
+            <Link to="/celebration" className="btn bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2">
+              Claim
+            </Link>
+          </div>
+        </div>
       )}
 
       {data.user.displayName && (

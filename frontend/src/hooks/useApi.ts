@@ -299,6 +299,27 @@ export function useMoveResource() {
   });
 }
 
+// Lifetime membership hooks
+export function useLifetimeCheckout() {
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: () => api.stripe.createLifetimeCheckout(token!),
+  });
+}
+
+export function useCompleteLifetime() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionId: string) => api.stripe.completeLifetime(token!, sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
 // Journal hooks
 export function useJournalEntries() {
   const { token } = useAuth();

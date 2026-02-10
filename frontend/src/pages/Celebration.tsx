@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useReferralStats, useClaimLifetime } from '../hooks/useApi';
+import { useReferralStats, useClaimLifetime, useLifetimeCheckout, useUserData } from '../hooks/useApi';
 
 export function Celebration() {
   const { user } = useAuth();
   const { data: referralData, isLoading } = useReferralStats();
+  const { data: userData } = useUserData();
   const claimLifetime = useClaimLifetime();
+  const lifetimeCheckout = useLifetimeCheckout();
   const [copied, setCopied] = useState(false);
   const [showPassItForward, setShowPassItForward] = useState(true);
 
@@ -62,8 +64,8 @@ export function Celebration() {
           </div>
 
           <p className="text-gray-600 mb-6">
-            Your subscription has been automatically canceled. You've proven that
-            you have what it takes. The strength you've built is yours forever.
+            You've proven that you have what it takes.
+            The strength you've built is yours forever.
           </p>
 
           <div className="space-y-4">
@@ -77,6 +79,41 @@ export function Celebration() {
             </Link>
           </div>
         </div>
+
+        {/* Lifetime Membership Offer */}
+        {userData && !userData.user.lifetimeAccess && (
+          <div className="card bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+            <div className="text-center">
+              <div className="text-4xl mb-3">🏆</div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Join the Hall of Fame
+              </h2>
+              <p className="text-gray-700 mb-4">
+                As a 365-day warrior, you've unlocked a special offer: <span className="font-semibold text-amber-700">lifetime access for a one-time $20</span>.
+                Stay in the community, keep your streak going, and inspire others from the Hall of Fame.
+              </p>
+              {userData.gracePeriodDaysRemaining !== null && userData.gracePeriodDaysRemaining > 0 && (
+                <p className="text-sm text-amber-600 mb-4">
+                  {userData.gracePeriodDaysRemaining} day{userData.gracePeriodDaysRemaining !== 1 ? 's' : ''} remaining to claim this offer
+                </p>
+              )}
+              <button
+                onClick={async () => {
+                  try {
+                    const result = await lifetimeCheckout.mutateAsync();
+                    if (result.url) window.location.href = result.url;
+                  } catch (error) {
+                    console.error('Failed to create lifetime checkout:', error);
+                  }
+                }}
+                disabled={lifetimeCheckout.isPending}
+                className="w-full btn bg-amber-600 hover:bg-amber-700 text-white py-3 font-bold"
+              >
+                {lifetimeCheckout.isPending ? 'Loading...' : 'Get Lifetime Access — $20'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Pass It Forward Section */}
         {showPassItForward && !isLoading && referralData && (

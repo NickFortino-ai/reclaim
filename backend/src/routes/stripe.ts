@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { stripe } from '../services/stripe.js';
 import { prisma } from '../services/prisma.js';
 import { generateAccessCode, generateUniqueDisplayName } from '../utils/helpers.js';
-import { generateToken } from '../middleware/auth.js';
+import { generateToken, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -355,6 +355,122 @@ router.post('/cancel', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Cancel subscription error:', error);
     res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+});
+
+// Create lifetime membership checkout ($20 one-time payment)
+router.post('/lifetime-checkout', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    if (!user.completedAt) {
+      res.status(400).json({ error: 'Must complete the 365-day challenge first' });
+      return;
+    }
+
+    if (user.lifetimeAccess) {
+      res.status(400).json({ error: 'Already have lifetime access' });
+      return;
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Reclaim - Lifetime Membership',
+              description: 'Hall of Fame lifetime access for 365-day warriors',
+            },
+            unit_amount: 2000, // $20.00
+          },
+          quantity: 1,
+        },
+      ],
+      customer: user.stripeCustomerId || undefined,
+      metadata: {
+        type: 'lifetime',
+        userId: user.id,
+      },
+      success_url: `${FRONTEND_URL}/lifetime/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/celebration`,
+    });
+
+    res.json({ sessionId: session.id, url: session.url });
+  } catch (error) {
+    console.error('Lifetime checkout error:', error);
+    res.status(500).json({ error: 'Failed to create lifetime checkout' });
+  }
+});
+
+// Complete lifetime membership after payment
+router.post('/complete-lifetime', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.body;
+    const userId = req.user!.userId;
+
+    if (!sessionId) {
+      res.status(400).json({ error: 'Session ID required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Idempotent — already lifetime
+    if (user.lifetimeAccess) {
+      res.json({ message: 'Lifetime access already granted', lifetimeAccess: true });
+      return;
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status !== 'paid') {
+      res.status(400).json({ error: 'Payment not completed' });
+      return;
+    }
+
+    if (session.metadata?.type !== 'lifetime' || session.metadata?.userId !== userId) {
+      res.status(400).json({ error: 'Invalid session' });
+      return;
+    }
+
+    // Grant lifetime access — cancel recurring subscription if still active
+    if (user.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+      } catch (e) {
+        console.error('Failed to cancel subscription for lifetime access:', e);
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        lifetimeAccess: true,
+        subscriptionStatus: 'completed',
+      },
+    });
+
+    res.json({ message: 'Welcome to the Hall of Fame!', lifetimeAccess: true });
+  } catch (error) {
+    console.error('Complete lifetime error:', error);
+    res.status(500).json({ error: 'Failed to complete lifetime membership' });
   }
 });
 

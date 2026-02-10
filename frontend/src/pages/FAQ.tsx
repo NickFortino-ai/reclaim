@@ -35,6 +35,36 @@ const sections: FAQSection[] = [
         answer:
           'Yes. You\u2019re identified by a unique warrior name (like \u201cSilent Wolf\u201d or \u201cIron Bear\u201d), not your real identity. No email is required after signup. Your streak data and check-ins are private \u2014 only you can see them. The brotherhood leaderboard shows warrior names only.',
       },
+      {
+        question: 'What is the Hall of Fame?',
+        answer:
+          'The Hall of Fame is an elite section of the community reserved for warriors who completed the 365-day challenge and purchased lifetime membership ($20 one-time). Hall of Fame members appear in a special gold-themed section on the Community page, showing both their highest streak ever and their current streak. They serve as proof that freedom is possible.',
+      },
+      {
+        question: 'How do I get lifetime membership?',
+        answer:
+          'After completing an unbroken 365-day streak, you\u2019ll be offered lifetime access for a one-time $20 payment. You have a 7-day grace period after completion to claim this offer. You can also earn lifetime access for free by referring 3 brothers to Reclaim. Lifetime members join the Hall of Fame and keep full access forever.',
+      },
+      {
+        question: 'What happens if I reset after getting lifetime access?',
+        answer:
+          'You stay in the Hall of Fame permanently. Your highest streak is preserved and displayed alongside your current streak. Resets are part of the journey \u2014 your lifetime status and legacy are never lost.',
+      },
+    ],
+  },
+  {
+    title: 'Tools',
+    items: [
+      {
+        question: 'What is Urge Surfing?',
+        answer:
+          'Urge Surfing is a guided breathing exercise built into Reclaim. When an urge hits, you can open the Urge Surf tool and follow a timed breathing pattern (inhale, hold, exhale) that helps you ride out the urge without acting on it. Urges typically peak and pass within 15-20 minutes \u2014 this tool helps you get through that window.',
+      },
+      {
+        question: 'How does the Journal work?',
+        answer:
+          'The Journal is a private space to write down your thoughts, track your mood, and identify triggers. Each entry can include a mood tag (like Strong, Motivated, or Struggling) and a trigger tag (like Bored, Stressed, or Late Night). Over time, the Journal shows you pattern insights \u2014 your most common triggers, peak journaling times, and mood trends. No one else can see your journal entries, not even the admin.',
+      },
     ],
   },
   {

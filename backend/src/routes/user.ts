@@ -49,24 +49,49 @@ router.get('/me', async (req: Request, res: Response) => {
       }
     }
 
+    // Grace period enforcement: 7 days after completion, auto-cancel if not lifetime
+    let gracePeriodDaysRemaining: number | null = null;
+    if (user.completedAt && !user.lifetimeAccess) {
+      const daysSinceCompletion = differenceInDays(new Date(), user.completedAt);
+      if (daysSinceCompletion <= 7) {
+        gracePeriodDaysRemaining = 7 - daysSinceCompletion;
+      } else if (user.subscriptionStatus !== 'canceled') {
+        // Grace period expired — auto-cancel subscription
+        if (user.stripeSubscriptionId) {
+          try {
+            await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+          } catch (e) {
+            console.error('Failed to cancel subscription after grace period:', e);
+          }
+        }
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { subscriptionStatus: 'canceled' },
+        });
+      }
+    }
+
     res.json({
       user: {
         id: user.id,
         displayName: user.displayName,
         currentStreak: user.currentStreak,
         totalDaysWon: user.totalDaysWon,
+        highestStreak: user.highestStreak,
         lastCheckIn: user.lastCheckIn,
         colorTheme: user.colorTheme,
         subscriptionStatus: user.subscriptionStatus,
         completedAt: user.completedAt,
         desensitizationPoints: user.desensitizationPoints,
         supportReceivedToday: user.supportReceived.length,
+        lifetimeAccess: user.lifetimeAccess,
       },
       affirmation: affirmation?.text || null,
       dayNum,
       checkedInToday,
       missedDays,
       needsMissedDaysCheck,
+      gracePeriodDaysRemaining,
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -101,6 +126,7 @@ router.post('/checkin', async (req: Request, res: Response) => {
       data: {
         currentStreak: newStreak,
         totalDaysWon: newTotalDaysWon,
+        highestStreak: Math.max(user.highestStreak, newStreak),
         lastCheckIn: new Date(),
       },
     });
@@ -117,15 +143,6 @@ router.post('/checkin', async (req: Request, res: Response) => {
     // Check for 365-day streak completion
     let completed = false;
     if (newStreak >= 365 && !user.completedAt) {
-      // Auto-cancel subscription — user achieved 365-day unbroken streak
-      if (user.stripeSubscriptionId) {
-        try {
-          await stripe.subscriptions.cancel(user.stripeSubscriptionId);
-        } catch (e) {
-          console.error('Failed to cancel subscription:', e);
-        }
-      }
-
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -177,6 +194,7 @@ router.post('/missed-days', async (req: Request, res: Response) => {
         data: {
           currentStreak: newStreak,
           totalDaysWon: newTotalDaysWon,
+          highestStreak: Math.max(user.highestStreak, newStreak),
           lastCheckIn: new Date(),
         },
       });
@@ -193,14 +211,6 @@ router.post('/missed-days', async (req: Request, res: Response) => {
       // Check for 365-day streak completion
       let completed = false;
       if (newStreak >= 365 && !user.completedAt) {
-        if (user.stripeSubscriptionId) {
-          try {
-            await stripe.subscriptions.cancel(user.stripeSubscriptionId);
-          } catch (e) {
-            console.error('Failed to cancel subscription:', e);
-          }
-        }
-
         await prisma.user.update({
           where: { id: user.id },
           data: {

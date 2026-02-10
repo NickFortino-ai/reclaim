@@ -76,18 +76,21 @@ export interface UserData {
     displayName: string;
     currentStreak: number;
     totalDaysWon: number;
+    highestStreak: number;
     lastCheckIn: string | null;
     colorTheme: string;
     subscriptionStatus: string;
     completedAt: string | null;
     desensitizationPoints: number;
     supportReceivedToday: number;
+    lifetimeAccess: boolean;
   };
   affirmation: string | null;
   dayNum: number;
   checkedInToday: boolean;
   missedDays: number;
   needsMissedDaysCheck: boolean;
+  gracePeriodDaysRemaining: number | null;
 }
 
 export interface CheckInResponse {
@@ -140,15 +143,17 @@ export interface CommunityMember {
   displayName: string;
   currentStreak: number;
   totalDaysWon: number;
+  highestStreak: number;
   colorTheme: string;
   isCompleted: boolean;
+  lifetimeAccess: boolean;
   supportReceivedToday: number;
   alreadySupported: boolean;
 }
 
 export const community = {
   getMembers: (token: string) =>
-    request<{ members: CommunityMember[] }>('/api/community', { token }),
+    request<{ members: CommunityMember[]; hallOfFame: CommunityMember[] }>('/api/community', { token }),
 
   sendSupport: (token: string, userId: string) =>
     request<{ message: string }>(`/api/community/support/${userId}`, { method: 'POST', token }),
@@ -267,6 +272,19 @@ export const stripe = {
     request<{ message: string }>('/api/stripe/cancel', {
       method: 'POST',
       body: { userId },
+    }),
+
+  createLifetimeCheckout: (token: string) =>
+    request<CheckoutSession>('/api/stripe/lifetime-checkout', {
+      method: 'POST',
+      token,
+    }),
+
+  completeLifetime: (token: string, sessionId: string) =>
+    request<{ message: string; lifetimeAccess: boolean }>('/api/stripe/complete-lifetime', {
+      method: 'POST',
+      token,
+      body: { sessionId },
     }),
 };
 

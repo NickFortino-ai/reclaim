@@ -1,5 +1,12 @@
 import { LockedOverlay } from '../../components/LockedOverlay';
 
+// Mock Hall of Fame data
+const mockHallOfFame = [
+  { id: 'hof1', displayName: 'Apex Predator', highestStreak: 412, currentStreak: 412, theme: 'navy' },
+  { id: 'hof2', displayName: 'Iron Fortress', highestStreak: 389, currentStreak: 24, theme: 'charcoal' },
+  { id: 'hof3', displayName: 'Crimson Valor', highestStreak: 365, currentStreak: 365, theme: 'burgundy' },
+];
+
 // Mock leaderboard data for demo with cool warrior names
 const mockLeaderboard = [
   { id: '1', rank: 1, streak: 142, theme: 'navy', displayName: 'Iron Wolf', isCompleted: false },
@@ -31,6 +38,46 @@ export function DemoCommunity() {
         <p className="text-gray-600">
           You're not alone. See others on the same journey and send them encouragement.
         </p>
+      </div>
+
+      {/* Hall of Fame Section */}
+      <div className="card mb-6 bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-2xl">🏆</span>
+          <h2 className="text-xl font-bold text-amber-800">Hall of Fame</h2>
+        </div>
+        <p className="text-sm text-amber-700 mb-4">
+          Warriors who completed the 365-day challenge and earned lifetime membership.
+        </p>
+        <div className="space-y-2">
+          {mockHallOfFame.map((member) => (
+            <div
+              key={member.id}
+              className="flex items-center justify-between p-3 rounded-lg bg-amber-50/50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                  <span className="text-white text-sm">🏆</span>
+                </div>
+                <div
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: themeColors[member.theme] }}
+                />
+                <span className="font-medium text-gray-700">
+                  {member.displayName}
+                </span>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-bold text-amber-700">
+                  Best: {member.highestStreak}
+                </div>
+                <div className="text-xs text-amber-600">
+                  Current: {member.currentStreak}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Leaderboard Section - Visible */}

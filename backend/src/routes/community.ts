@@ -22,8 +22,10 @@ router.get('/', async (req: Request, res: Response) => {
         displayName: true,
         currentStreak: true,
         totalDaysWon: true,
+        highestStreak: true,
         colorTheme: true,
         completedAt: true,
+        lifetimeAccess: true,
         createdAt: true,
         _count: {
           select: {
@@ -39,7 +41,6 @@ router.get('/', async (req: Request, res: Response) => {
         { currentStreak: 'desc' },
         { totalDaysWon: 'desc' },
       ],
-      // Fetch all users so rankings are accurate
     });
 
     // Get list of users the current user has supported today
@@ -52,19 +53,40 @@ router.get('/', async (req: Request, res: Response) => {
     });
     const supportedIds = new Set(supportedToday.map((s) => s.receiverId));
 
-    // Map to anonymous format
-    const communityMembers = users.map((user, index) => ({
-      id: user.id,
-      displayName: user.displayName || `Warrior #${index + 1}`,
-      currentStreak: user.currentStreak,
-      totalDaysWon: user.totalDaysWon,
-      colorTheme: user.colorTheme,
-      isCompleted: !!user.completedAt,
-      supportReceivedToday: user._count.supportReceived,
-      alreadySupported: supportedIds.has(user.id),
-    }));
+    // Split into Hall of Fame (completed + lifetime) and regular members
+    const hallOfFame = users
+      .filter((u) => u.completedAt && u.lifetimeAccess)
+      .sort((a, b) => b.highestStreak - a.highestStreak)
+      .map((user) => ({
+        id: user.id,
+        displayName: user.displayName,
+        currentStreak: user.currentStreak,
+        totalDaysWon: user.totalDaysWon,
+        highestStreak: user.highestStreak,
+        colorTheme: user.colorTheme,
+        isCompleted: true,
+        lifetimeAccess: true,
+        supportReceivedToday: user._count.supportReceived,
+        alreadySupported: supportedIds.has(user.id),
+      }));
 
-    res.json({ members: communityMembers });
+    const hallOfFameIds = new Set(hallOfFame.map((u) => u.id));
+    const communityMembers = users
+      .filter((u) => !hallOfFameIds.has(u.id))
+      .map((user, index) => ({
+        id: user.id,
+        displayName: user.displayName || `Warrior #${index + 1}`,
+        currentStreak: user.currentStreak,
+        totalDaysWon: user.totalDaysWon,
+        highestStreak: user.highestStreak,
+        colorTheme: user.colorTheme,
+        isCompleted: !!user.completedAt,
+        lifetimeAccess: user.lifetimeAccess,
+        supportReceivedToday: user._count.supportReceived,
+        alreadySupported: supportedIds.has(user.id),
+      }));
+
+    res.json({ members: communityMembers, hallOfFame });
   } catch (error) {
     console.error('Community fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch community' });
