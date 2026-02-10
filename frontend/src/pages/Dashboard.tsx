@@ -118,7 +118,7 @@ export function Dashboard() {
       )}
 
       {/* Quick Access Tools */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link to="/desensitize" className="card hover:shadow-md transition-shadow">
           <div className="text-center">
             <div className="text-3xl mb-2">🛡️</div>
@@ -141,7 +141,7 @@ export function Dashboard() {
           </div>
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link to="/urge-surf" className="card hover:shadow-md transition-shadow">
           <div className="text-center">
             <div className="text-3xl mb-2">🌊</div>
