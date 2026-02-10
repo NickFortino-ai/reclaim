@@ -2,30 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDesensImage, useLogUrgeSurf, useCompleteDesens } from '../hooks/useApi';
 
-// Time-based mindfulness prompts (5-second intervals for 30s exercise)
-const TIMED_MINDFULNESS_PROMPTS = [
-  { start: 0, end: 5, text: "Notice her eyes. What story do they tell?" },
-  { start: 5, end: 10, text: "She's someone's daughter, sister, friend." },
-  { start: 10, end: 15, text: "Feel any urges rising. Don't fight them. Just observe." },
-  { start: 15, end: 20, text: "This discomfort is your brain rewiring." },
-  { start: 20, end: 25, text: "Breathe. You're in control." },
-  { start: 25, end: 30, text: "Real attraction without objectification—this is growth." },
-];
-
-// Helper to get prompt based on elapsed time (scales to exercise duration)
-const getPromptForTime = (elapsedSeconds: number, totalDuration: number): string => {
-  const scaleFactor = totalDuration / 30;
-
-  for (const prompt of TIMED_MINDFULNESS_PROMPTS) {
-    const scaledStart = prompt.start * scaleFactor;
-    const scaledEnd = prompt.end * scaleFactor;
-    if (elapsedSeconds >= scaledStart && elapsedSeconds < scaledEnd) {
-      return prompt.text;
-    }
-  }
-  return TIMED_MINDFULNESS_PROMPTS[TIMED_MINDFULNESS_PROMPTS.length - 1].text;
-};
-
 // Difficulty levels based on day progression
 const getDifficultyLevel = (dayNum: number): { level: string; description: string; duration: number } => {
   if (dayNum <= 14) {
