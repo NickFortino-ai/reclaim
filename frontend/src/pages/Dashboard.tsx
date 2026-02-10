@@ -141,6 +141,22 @@ export function Dashboard() {
           </div>
         </Link>
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Link to="/urge-surf" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">🌊</div>
+            <h3 className="font-semibold text-gray-900">Urge Surf</h3>
+            <p className="text-sm text-gray-600 mt-1">Breathing exercise to ride out urges</p>
+          </div>
+        </Link>
+        <Link to="/journal" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">📝</div>
+            <h3 className="font-semibold text-gray-900">Journal</h3>
+            <p className="text-sm text-gray-600 mt-1">Track your thoughts and victories</p>
+          </div>
+        </Link>
+      </div>
 
       {/* Milestone Celebration Modal */}
       {milestone && (
