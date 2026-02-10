@@ -65,6 +65,15 @@ export function Dashboard() {
         </h1>
       )}
 
+      {data.affirmation && (
+        <div className="card">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">
+            Day {data.dayNum} Affirmation
+          </h3>
+          <p className="text-lg text-gray-900 italic">"{data.affirmation}"</p>
+        </div>
+      )}
+
       <StreakDisplay
         currentStreak={data.user.currentStreak}
         totalDaysWon={data.user.totalDaysWon}
@@ -79,15 +88,6 @@ export function Dashboard() {
       <div className="text-center">
         <ResetButton />
       </div>
-
-      {data.affirmation && (
-        <div className="card">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">
-            Day {data.dayNum} Affirmation
-          </h3>
-          <p className="text-lg text-gray-900 italic">"{data.affirmation}"</p>
-        </div>
-      )}
 
       {data.user.supportReceivedToday > 0 && (
         <div className="card bg-green-50 border border-green-200">
