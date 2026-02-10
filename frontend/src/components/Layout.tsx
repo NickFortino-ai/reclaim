@@ -50,6 +50,15 @@ export function Layout({ children }: LayoutProps) {
                   <NavLink to="/demo/community" current={location.pathname === '/demo/community'}>
                     Community
                   </NavLink>
+                  <NavLink to="/demo/urge-surf" current={location.pathname === '/demo/urge-surf'}>
+                    Urge Surf
+                  </NavLink>
+                  <NavLink to="/demo/journal" current={location.pathname === '/demo/journal'}>
+                    Journal
+                  </NavLink>
+                  <NavLink to="/demo/faq" current={location.pathname === '/demo/faq'}>
+                    FAQ
+                  </NavLink>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -60,7 +69,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
         </nav>
-        {/* Mobile nav */}
+        {/* Mobile top bar */}
         <nav className="sm:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center">
@@ -75,22 +84,13 @@ export function Layout({ children }: LayoutProps) {
               Exit
             </button>
           </div>
-          <div className="flex border-t border-gray-100">
-            <MobileNavLink to="/demo/dashboard" current={location.pathname === '/demo/dashboard'}>
-              Dashboard
-            </MobileNavLink>
-            <MobileNavLink to="/demo/resources" current={location.pathname === '/demo/resources'}>
-              Resources
-            </MobileNavLink>
-            <MobileNavLink to="/demo/community" current={location.pathname === '/demo/community'}>
-              Community
-            </MobileNavLink>
-          </div>
         </nav>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
           {children}
         </main>
         <Footer />
+        {/* Mobile bottom nav */}
+        <DemoMobileBottomNav currentPath={location.pathname} />
       </div>
     );
   }
@@ -264,18 +264,66 @@ function Footer() {
   );
 }
 
-function MobileNavLink({ to, current, children }: { to: string; current: boolean; children: ReactNode }) {
+function DemoMobileBottomNav({ currentPath }: { currentPath: string }) {
+  const items = [
+    {
+      to: '/demo/dashboard',
+      label: 'Home',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      ),
+    },
+    {
+      to: '/demo/community',
+      label: 'Community',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
+    {
+      to: '/demo/urge-surf',
+      label: 'Urge Surf',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+    },
+    {
+      to: '/demo/journal',
+      label: 'Journal',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <Link
-      to={to}
-      className={`flex-1 py-3 text-center text-sm font-medium border-b-2 ${
-        current
-          ? 'border-primary-600 text-primary-600'
-          : 'border-transparent text-gray-500'
-      }`}
-    >
-      {children}
-    </Link>
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="flex justify-around">
+        {items.map((item) => {
+          const active = currentPath === item.to;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`flex flex-col items-center py-2 px-1 min-w-0 flex-1 ${
+                active ? 'text-primary-600' : 'text-gray-400'
+              }`}
+            >
+              {item.icon}
+              <span className="text-[10px] mt-0.5 truncate">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
 

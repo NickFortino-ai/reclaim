@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { LockedOverlay } from '../../components/LockedOverlay';
 
 // Mock leaderboard data for demo with cool warrior names
@@ -165,10 +164,6 @@ export function DemoCommunity() {
         </div>
       </LockedOverlay>
 
-      {/* Demo Navigation */}
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Explore the demo: <Link to="/demo/dashboard" className="text-primary-600 hover:underline">Dashboard</Link> • <Link to="/demo/resources" className="text-primary-600 hover:underline">Resources</Link></p>
-      </div>
     </div>
   );
 }

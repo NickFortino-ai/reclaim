@@ -27,6 +27,9 @@ import { Terms } from './pages/Terms';
 import { DemoDashboard } from './pages/demo/DemoDashboard';
 import { DemoResources } from './pages/demo/DemoResources';
 import { DemoCommunity } from './pages/demo/DemoCommunity';
+import { DemoUrgeSurf } from './pages/demo/DemoUrgeSurf';
+import { DemoJournal } from './pages/demo/DemoJournal';
+import { DemoFAQ } from './pages/demo/DemoFAQ';
 
 // Admin Pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -153,6 +156,30 @@ function AppRoutes() {
           element={
             <DemoRoute>
               <DemoCommunity />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/urge-surf"
+          element={
+            <DemoRoute>
+              <DemoUrgeSurf />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/journal"
+          element={
+            <DemoRoute>
+              <DemoJournal />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/faq"
+          element={
+            <DemoRoute>
+              <DemoFAQ />
             </DemoRoute>
           }
         />
