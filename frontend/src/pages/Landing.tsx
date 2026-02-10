@@ -84,7 +84,7 @@ export function Landing() {
           {/* Returning User Login */}
           <div className="max-w-xs mx-auto mb-16">
             <p className="text-slate-400 text-sm text-center mb-3">Already a member?</p>
-            <form onSubmit={handleLogin} className="flex gap-2">
+            <form onSubmit={handleLogin} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 inputMode="numeric"
@@ -98,7 +98,7 @@ export function Landing() {
               <button
                 type="submit"
                 disabled={loginLoading || accessCode.length !== 4}
-                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors border border-slate-600"
+                className="w-full sm:w-auto px-6 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors border border-slate-600"
               >
                 {loginLoading ? '...' : 'Login'}
               </button>
