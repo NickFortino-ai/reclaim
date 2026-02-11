@@ -74,9 +74,9 @@ function TabButton({
 function DemoStudiesContent() {
   const studies = [
     {
-      title: 'Neuroscience of Internet Pornography Addiction',
-      source: 'Behavioral Sciences, 2015',
-      summary: 'Research shows pornography consumption can lead to neuroplastic changes in the brain similar to substance addiction, affecting dopamine pathways and reward circuits.',
+      title: 'Porn-Induced Erectile Dysfunction (PIED)',
+      source: 'Behavioral Sciences, 2016',
+      summary: 'Growing clinical evidence links heavy pornography use to erectile dysfunction in young men. The brain becomes conditioned to respond only to the hyper-stimulation of pornography, making it difficult to perform with a real partner. The good news: PIED is reversible. As the brain recalibrates during recovery, real-world arousal and sexual function return \u2014 often within 60-90 days.',
     },
     {
       title: 'Pornography and the Male Sexual Script',

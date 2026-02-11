@@ -30,6 +30,7 @@ import { DemoCommunity } from './pages/demo/DemoCommunity';
 import { DemoUrgeSurf } from './pages/demo/DemoUrgeSurf';
 import { DemoJournal } from './pages/demo/DemoJournal';
 import { DemoFAQ } from './pages/demo/DemoFAQ';
+import { DemoPatterns } from './pages/demo/DemoPatterns';
 
 // Admin Pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -174,6 +175,14 @@ function AppRoutes() {
           element={
             <DemoRoute>
               <DemoJournal />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/patterns"
+          element={
+            <DemoRoute>
+              <DemoPatterns />
             </DemoRoute>
           }
         />

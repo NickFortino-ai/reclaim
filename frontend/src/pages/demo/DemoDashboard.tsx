@@ -104,7 +104,7 @@ export function DemoDashboard() {
             <div className="text-center">
               <div className="text-3xl mb-2">🛡️</div>
               <h3 className="font-semibold text-gray-900">Desensitization</h3>
-              <p className="text-sm text-gray-600 mt-1">Build resistance through controlled exposure</p>
+              <p className="text-sm text-gray-600 mt-1">Resensitize to real attraction</p>
             </div>
           </div>
         </LockedFeatureButton>
@@ -124,8 +124,8 @@ export function DemoDashboard() {
         </Link>
       </div>
 
-      {/* Quick Access Tools - Row 2: 2 boxes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Quick Access Tools - Row 2: 3 boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link to="/demo/urge-surf" className="card hover:shadow-md transition-shadow">
           <div className="text-center">
             <div className="text-3xl mb-2">🌊</div>
@@ -133,15 +133,20 @@ export function DemoDashboard() {
             <p className="text-sm text-gray-600 mt-1">Breathing exercise to ride out urges</p>
           </div>
         </Link>
-        <LockedFeatureButton>
-          <div className="card hover:shadow-md transition-shadow">
-            <div className="text-center">
-              <div className="text-3xl mb-2">📝</div>
-              <h3 className="font-semibold text-gray-900">Journal</h3>
-              <p className="text-sm text-gray-600 mt-1">Track your thoughts and victories</p>
-            </div>
+        <Link to="/demo/journal" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">📝</div>
+            <h3 className="font-semibold text-gray-900">Journal</h3>
+            <p className="text-sm text-gray-600 mt-1">Track your thoughts and victories</p>
           </div>
-        </LockedFeatureButton>
+        </Link>
+        <Link to="/demo/patterns" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">📊</div>
+            <h3 className="font-semibold text-gray-900">Patterns</h3>
+            <p className="text-sm text-gray-600 mt-1">Insights from your recovery data</p>
+          </div>
+        </Link>
       </div>
     </div>
   );

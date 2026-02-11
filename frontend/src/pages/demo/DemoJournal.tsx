@@ -31,6 +31,71 @@ export function DemoJournal() {
         <p className="text-xs text-gray-500 mt-1">Your journal entries are private and cannot be viewed by anyone else.</p>
       </div>
 
+      {/* Demo Intimacy Check-In Card - Locked */}
+      <LockedOverlay message="Sign up to track your intimacy progress">
+        <div className="card bg-rose-50 border border-rose-200">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h2 className="text-lg font-semibold text-rose-900">Intimacy Check-In</h2>
+              <p className="text-sm text-rose-700">Rate how you're feeling in your real-world connections</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-rose-800">Confidence Around Women</label>
+                <span className="text-sm font-bold text-rose-700">7/10</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={7}
+                disabled
+                className="w-full accent-rose-500"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-rose-800">Real-World Attraction</label>
+                <span className="text-sm font-bold text-rose-700">6/10</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={6}
+                disabled
+                className="w-full accent-rose-500"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-rose-800">Emotional Connection</label>
+                <span className="text-sm font-bold text-rose-700">5/10</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={5}
+                disabled
+                className="w-full accent-rose-500"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button disabled className="btn bg-rose-600 text-white">
+              Save Check-In
+            </button>
+          </div>
+        </div>
+      </LockedOverlay>
+
       {/* Demo Entry Form - Locked */}
       <LockedOverlay message="Sign up to start journaling">
         <div className="card">
