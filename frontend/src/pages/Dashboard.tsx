@@ -168,7 +168,7 @@ export function Dashboard() {
           </div>
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link to="/urge-surf" className="card hover:shadow-md transition-shadow">
           <div className="text-center">
             <div className="text-3xl mb-2">🌊</div>
@@ -181,6 +181,13 @@ export function Dashboard() {
             <div className="text-3xl mb-2">📝</div>
             <h3 className="font-semibold text-gray-900">Journal</h3>
             <p className="text-sm text-gray-600 mt-1">Track your thoughts and victories</p>
+          </div>
+        </Link>
+        <Link to="/patterns" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">📊</div>
+            <h3 className="font-semibold text-gray-900">My Patterns</h3>
+            <p className="text-sm text-gray-600 mt-1">Insights from your behavioral data</p>
           </div>
         </Link>
       </div>

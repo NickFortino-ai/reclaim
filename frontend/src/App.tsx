@@ -39,6 +39,7 @@ import { AdminImages } from './pages/admin/AdminImages';
 import { AdminResources } from './pages/admin/AdminResources';
 import { Bookmarks } from './pages/Bookmarks';
 import { LifetimeSuccess } from './pages/LifetimeSuccess';
+import { Patterns } from './pages/Patterns';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -231,6 +232,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Journal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patterns"
+          element={
+            <ProtectedRoute>
+              <Patterns />
             </ProtectedRoute>
           }
         />

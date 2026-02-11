@@ -441,4 +441,223 @@ router.delete('/account', async (req: Request, res: Response) => {
   }
 });
 
+// Get pattern insights
+router.get('/patterns', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const [user, checkIns, journalEntries, urgeSurfEvents, desensLogs] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          currentStreak: true,
+          totalDaysWon: true,
+          highestStreak: true,
+          desensitizationPoints: true,
+          createdAt: true,
+        },
+      }),
+      prisma.checkIn.findMany({
+        where: { userId },
+        orderBy: { date: 'asc' },
+        select: { stayedStrong: true, daysAdded: true, date: true },
+      }),
+      prisma.journalEntry.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'asc' },
+        select: { mood: true, trigger: true, createdAt: true },
+      }),
+      prisma.urgeSurfEvent.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'asc' },
+        select: { completedBreathing: true, resumedExercise: true, createdAt: true },
+      }),
+      prisma.desensitizationLog.findMany({
+        where: { userId },
+        orderBy: { completedAt: 'asc' },
+        select: { pointsEarned: true, completedAt: true },
+      }),
+    ]);
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // --- Journey ---
+    const daysSinceStart = Math.max(1, Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
+    const totalResets = checkIns.filter(c => !c.stayedStrong).length;
+
+    // Calculate average streak before reset
+    let avgStreakBeforeReset = 0;
+    if (totalResets > 0) {
+      let streakSum = 0;
+      let runningStreak = 0;
+      for (const c of checkIns) {
+        if (c.stayedStrong) {
+          runningStreak += c.daysAdded;
+        } else {
+          streakSum += runningStreak;
+          runningStreak = 0;
+        }
+      }
+      avgStreakBeforeReset = Math.round(streakSum / totalResets);
+    }
+
+    const consistencyRate = Math.round((user.totalDaysWon / daysSinceStart) * 100);
+
+    // --- Triggers ---
+    const triggerCounts: Record<string, number> = {};
+    const triggerByDayOfWeek: Record<string, Record<string, number>> = {};
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    for (const entry of journalEntries) {
+      if (entry.trigger) {
+        triggerCounts[entry.trigger] = (triggerCounts[entry.trigger] || 0) + 1;
+        const day = dayNames[new Date(entry.createdAt).getDay()];
+        if (!triggerByDayOfWeek[day]) triggerByDayOfWeek[day] = {};
+        triggerByDayOfWeek[day][entry.trigger] = (triggerByDayOfWeek[day][entry.trigger] || 0) + 1;
+      }
+    }
+
+    const topTriggers = Object.entries(triggerCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({ value, count }));
+
+    // --- Moods ---
+    const moodCounts: Record<string, number> = {};
+    for (const entry of journalEntries) {
+      if (entry.mood) {
+        moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+      }
+    }
+
+    const topMoods = Object.entries(moodCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({ value, count }));
+
+    const recentMoodEntries = journalEntries
+      .filter(e => e.mood)
+      .slice(-14);
+    const recentTrend = recentMoodEntries.map(e => e.mood!);
+
+    // --- Timing ---
+    const journalHourCounts: Record<number, number> = {};
+    const journalDayCounts: Record<string, number> = {};
+    for (const entry of journalEntries) {
+      const d = new Date(entry.createdAt);
+      const hour = d.getHours();
+      journalHourCounts[hour] = (journalHourCounts[hour] || 0) + 1;
+      const day = dayNames[d.getDay()];
+      journalDayCounts[day] = (journalDayCounts[day] || 0) + 1;
+    }
+
+    const peakJournalHour = Object.keys(journalHourCounts).length > 0
+      ? Number(Object.entries(journalHourCounts).sort((a, b) => b[1] - a[1])[0][0])
+      : null;
+
+    const urgeSurfHourCounts: Record<number, number> = {};
+    const urgeSurfDayCounts: Record<string, number> = {};
+    for (const event of urgeSurfEvents) {
+      const d = new Date(event.createdAt);
+      const hour = d.getHours();
+      urgeSurfHourCounts[hour] = (urgeSurfHourCounts[hour] || 0) + 1;
+      const day = dayNames[d.getDay()];
+      urgeSurfDayCounts[day] = (urgeSurfDayCounts[day] || 0) + 1;
+    }
+
+    const peakUrgeSurfHour = Object.keys(urgeSurfHourCounts).length > 0
+      ? Number(Object.entries(urgeSurfHourCounts).sort((a, b) => b[1] - a[1])[0][0])
+      : null;
+
+    const riskiestDayOfWeek = Object.keys(urgeSurfDayCounts).length > 0
+      ? Object.entries(urgeSurfDayCounts).sort((a, b) => b[1] - a[1])[0][0]
+      : null;
+
+    // --- Urge Surfing ---
+    const totalUrgeSessions = urgeSurfEvents.length;
+    const breathingCompleted = urgeSurfEvents.filter(e => e.completedBreathing).length;
+    const resumedExercise = urgeSurfEvents.filter(e => e.resumedExercise).length;
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const last30 = urgeSurfEvents.filter(e => new Date(e.createdAt) >= thirtyDaysAgo).length;
+    const prior30 = urgeSurfEvents.filter(e => {
+      const d = new Date(e.createdAt);
+      return d >= sixtyDaysAgo && d < thirtyDaysAgo;
+    }).length;
+
+    let urgeTrend: 'increasing' | 'decreasing' | 'stable' | null = null;
+    if (totalUrgeSessions >= 2) {
+      if (last30 > prior30 * 1.25) urgeTrend = 'increasing';
+      else if (last30 < prior30 * 0.75) urgeTrend = 'decreasing';
+      else urgeTrend = 'stable';
+    }
+
+    // --- Desensitization ---
+    const totalDesensSessions = desensLogs.length;
+    const totalDesensPoints = desensLogs.reduce((sum, l) => sum + l.pointsEarned, 0);
+    const avgPointsPerSession = totalDesensSessions > 0
+      ? Math.round((totalDesensPoints / totalDesensSessions) * 10) / 10
+      : 0;
+
+    // --- Journal Stats ---
+    const totalEntries = journalEntries.length;
+    const entriesLast30 = journalEntries.filter(e => new Date(e.createdAt) >= thirtyDaysAgo).length;
+    const weeksActive = Math.max(1, daysSinceStart / 7);
+    const avgEntriesPerWeek = Math.round((totalEntries / weeksActive) * 10) / 10;
+
+    res.json({
+      journey: {
+        daysSinceStart,
+        totalDaysWon: user.totalDaysWon,
+        currentStreak: user.currentStreak,
+        highestStreak: user.highestStreak,
+        totalResets,
+        avgStreakBeforeReset,
+        consistencyRate: Math.min(consistencyRate, 100),
+      },
+      triggers: {
+        top: topTriggers,
+        byDayOfWeek: triggerByDayOfWeek,
+      },
+      moods: {
+        top: topMoods,
+        recentTrend,
+      },
+      timing: {
+        peakJournalHour,
+        peakUrgeSurfHour,
+        riskiestDayOfWeek,
+        journalByDayOfWeek: journalDayCounts,
+      },
+      urgeSurfing: {
+        totalSessions: totalUrgeSessions,
+        breathingCompletionRate: totalUrgeSessions > 0
+          ? Math.round((breathingCompleted / totalUrgeSessions) * 100)
+          : 0,
+        resumedExerciseRate: totalUrgeSessions > 0
+          ? Math.round((resumedExercise / totalUrgeSessions) * 100)
+          : 0,
+        last30DaysCount: last30,
+        trend: urgeTrend,
+      },
+      desensitization: {
+        totalPoints: user.desensitizationPoints,
+        maxPoints: 300,
+        totalSessions: totalDesensSessions,
+        avgPointsPerSession,
+      },
+      journalStats: {
+        totalEntries,
+        entriesLast30Days: entriesLast30,
+        avgEntriesPerWeek,
+      },
+    });
+  } catch (error) {
+    console.error('Get patterns error:', error);
+    res.status(500).json({ error: 'Failed to get patterns' });
+  }
+});
+
 export default router;

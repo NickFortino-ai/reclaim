@@ -116,6 +116,17 @@ export function useCompleteDesens() {
   });
 }
 
+// Pattern insights
+export function usePatterns() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['patterns'],
+    queryFn: () => api.user.getPatterns(token!),
+    enabled: !!token,
+  });
+}
+
 // Admin hooks
 export function useAdminStats() {
   const { token, isAdmin } = useAuth();

@@ -114,6 +114,50 @@ export interface ResetResponse {
   quote: string;
 }
 
+export interface PatternsData {
+  journey: {
+    daysSinceStart: number;
+    totalDaysWon: number;
+    currentStreak: number;
+    highestStreak: number;
+    totalResets: number;
+    avgStreakBeforeReset: number;
+    consistencyRate: number;
+  };
+  triggers: {
+    top: { value: string; count: number }[];
+    byDayOfWeek: Record<string, Record<string, number>>;
+  };
+  moods: {
+    top: { value: string; count: number }[];
+    recentTrend: string[];
+  };
+  timing: {
+    peakJournalHour: number | null;
+    peakUrgeSurfHour: number | null;
+    riskiestDayOfWeek: string | null;
+    journalByDayOfWeek: Record<string, number>;
+  };
+  urgeSurfing: {
+    totalSessions: number;
+    breathingCompletionRate: number;
+    resumedExerciseRate: number;
+    last30DaysCount: number;
+    trend: 'increasing' | 'decreasing' | 'stable' | null;
+  };
+  desensitization: {
+    totalPoints: number;
+    maxPoints: number;
+    totalSessions: number;
+    avgPointsPerSession: number;
+  };
+  journalStats: {
+    totalEntries: number;
+    entriesLast30Days: number;
+    avgEntriesPerWeek: number;
+  };
+}
+
 export const user = {
   getMe: (token: string) =>
     request<UserData>('/api/user/me', { token }),
@@ -139,6 +183,9 @@ export const user = {
 
   exportData: (token: string) =>
     request<Record<string, unknown>>('/api/user/export', { token }),
+
+  getPatterns: (token: string) =>
+    request<PatternsData>('/api/user/patterns', { token }),
 };
 
 // Community
