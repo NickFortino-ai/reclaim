@@ -95,6 +95,7 @@ export interface UserData {
   missedDays: number;
   needsMissedDaysCheck: boolean;
   gracePeriodDaysRemaining: number | null;
+  intimacyCheckInDue: boolean;
 }
 
 export interface CheckInResponse {
@@ -112,6 +113,15 @@ export interface MissedDaysResponse {
 export interface ResetResponse {
   message: string;
   quote: string;
+}
+
+export interface IntimacyCheckInData {
+  id: string;
+  dayNumber: number;
+  confidence: number;
+  realAttraction: number;
+  emotionalConnection: number;
+  createdAt: string;
 }
 
 export interface PatternsData {
@@ -156,6 +166,10 @@ export interface PatternsData {
     entriesLast30Days: number;
     avgEntriesPerWeek: number;
   };
+  intimacy: {
+    checkIns: { dayNumber: number; confidence: number; realAttraction: number; emotionalConnection: number }[];
+    latestVsFirst: { confidence: number; realAttraction: number; emotionalConnection: number } | null;
+  };
 }
 
 export const user = {
@@ -186,6 +200,13 @@ export const user = {
 
   getPatterns: (token: string) =>
     request<PatternsData>('/api/user/patterns', { token }),
+
+  submitIntimacyCheckIn: (token: string, data: { confidence: number; realAttraction: number; emotionalConnection: number }) =>
+    request<IntimacyCheckInData>('/api/user/intimacy-checkin', {
+      method: 'POST',
+      token,
+      body: data,
+    }),
 };
 
 // Community

@@ -116,6 +116,21 @@ export function useCompleteDesens() {
   });
 }
 
+// Intimacy check-in
+export function useSubmitIntimacyCheckIn() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { confidence: number; realAttraction: number; emotionalConnection: number }) =>
+      api.user.submitIntimacyCheckIn(token!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['patterns'] });
+    },
+  });
+}
+
 // Pattern insights
 export function usePatterns() {
   const { token } = useAuth();

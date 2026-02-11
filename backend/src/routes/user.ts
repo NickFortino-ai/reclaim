@@ -52,6 +52,18 @@ router.get('/me', async (req: Request, res: Response) => {
       }
     }
 
+    // Check if intimacy check-in is due (every 10 days won)
+    let intimacyCheckInDue = false;
+    if (user.totalDaysWon >= 10) {
+      const currentMilestone = Math.floor(user.totalDaysWon / 10) * 10;
+      const existing = await prisma.intimacyCheckIn.findUnique({
+        where: { userId_dayNumber: { userId: user.id, dayNumber: currentMilestone } },
+      });
+      if (!existing) {
+        intimacyCheckInDue = true;
+      }
+    }
+
     // Grace period enforcement: 7 days after completion, auto-cancel if not lifetime
     let gracePeriodDaysRemaining: number | null = null;
     if (user.completedAt && !user.lifetimeAccess) {
@@ -95,6 +107,7 @@ router.get('/me', async (req: Request, res: Response) => {
       missedDays,
       needsMissedDaysCheck,
       gracePeriodDaysRemaining,
+      intimacyCheckInDue,
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -330,7 +343,7 @@ router.get('/export', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    const [user, checkIns, journalEntries, bookmarks, desensLogs, urgeSurfEvents] = await Promise.all([
+    const [user, checkIns, journalEntries, bookmarks, desensLogs, urgeSurfEvents, intimacyCheckIns] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -368,6 +381,11 @@ router.get('/export', async (req: Request, res: Response) => {
         orderBy: { createdAt: 'desc' },
         select: { sessionDay: true, completedBreathing: true, resumedExercise: true, createdAt: true },
       }),
+      prisma.intimacyCheckIn.findMany({
+        where: { userId },
+        orderBy: { dayNumber: 'asc' },
+        select: { dayNumber: true, confidence: true, realAttraction: true, emotionalConnection: true, createdAt: true },
+      }),
     ]);
 
     res.json({
@@ -383,6 +401,7 @@ router.get('/export', async (req: Request, res: Response) => {
       })),
       desensitizationLogs: desensLogs,
       urgeSurfEvents,
+      intimacyCheckIns,
     });
   } catch (error) {
     console.error('Export data error:', error);
@@ -427,6 +446,7 @@ router.delete('/account', async (req: Request, res: Response) => {
       prisma.journalEntry.deleteMany({ where: { userId } }),
       prisma.desensitizationLog.deleteMany({ where: { userId } }),
       prisma.urgeSurfEvent.deleteMany({ where: { userId } }),
+      prisma.intimacyCheckIn.deleteMany({ where: { userId } }),
       prisma.bookmark.deleteMany({ where: { userId } }),
       prisma.support.deleteMany({ where: { OR: [{ supporterId: userId }, { receiverId: userId }] } }),
       prisma.checkIn.deleteMany({ where: { userId } }),
@@ -441,12 +461,64 @@ router.delete('/account', async (req: Request, res: Response) => {
   }
 });
 
+// Submit intimacy check-in
+router.post('/intimacy-checkin', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { confidence, realAttraction, emotionalConnection } = req.body;
+
+    // Validate ratings
+    for (const [name, val] of Object.entries({ confidence, realAttraction, emotionalConnection })) {
+      if (typeof val !== 'number' || val < 1 || val > 10 || !Number.isInteger(val)) {
+        res.status(400).json({ error: `${name} must be an integer from 1 to 10` });
+        return;
+      }
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { totalDaysWon: true },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    if (user.totalDaysWon < 10) {
+      res.status(400).json({ error: 'Intimacy check-in available after 10 days won' });
+      return;
+    }
+
+    const dayNumber = Math.floor(user.totalDaysWon / 10) * 10;
+
+    // Check if already submitted for this milestone
+    const existing = await prisma.intimacyCheckIn.findUnique({
+      where: { userId_dayNumber: { userId, dayNumber } },
+    });
+
+    if (existing) {
+      res.status(400).json({ error: 'Already submitted for this milestone' });
+      return;
+    }
+
+    const checkIn = await prisma.intimacyCheckIn.create({
+      data: { userId, dayNumber, confidence, realAttraction, emotionalConnection },
+    });
+
+    res.status(201).json(checkIn);
+  } catch (error) {
+    console.error('Intimacy check-in error:', error);
+    res.status(500).json({ error: 'Failed to save intimacy check-in' });
+  }
+});
+
 // Get pattern insights
 router.get('/patterns', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    const [user, checkIns, journalEntries, urgeSurfEvents, desensLogs] = await Promise.all([
+    const [user, checkIns, journalEntries, urgeSurfEvents, desensLogs, intimacyCheckIns] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -476,6 +548,11 @@ router.get('/patterns', async (req: Request, res: Response) => {
         where: { userId },
         orderBy: { completedAt: 'asc' },
         select: { pointsEarned: true, completedAt: true },
+      }),
+      prisma.intimacyCheckIn.findMany({
+        where: { userId },
+        orderBy: { dayNumber: 'asc' },
+        select: { dayNumber: true, confidence: true, realAttraction: true, emotionalConnection: true },
       }),
     ]);
 
@@ -652,6 +729,16 @@ router.get('/patterns', async (req: Request, res: Response) => {
         totalEntries,
         entriesLast30Days: entriesLast30,
         avgEntriesPerWeek,
+      },
+      intimacy: {
+        checkIns: intimacyCheckIns,
+        latestVsFirst: intimacyCheckIns.length >= 2
+          ? {
+              confidence: intimacyCheckIns[intimacyCheckIns.length - 1].confidence - intimacyCheckIns[0].confidence,
+              realAttraction: intimacyCheckIns[intimacyCheckIns.length - 1].realAttraction - intimacyCheckIns[0].realAttraction,
+              emotionalConnection: intimacyCheckIns[intimacyCheckIns.length - 1].emotionalConnection - intimacyCheckIns[0].emotionalConnection,
+            }
+          : null,
       },
     });
   } catch (error) {

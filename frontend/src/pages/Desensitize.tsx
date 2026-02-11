@@ -5,15 +5,15 @@ import { useDesensImage, useLogUrgeSurf, useCompleteDesens } from '../hooks/useA
 // Difficulty levels based on day progression
 const getDifficultyLevel = (dayNum: number): { level: string; description: string; duration: number } => {
   if (dayNum <= 14) {
-    return { level: 'Beginner', description: 'Building foundation', duration: 15 };
+    return { level: 'Beginner', description: 'Recalibrating your response', duration: 15 };
   } else if (dayNum <= 30) {
-    return { level: 'Developing', description: 'Strengthening resistance', duration: 20 };
+    return { level: 'Developing', description: 'Building real-world sensitivity', duration: 20 };
   } else if (dayNum <= 60) {
-    return { level: 'Intermediate', description: 'Deepening resilience', duration: 25 };
+    return { level: 'Intermediate', description: 'Deepening authentic attraction', duration: 25 };
   } else if (dayNum <= 120) {
-    return { level: 'Advanced', description: 'Mastering control', duration: 30 };
+    return { level: 'Advanced', description: 'Rewiring for real connection', duration: 30 };
   } else {
-    return { level: 'Expert', description: 'Maintaining mastery', duration: 30 };
+    return { level: 'Expert', description: 'Fully resensitized', duration: 30 };
   }
 };
 
@@ -33,8 +33,8 @@ const INTRO_SEEN_KEY = 'desens_intro_seen';
 const WHY_THIS_WORKS = {
   title: "Why This Exercise Works",
   content: [
-    "Your brain can be retrained to see beautiful women as multidimensional people, not sex objects.",
-    "This exercise helps you practice attraction without objectification—observing beauty while recognizing her full humanity.",
+    "The purpose of desensitization to pixelated images is to resensitize you to real women. By learning to see past the artificial stimulation of a screen, you recover your ability to be genuinely attracted to and aroused by a real person in front of you.",
+    "Your brain can be retrained to see beautiful women as multidimensional people, not sex objects. This exercise helps you practice attraction without objectification—observing beauty while recognizing her full humanity.",
     "Over time, this rewires your brain to experience deeper, more meaningful intimacy and longer-lasting sexual connection with real partners.",
     "Real attraction includes personality, presence, and connection—not just physical appearance."
   ]
@@ -487,7 +487,7 @@ export function Desensitize() {
             </div>
             {desensPoints >= 300 && (
               <p className="text-green-600 font-bold text-sm mt-2">
-                Impervious to the Pixels!
+                Impervious to the Pixels! Your brain has relearned what real attraction feels like.
               </p>
             )}
           </div>
@@ -618,7 +618,7 @@ export function Desensitize() {
           </div>
           {desensPoints >= 300 && (
             <p className="text-green-600 font-bold text-sm mt-2">
-              Impervious to the Pixels!
+              Impervious to the Pixels! Your brain has relearned what real attraction feels like.
             </p>
           )}
         </div>
@@ -689,7 +689,7 @@ export function Desensitize() {
           <p className="text-sm text-amber-800">
             <strong>How it works:</strong> View the image for 10-30 seconds while focusing on
             the mindfulness prompts. The overlay text will appear briefly during the exercise.
-            This builds your ability to experience triggers without reacting compulsively.
+            This builds your ability to see past artificial stimulation and resensitize to real attraction—real women, real connection, real arousal.
           </p>
         </div>
 

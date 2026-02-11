@@ -42,9 +42,9 @@ const resources: ResourceData[] = [
   {
     week: 1,
     category: 'studies',
-    title: 'Is Internet Pornography Causing Sexual Dysfunctions?',
+    title: 'Porn-Induced Erectile Dysfunction (PIED)',
     source: 'Behavioral Sciences, 2016',
-    summary: 'Clinical review found growing evidence that internet pornography is a significant factor in the rise of sexual dysfunctions among young men, including erectile dysfunction and delayed ejaculation.',
+    summary: 'Growing clinical evidence links heavy pornography use to erectile dysfunction in young men. The brain becomes conditioned to respond only to the hyper-stimulation of pornography, making it difficult to perform with a real partner. The good news: PIED is reversible. As the brain recalibrates during recovery, real-world arousal and sexual function return — often within 60-90 days.',
     link: 'https://doi.org/10.3390/bs6030017',
   },
   {
