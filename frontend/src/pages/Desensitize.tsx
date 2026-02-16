@@ -9,11 +9,11 @@ const getDifficultyLevel = (dayNum: number): { level: string; description: strin
   } else if (dayNum <= 30) {
     return { level: 'Developing', description: 'Building real-world sensitivity', duration: 20 };
   } else if (dayNum <= 60) {
-    return { level: 'Intermediate', description: 'Deepening authentic attraction', duration: 25 };
+    return { level: 'Intermediate', description: 'Deepening authentic attraction', duration: 20 };
   } else if (dayNum <= 120) {
-    return { level: 'Advanced', description: 'Rewiring for real connection', duration: 30 };
+    return { level: 'Advanced', description: 'Rewiring for real connection', duration: 20 };
   } else {
-    return { level: 'Expert', description: 'Fully resensitized', duration: 30 };
+    return { level: 'Expert', description: 'Fully resensitized', duration: 20 };
   }
 };
 
@@ -163,7 +163,7 @@ export function Desensitize() {
   }, [phase]);
 
   const startExercise = useCallback(() => {
-    const duration = Math.floor(Math.random() * 21) + 10; // Random 10-30 seconds
+    const duration = Math.floor(Math.random() * 11) + 10; // Random 10-20 seconds
     setExerciseDuration(duration);
     setTimeRemaining(duration);
     setOverlayVisible(false);
@@ -545,11 +545,11 @@ export function Desensitize() {
 
         {/* Image with Overlay */}
         <div className="card p-0 overflow-hidden">
-          <div className="relative">
+          <div className="relative" style={{ minHeight: '60vh' }}>
             <img
               src={image.imageUrl}
               alt="Desensitization exercise"
-              className="w-full"
+              className="w-full h-full object-cover absolute inset-0"
             />
             <div
               className="absolute inset-0 bg-black/40 flex items-center justify-center p-8 transition-opacity duration-700"
@@ -664,7 +664,7 @@ export function Desensitize() {
             {difficulty.level}
           </div>
           <span className="text-sm text-gray-600">{difficulty.description}</span>
-          <span className="text-sm text-gray-500 ml-auto">10-30s exercise</span>
+          <span className="text-sm text-gray-500 ml-auto">10-20s exercise</span>
         </div>
 
         {/* Progress Stats */}
@@ -684,14 +684,6 @@ export function Desensitize() {
             </div>
           </div>
         )}
-
-        <div className="bg-amber-50 rounded-lg p-4 mb-6">
-          <p className="text-sm text-amber-800">
-            <strong>How it works:</strong> View the image for 10-30 seconds while focusing on
-            the mindfulness prompts. The overlay text will appear briefly during the exercise.
-            This builds your ability to see past artificial stimulation and resensitize to real attraction—real women, real connection, real arousal.
-          </p>
-        </div>
 
         <div className="text-center">
           <p className="text-gray-600 mb-6">
@@ -715,6 +707,14 @@ export function Desensitize() {
           <li>• Use the "Feeling Triggered?" button if you're struggling</li>
           <li>• Be honest in your feedback—it helps track your progress</li>
         </ul>
+      </div>
+
+      <div className="card bg-amber-50">
+        <p className="text-sm text-amber-800">
+          <strong>How it works:</strong> View the image for 10-20 seconds while focusing on
+          the mindfulness prompts. The overlay text will appear briefly during the exercise.
+          This builds your ability to see past artificial stimulation and resensitize to real attraction—real women, real connection, real arousal.
+        </p>
       </div>
     </div>
   );

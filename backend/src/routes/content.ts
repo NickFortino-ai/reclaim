@@ -7,6 +7,16 @@ import { getUserTimezone } from '../utils/timezone.js';
 
 const router = Router();
 
+// Deterministic hash for consistent image selection per user+day
+function deterministicIndex(seed: string, count: number): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % count;
+}
+
 router.use(authMiddleware);
 
 // Get affirmation for specific day
@@ -50,6 +60,8 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
       where: { dayNum, difficulty: 0 },
     });
 
+    const userId = req.user!.userId;
+    const seed = `${userId}-${dayNum}`;
     let image;
 
     if (neutralImage) {
@@ -77,13 +89,14 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
         ];
       }
 
-      // Pick a difficulty tier via weighted random
-      const rand = Math.random();
+      // Pick a difficulty tier deterministically based on user+day
+      const tierIndex = deterministicIndex(seed + '-tier', 100);
+      const rand = tierIndex / 100;
       let cumulative = 0;
       let selectedDifficulty = weights[0].difficulty;
       for (const w of weights) {
         cumulative += w.weight;
-        if (rand <= cumulative) {
+        if (rand < cumulative) {
           selectedDifficulty = w.difficulty;
           break;
         }
@@ -91,6 +104,7 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
 
       let images = await prisma.desensImage.findMany({
         where: { difficulty: selectedDifficulty },
+        orderBy: { id: 'asc' },
       });
 
       // Fallback: try other tiers in weight order
@@ -99,6 +113,7 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
           if (w.difficulty === selectedDifficulty) continue;
           images = await prisma.desensImage.findMany({
             where: { difficulty: w.difficulty },
+            orderBy: { id: 'asc' },
           });
           if (images.length > 0) break;
         }
@@ -108,7 +123,9 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
       if (images.length === 0) {
         image = await prisma.desensImage.findFirst();
       } else {
-        image = images[Math.floor(Math.random() * images.length)];
+        // Deterministic image selection from the tier
+        const imageIndex = deterministicIndex(seed + '-img', images.length);
+        image = images[imageIndex];
       }
     }
 

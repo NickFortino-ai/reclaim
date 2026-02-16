@@ -116,6 +116,55 @@ export function useCompleteDesens() {
   });
 }
 
+// Preference hooks
+export function useUpdateReminderTime() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (reminderTime: string | null) => api.user.updateReminderTime(token!, reminderTime),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+export function useUpdateLeaderboardVisibility() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (hide: boolean) => api.user.updateLeaderboardVisibility(token!, hide),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+export function useUpdateDisplayName() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (displayName: string) => api.user.updateDisplayName(token!, displayName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+export function useChangeAccessCode() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.user.changeAccessCode(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
 // Intimacy check-in
 export function useSubmitIntimacyCheckIn() {
   const { token } = useAuth();

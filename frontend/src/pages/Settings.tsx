@@ -2,15 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ThemePicker } from '../components/ThemePicker';
-import { useReferralStats } from '../hooks/useApi';
+import { useReferralStats, useUserData, useUpdateReminderTime, useUpdateLeaderboardVisibility, useUpdateDisplayName, useChangeAccessCode } from '../hooks/useApi';
 import { user as userApi, stripe as stripeApi } from '../api/client';
 
 export function Settings() {
   const { user, token, logout } = useAuth();
+  const { data: userData } = useUserData();
   const navigate = useNavigate();
-
-  // Privacy settings
-  const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
 
   // Modal states
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -77,39 +75,6 @@ export function Settings() {
       {/* Referral Section */}
       <ReferralSection />
 
-      {/* Notifications Section */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Notifications</h3>
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600 font-medium mb-1">Push Notifications — Coming Soon</p>
-          <p className="text-sm text-gray-500">
-            Daily check-in reminders, milestone celebrations, and encouragement messages will be available in a future update.
-          </p>
-        </div>
-      </div>
-
-      {/* Privacy Section */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Privacy</h3>
-
-        <div className="space-y-4">
-          <ToggleRow
-            label="Show on Leaderboard"
-            description="Display your progress in the Brotherhood Leaderboard"
-            enabled={showOnLeaderboard}
-            onToggle={() => setShowOnLeaderboard(!showOnLeaderboard)}
-          />
-        </div>
-
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
-            <span className="font-medium">Anonymous Mode:</span> Your identity is always protected.
-            Other users only see your streak count and theme color—never your name, email, or any
-            personal information. Your access code is your only identifier.
-          </p>
-        </div>
-      </div>
-
       {/* Support Section */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Support</h3>
@@ -139,6 +104,9 @@ export function Settings() {
           </Link>
         </div>
       </div>
+
+      {/* Preferences Section */}
+      <PreferencesSection userData={userData} />
 
       {/* Account Section */}
       <div className="card">
@@ -417,6 +385,228 @@ function ReferralSection() {
           <p className="text-sm text-green-800 font-medium">
             You have lifetime access! Thank you for spreading the word.
           </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserData>['data'] }) {
+  const updateReminderTime = useUpdateReminderTime();
+  const updateLeaderboardVisibility = useUpdateLeaderboardVisibility();
+  const updateDisplayName = useUpdateDisplayName();
+  const changeAccessCode = useChangeAccessCode();
+
+  const [newName, setNewName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [nameSuccess, setNameSuccess] = useState('');
+  const [showNameInput, setShowNameInput] = useState(false);
+
+  const [showAccessCodeConfirm, setShowAccessCodeConfirm] = useState(false);
+  const [newAccessCode, setNewAccessCode] = useState('');
+
+  const userInfo = userData?.user;
+  const hideFromLeaderboard = userInfo?.hideFromLeaderboard ?? false;
+  const reminderTime = userInfo?.reminderTime ?? null;
+
+  // Calculate days until name change is allowed
+  const nameChangeDaysRemaining = (() => {
+    if (!userInfo?.displayNameChangedAt) return 0;
+    const daysSince = Math.floor(
+      (Date.now() - new Date(userInfo.displayNameChangedAt).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return Math.max(0, 30 - daysSince);
+  })();
+
+  const handleReminderChange = (time: string) => {
+    updateReminderTime.mutate(time || null);
+  };
+
+  const handleLeaderboardToggle = () => {
+    updateLeaderboardVisibility.mutate(!hideFromLeaderboard);
+  };
+
+  const handleNameSubmit = () => {
+    setNameError('');
+    setNameSuccess('');
+    if (newName.trim().length < 2 || newName.trim().length > 30) {
+      setNameError('Name must be 2-30 characters');
+      return;
+    }
+    updateDisplayName.mutate(newName.trim(), {
+      onSuccess: () => {
+        setNameSuccess('Warrior name updated!');
+        setNewName('');
+        setShowNameInput(false);
+        setTimeout(() => setNameSuccess(''), 3000);
+      },
+      onError: (err: Error) => {
+        setNameError(err.message || 'Failed to update name');
+      },
+    });
+  };
+
+  const handleChangeAccessCode = () => {
+    changeAccessCode.mutate(undefined, {
+      onSuccess: (data) => {
+        setNewAccessCode(data.accessCode);
+        setShowAccessCodeConfirm(false);
+      },
+      onError: () => {
+        alert('Failed to change access code. Please try again.');
+      },
+    });
+  };
+
+  return (
+    <div className="card">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferences</h3>
+
+      <div className="space-y-6">
+        {/* Daily Reminder Time */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Daily Reminder Time</p>
+              <p className="text-sm text-gray-500">When to remind you to check in</p>
+            </div>
+            <input
+              type="time"
+              value={reminderTime || ''}
+              onChange={(e) => handleReminderChange(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+          {reminderTime && (
+            <button
+              onClick={() => updateReminderTime.mutate(null)}
+              className="text-xs text-gray-400 hover:text-gray-600 mt-1"
+            >
+              Clear reminder
+            </button>
+          )}
+        </div>
+
+        <div className="border-t border-gray-100" />
+
+        {/* Hide from Leaderboard */}
+        <ToggleRow
+          label="Hide from Leaderboard"
+          description="Don't show your progress on the Brotherhood Leaderboard"
+          enabled={hideFromLeaderboard}
+          onToggle={handleLeaderboardToggle}
+        />
+
+        <div className="border-t border-gray-100" />
+
+        {/* Change Warrior Name */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Change Warrior Name</p>
+              <p className="text-sm text-gray-500">
+                {userInfo?.displayName ? `Currently: ${userInfo.displayName}` : 'No name set'}
+              </p>
+            </div>
+            {!showNameInput && (
+              <button
+                onClick={() => setShowNameInput(true)}
+                disabled={nameChangeDaysRemaining > 0}
+                className="btn btn-secondary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {nameChangeDaysRemaining > 0 ? `${nameChangeDaysRemaining}d cooldown` : 'Change'}
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Can only be changed once every 30 days</p>
+          {nameSuccess && (
+            <p className="text-sm text-green-600 mt-1">{nameSuccess}</p>
+          )}
+          {showNameInput && (
+            <div className="mt-3 flex gap-2">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="New warrior name"
+                maxLength={30}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <button
+                onClick={handleNameSubmit}
+                disabled={updateDisplayName.isPending}
+                className="btn btn-primary text-sm"
+              >
+                {updateDisplayName.isPending ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => { setShowNameInput(false); setNewName(''); setNameError(''); }}
+                className="btn btn-secondary text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+          {nameError && (
+            <p className="text-sm text-red-600 mt-1">{nameError}</p>
+          )}
+        </div>
+
+        <div className="border-t border-gray-100" />
+
+        {/* Change Access Code */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Change Access Code</p>
+              <p className="text-sm text-gray-500">
+                Current code: <span className="font-mono font-semibold">{userInfo?.accessCode || '****'}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAccessCodeConfirm(true)}
+              className="btn btn-secondary text-sm"
+            >
+              Regenerate
+            </button>
+          </div>
+          {newAccessCode && (
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm font-medium text-green-800">
+                Your new access code: <span className="font-mono text-lg">{newAccessCode}</span>
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                Save this code somewhere safe. You'll need it to log back in.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Access Code Confirmation Dialog */}
+      {showAccessCodeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Change Access Code?</h3>
+            <p className="text-gray-600 mb-2">
+              This will generate a new access code and invalidate your current one.
+            </p>
+            <p className="text-sm text-amber-700 font-medium mb-6">
+              Make sure to save your new code — you won't be able to log in with the old one.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowAccessCodeConfirm(false)} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button
+                onClick={handleChangeAccessCode}
+                disabled={changeAccessCode.isPending}
+                className="btn bg-primary-600 hover:bg-primary-700 text-white"
+              >
+                {changeAccessCode.isPending ? 'Generating...' : 'Generate New Code'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

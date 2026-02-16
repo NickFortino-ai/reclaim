@@ -88,6 +88,10 @@ export interface UserData {
     desensitizationPoints: number;
     supportReceivedToday: number;
     lifetimeAccess: boolean;
+    reminderTime: string | null;
+    hideFromLeaderboard: boolean;
+    displayNameChangedAt: string | null;
+    accessCode: string;
   };
   affirmation: string | null;
   dayNum: number;
@@ -206,6 +210,33 @@ export const user = {
       method: 'POST',
       token,
       body: data,
+    }),
+
+  updateReminderTime: (token: string, reminderTime: string | null) =>
+    request<{ reminderTime: string | null }>('/api/user/reminder-time', {
+      method: 'PATCH',
+      token,
+      body: { reminderTime },
+    }),
+
+  updateLeaderboardVisibility: (token: string, hide: boolean) =>
+    request<{ hideFromLeaderboard: boolean }>('/api/user/leaderboard-visibility', {
+      method: 'PATCH',
+      token,
+      body: { hide },
+    }),
+
+  updateDisplayName: (token: string, displayName: string) =>
+    request<{ displayName: string; displayNameChangedAt: string }>('/api/user/display-name', {
+      method: 'PATCH',
+      token,
+      body: { displayName },
+    }),
+
+  changeAccessCode: (token: string) =>
+    request<{ accessCode: string }>('/api/user/access-code', {
+      method: 'PATCH',
+      token,
     }),
 };
 

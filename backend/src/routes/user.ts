@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { stripe } from '../services/stripe.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { differenceInDays, isSameDay, getRandomQuote, differenceInDaysInTimezone, isSameDayInTimezone, startOfDayInTimezone } from '../utils/helpers.js';
+import { differenceInDays, isSameDay, getRandomQuote, differenceInDaysInTimezone, isSameDayInTimezone, startOfDayInTimezone, generateAccessCode } from '../utils/helpers.js';
 import { getUserTimezone } from '../utils/timezone.js';
 
 const router = Router();
@@ -32,11 +32,11 @@ router.get('/me', async (req: Request, res: Response) => {
       },
     });
 
-    // Get today's affirmation based on totalDaysWon
-    // If already checked in today, totalDaysWon was already incremented, so use it directly.
-    // If not yet checked in, totalDaysWon reflects yesterday, so add 1.
+    // Get today's affirmation based on currentStreak (resets with the user)
+    // If already checked in today, currentStreak was already incremented, so use it directly.
+    // If not yet checked in, currentStreak reflects yesterday, so add 1.
     const checkedInToday = user.lastCheckIn ? isSameDayInTimezone(new Date(), user.lastCheckIn, tz) : false;
-    const dayNum = Math.min(checkedInToday ? user.totalDaysWon : user.totalDaysWon + 1, 365);
+    const dayNum = Math.min(Math.max(checkedInToday ? user.currentStreak : user.currentStreak + 1, 1), 365);
     const affirmation = await prisma.affirmation.findUnique({
       where: { dayNum },
     });
@@ -100,6 +100,10 @@ router.get('/me', async (req: Request, res: Response) => {
         desensitizationPoints: user.desensitizationPoints,
         supportReceivedToday,
         lifetimeAccess: user.lifetimeAccess,
+        reminderTime: user.reminderTime,
+        hideFromLeaderboard: user.hideFromLeaderboard,
+        displayNameChangedAt: user.displayNameChangedAt,
+        accessCode: user.accessCode,
       },
       affirmation: affirmation?.text || null,
       dayNum,
@@ -744,6 +748,143 @@ router.get('/patterns', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get patterns error:', error);
     res.status(500).json({ error: 'Failed to get patterns' });
+  }
+});
+
+// Update reminder time
+router.patch('/reminder-time', async (req: Request, res: Response) => {
+  try {
+    const { reminderTime } = req.body;
+
+    // Allow null to clear, or validate HH:MM format
+    if (reminderTime !== null) {
+      if (typeof reminderTime !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(reminderTime)) {
+        res.status(400).json({ error: 'Invalid time format. Use HH:MM (24-hour)' });
+        return;
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { reminderTime },
+    });
+
+    res.json({ reminderTime });
+  } catch (error) {
+    console.error('Update reminder time error:', error);
+    res.status(500).json({ error: 'Failed to update reminder time' });
+  }
+});
+
+// Toggle leaderboard visibility
+router.patch('/leaderboard-visibility', async (req: Request, res: Response) => {
+  try {
+    const { hide } = req.body;
+
+    if (typeof hide !== 'boolean') {
+      res.status(400).json({ error: 'hide must be a boolean' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { hideFromLeaderboard: hide },
+    });
+
+    res.json({ hideFromLeaderboard: hide });
+  } catch (error) {
+    console.error('Update leaderboard visibility error:', error);
+    res.status(500).json({ error: 'Failed to update leaderboard visibility' });
+  }
+});
+
+// Change display name (warrior name) — once every 30 days
+router.patch('/display-name', async (req: Request, res: Response) => {
+  try {
+    const { displayName } = req.body;
+
+    if (!displayName || typeof displayName !== 'string' || displayName.trim().length < 2 || displayName.trim().length > 30) {
+      res.status(400).json({ error: 'Display name must be 2-30 characters' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Check 30-day cooldown
+    if (user.displayNameChangedAt) {
+      const daysSinceChange = Math.floor(
+        (Date.now() - user.displayNameChangedAt.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (daysSinceChange < 30) {
+        const daysRemaining = 30 - daysSinceChange;
+        res.status(400).json({
+          error: `You can change your name again in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`,
+        });
+        return;
+      }
+    }
+
+    // Check uniqueness
+    const existing = await prisma.user.findFirst({
+      where: { displayName: displayName.trim(), id: { not: user.id } },
+    });
+
+    if (existing) {
+      res.status(400).json({ error: 'That warrior name is already taken' });
+      return;
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        displayName: displayName.trim(),
+        displayNameChangedAt: new Date(),
+      },
+    });
+
+    res.json({ displayName: updated.displayName, displayNameChangedAt: updated.displayNameChangedAt });
+  } catch (error) {
+    console.error('Update display name error:', error);
+    res.status(500).json({ error: 'Failed to update display name' });
+  }
+});
+
+// Change access code
+router.patch('/access-code', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    // Generate a new unique access code
+    let newCode: string;
+    let attempts = 0;
+    do {
+      newCode = generateAccessCode();
+      const existing = await prisma.user.findUnique({ where: { accessCode: newCode } });
+      if (!existing) break;
+      attempts++;
+    } while (attempts < 10);
+
+    if (attempts >= 10) {
+      res.status(500).json({ error: 'Failed to generate unique access code. Try again.' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { accessCode: newCode },
+    });
+
+    res.json({ accessCode: newCode });
+  } catch (error) {
+    console.error('Change access code error:', error);
+    res.status(500).json({ error: 'Failed to change access code' });
   }
 });
 

@@ -16,7 +16,7 @@ export function DemoDashboard() {
       {/* Demo Affirmation */}
       <div className="card">
         <h3 className="text-sm font-medium text-gray-500 mb-2">
-          Day 7 Affirmation
+          Streak Day 7 Affirmation
         </h3>
         <p className="text-lg text-gray-900 italic">
           "Every day you resist, you become stronger. The urge is a test—pass it, and you level up."

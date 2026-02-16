@@ -22,6 +22,7 @@ router.get('/', async (req: Request, res: Response) => {
     const users = await prisma.user.findMany({
       where: {
         subscriptionStatus: { in: ['trialing', 'active', 'completed'] },
+        hideFromLeaderboard: false,
       },
       select: {
         id: true,

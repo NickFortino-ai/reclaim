@@ -95,7 +95,7 @@ export function Dashboard() {
       {data.affirmation && (
         <div className="card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">
-            Day {data.dayNum} Affirmation
+            Streak Day {data.dayNum} Affirmation
           </h3>
           <p className="text-lg text-gray-900 italic">"{data.affirmation}"</p>
         </div>

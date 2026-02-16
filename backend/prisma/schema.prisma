@@ -28,8 +28,11 @@ model User {
   subscriptionStatus   String  @default("trialing") // trialing, active, canceled, completed
 
   // Preferences
-  colorTheme  String    @default("slate")
-  completedAt DateTime?
+  colorTheme           String    @default("slate")
+  reminderTime         String?
+  hideFromLeaderboard  Boolean   @default(false)
+  displayNameChangedAt DateTime?
+  completedAt          DateTime?
 
   // Referral tracking
   referredById    String?
