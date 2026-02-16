@@ -33,10 +33,9 @@ router.get('/me', async (req: Request, res: Response) => {
     });
 
     // Get today's affirmation based on currentStreak (resets with the user)
-    // If already checked in today, currentStreak was already incremented, so use it directly.
-    // If not yet checked in, currentStreak reflects yesterday, so add 1.
+    // Always synced with streak — only advances when the user checks in
     const checkedInToday = user.lastCheckIn ? isSameDayInTimezone(new Date(), user.lastCheckIn, tz) : false;
-    const dayNum = Math.min(Math.max(checkedInToday ? user.currentStreak : user.currentStreak + 1, 1), 365);
+    const dayNum = Math.min(Math.max(user.currentStreak, 1), 365);
     const affirmation = await prisma.affirmation.findUnique({
       where: { dayNum },
     });

@@ -46,7 +46,7 @@ interface ProgressData {
 
 export function Desensitize() {
   const { data: userData, isLoading: userLoading } = useUserData();
-  const dayNum = Math.min(Math.max(userData?.user.currentStreak || 1, 1), 365);
+  const dayNum = userData?.dayNum || 1;
   const { data: image, isLoading: imageLoading, error } = useDesensImage(dayNum);
   const logUrgeSurf = useLogUrgeSurf();
   const completeDesens = useCompleteDesens();
