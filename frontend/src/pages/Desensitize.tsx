@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useDesensImage, useLogUrgeSurf, useCompleteDesens } from '../hooks/useApi';
+import { useDesensImage, useLogUrgeSurf, useCompleteDesens, useUserData } from '../hooks/useApi';
 
 // Difficulty levels based on day progression
 const getDifficultyLevel = (dayNum: number): { level: string; description: string; duration: number } => {
@@ -46,12 +45,13 @@ interface ProgressData {
 }
 
 export function Desensitize() {
-  const { user } = useAuth();
-  const dayNum = Math.min(Math.max(user?.currentStreak || 1, 1), 365);
-  const { data: image, isLoading, error } = useDesensImage(dayNum);
+  const { data: userData, isLoading: userLoading } = useUserData();
+  const dayNum = Math.min(Math.max(userData?.user.currentStreak || 1, 1), 365);
+  const { data: image, isLoading: imageLoading, error } = useDesensImage(dayNum);
   const logUrgeSurf = useLogUrgeSurf();
   const completeDesens = useCompleteDesens();
-  const desensPoints = user?.desensitizationPoints ?? 0;
+  const desensPoints = userData?.user.desensitizationPoints ?? 0;
+  const isLoading = userLoading || imageLoading;
 
   // Exercise states
   const [phase, setPhase] = useState<'first-intro' | 'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
