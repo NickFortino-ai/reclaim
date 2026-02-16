@@ -28,7 +28,7 @@ export function DemoJournal() {
       <div className="card">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Journal</h1>
         <p className="text-gray-600">Write down your thoughts, triggers, and victories.</p>
-        <p className="text-xs text-gray-500 mt-1">Your journal entries are private and cannot be viewed by anyone else.</p>
+        <p className="text-sm text-gray-500 mt-1">Your journal entries are private and cannot be viewed by anyone else.</p>
       </div>
 
       {/* Demo Intimacy Check-In Card - Locked */}

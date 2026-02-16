@@ -52,7 +52,7 @@ export function Resources() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 min-w-0 px-2 sm:px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
               activeTab === tab.key
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
@@ -128,7 +128,7 @@ function ResourceCard({ resource, onBookmark }: { resource: Resource; onBookmark
       {/* Bookmark heart */}
       <button
         onClick={onBookmark}
-        className="absolute top-3 right-3 p-1 hover:scale-110 transition-transform"
+        className="absolute top-3 right-3 p-2 hover:scale-110 transition-transform"
         title={resource.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
       >
         <svg

@@ -30,7 +30,7 @@ export function ThemePicker() {
               className="w-10 h-10 rounded-full shadow-inner"
               style={{ backgroundColor: themeConfig[t].color }}
             />
-            <span className="text-xs font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700">
               {themeConfig[t].label}
             </span>
           </button>

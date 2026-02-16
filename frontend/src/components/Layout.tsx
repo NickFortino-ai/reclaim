@@ -88,7 +88,7 @@ export function Layout({ children }: LayoutProps) {
             </button>
           </div>
         </nav>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-36 sm:pb-8">
           {children}
         </main>
         <Footer />
@@ -209,12 +209,12 @@ export function Layout({ children }: LayoutProps) {
               Reclaim
             </Link>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500">
+              <span className="text-sm text-gray-500">
                 Day {user.currentStreak}
               </span>
               <Link
                 to="/settings"
-                className={`p-1.5 rounded-lg transition-colors ${
+                className={`p-2 rounded-lg transition-colors ${
                   location.pathname === '/settings'
                     ? 'bg-primary-100 text-primary-700'
                     : 'text-gray-500'
@@ -319,12 +319,12 @@ function DemoMobileBottomNav({ currentPath }: { currentPath: string }) {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center py-2 px-1 min-w-0 flex-1 ${
+              className={`flex flex-col items-center py-2.5 px-1 min-w-0 flex-1 ${
                 active ? 'text-primary-600' : 'text-gray-400'
               }`}
             >
               {item.icon}
-              <span className="text-[10px] mt-0.5 truncate">{item.label}</span>
+              <span className="text-[11px] mt-0.5 truncate">{item.label}</span>
             </Link>
           );
         })}
@@ -391,12 +391,12 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center py-2 px-1 min-w-0 flex-1 ${
+              className={`flex flex-col items-center py-2.5 px-1 min-w-0 flex-1 ${
                 active ? 'text-primary-600' : 'text-gray-400'
               }`}
             >
               {item.icon}
-              <span className="text-[10px] mt-0.5 truncate">{item.label}</span>
+              <span className="text-[11px] mt-0.5 truncate">{item.label}</span>
             </Link>
           );
         })}

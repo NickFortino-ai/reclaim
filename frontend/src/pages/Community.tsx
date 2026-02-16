@@ -105,7 +105,7 @@ export function Community() {
                       <div className="text-sm font-bold text-amber-700">
                         Best: {member.highestStreak}
                       </div>
-                      <div className="text-xs text-amber-600">
+                      <div className="text-sm text-amber-600">
                         Current: {member.currentStreak}
                       </div>
                     </div>
@@ -233,12 +233,12 @@ export function Community() {
                 <span className="font-medium text-gray-900">
                   {member.displayName}
                   {member.id === user?.id && (
-                    <span className="text-xs text-primary-600 ml-1">(You)</span>
+                    <span className="text-sm text-primary-600 ml-1">(You)</span>
                   )}
                 </span>
               </div>
               {member.isCompleted && (
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">
                   Completed!
                 </span>
               )}
@@ -249,13 +249,13 @@ export function Community() {
                 <div className="text-2xl font-bold text-primary-600">
                   {member.currentStreak}
                 </div>
-                <div className="text-xs text-gray-500">Current Streak</div>
+                <div className="text-sm text-gray-500">Current Streak</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">
                   {member.totalDaysWon}
                 </div>
-                <div className="text-xs text-gray-500">Total Days</div>
+                <div className="text-sm text-gray-500">Total Days</div>
               </div>
             </div>
 
@@ -336,8 +336,8 @@ function SupportButton({
       disabled={isPending}
       className={`${
         compact
-          ? 'p-1.5 rounded-full hover:bg-gray-200 transition-colors'
-          : 'btn btn-outline text-sm py-1 px-3'
+          ? 'p-2 rounded-full hover:bg-gray-200 transition-colors'
+          : 'btn btn-outline text-sm'
       } ${isAnimating ? 'animate-pulse' : ''}`}
       title="Send support"
     >

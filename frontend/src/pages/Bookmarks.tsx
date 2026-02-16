@@ -55,7 +55,7 @@ export function Bookmarks() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 min-w-0 px-2 sm:px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                 activeTab === tab.key
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -63,7 +63,7 @@ export function Bookmarks() {
             >
               {tab.label}
               {count > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 bg-primary-100 text-primary-700 text-xs rounded-full">
+                <span className="ml-1 px-1.5 py-0.5 bg-primary-100 text-primary-700 text-xs rounded-full">
                   {count}
                 </span>
               )}
@@ -101,7 +101,7 @@ function BookmarkCard({ resource, onUnbookmark }: { resource: Resource; onUnbook
       {/* Unbookmark heart */}
       <button
         onClick={onUnbookmark}
-        className="absolute top-3 right-3 p-1 hover:scale-110 transition-transform"
+        className="absolute top-3 right-3 p-2 hover:scale-110 transition-transform"
         title="Remove bookmark"
       >
         <svg
@@ -115,7 +115,7 @@ function BookmarkCard({ resource, onUnbookmark }: { resource: Resource; onUnbook
         </svg>
       </button>
 
-      <span className="text-xs text-gray-400 mb-1 block">Week {resource.week}</span>
+      <span className="text-sm text-gray-400 mb-1 block">Week {resource.week}</span>
 
       {isWisdom ? (
         <>

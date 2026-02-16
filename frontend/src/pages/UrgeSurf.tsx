@@ -197,7 +197,7 @@ export function UrgeSurf() {
             <div className="text-center">
               <button
                 onClick={handleComplete}
-                className="text-sm text-blue-500 hover:text-blue-700"
+                className="text-sm text-blue-500 hover:text-blue-700 py-2 px-4"
               >
                 I'm feeling better — end early
               </button>

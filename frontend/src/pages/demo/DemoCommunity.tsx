@@ -202,7 +202,7 @@ export function DemoCommunity() {
                     {Math.floor(Math.random() * 5) + 1} today
                   </span>
                 </span>
-                <button className="btn btn-outline text-sm py-1 px-3">
+                <button className="btn btn-outline text-sm">
                   Send Support ♥
                 </button>
               </div>

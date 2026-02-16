@@ -64,7 +64,7 @@ export function ResetButton() {
   return (
     <button
       onClick={() => setShowConfirm(true)}
-      className="text-sm text-gray-500 hover:text-red-600 underline"
+      className="text-sm text-gray-500 hover:text-red-600 underline py-2"
     >
       I need to reset my streak
     </button>

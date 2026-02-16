@@ -253,12 +253,12 @@ function ToggleRow({
       </div>
       <button
         onClick={onToggle}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 ${
           enabled ? 'bg-primary-600' : 'bg-gray-300'
         }`}
       >
         <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
             enabled ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
@@ -304,21 +304,21 @@ function ReferralSection() {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Referral Program</h3>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-primary-50 rounded-lg">
-          <div className="text-2xl font-bold text-primary-600">{data.referralCount}</div>
-          <div className="text-xs text-primary-700">Brothers Referred</div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+        <div className="text-center p-2 sm:p-3 bg-primary-50 rounded-lg">
+          <div className="text-xl sm:text-2xl font-bold text-primary-600">{data.referralCount}</div>
+          <div className="text-sm text-primary-700">Referred</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">{data.totalCreditDays}</div>
-          <div className="text-xs text-green-700">Free Days Earned</div>
+        <div className="text-center p-2 sm:p-3 bg-green-50 rounded-lg">
+          <div className="text-xl sm:text-2xl font-bold text-green-600">{data.totalCreditDays}</div>
+          <div className="text-sm text-green-700">Free Days</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="text-center p-2 sm:p-3 bg-purple-50 rounded-lg">
+          <div className="text-xl sm:text-2xl font-bold text-purple-600">
             {data.lifetimeAccess ? '∞' : data.referralsNeededForLifetime}
           </div>
-          <div className="text-xs text-purple-700">
-            {data.lifetimeAccess ? 'Lifetime Access' : 'To Lifetime'}
+          <div className="text-sm text-purple-700">
+            {data.lifetimeAccess ? 'Lifetime' : 'To Lifetime'}
           </div>
         </div>
       </div>
@@ -340,7 +340,7 @@ function ReferralSection() {
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-sm text-gray-500 mt-2">
           When someone signs up with your link, you both get 1 week free.
         </p>
       </div>
@@ -360,7 +360,7 @@ function ReferralSection() {
                   <span className="text-primary-600 font-medium">
                     Day {referral.currentStreak}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-sm text-gray-400">
                     {new Date(referral.joinedAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -474,13 +474,13 @@ function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserD
               type="time"
               value={reminderTime || ''}
               onChange={(e) => handleReminderChange(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
           {reminderTime && (
             <button
               onClick={() => updateReminderTime.mutate(null)}
-              className="text-xs text-gray-400 hover:text-gray-600 mt-1"
+              className="text-sm text-gray-400 hover:text-gray-600 mt-1 py-1"
             >
               Clear reminder
             </button>
@@ -518,7 +518,7 @@ function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserD
               </button>
             )}
           </div>
-          <p className="text-xs text-gray-400 mt-1">Can only be changed once every 30 days</p>
+          <p className="text-sm text-gray-400 mt-1">Can only be changed once every 30 days</p>
           {nameSuccess && (
             <p className="text-sm text-green-600 mt-1">{nameSuccess}</p>
           )}
@@ -575,7 +575,7 @@ function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserD
               <p className="text-sm font-medium text-green-800">
                 Your new access code: <span className="font-mono text-lg">{newAccessCode}</span>
               </p>
-              <p className="text-xs text-green-600 mt-1">
+              <p className="text-sm text-green-600 mt-1">
                 Save this code somewhere safe. You'll need it to log back in.
               </p>
             </div>

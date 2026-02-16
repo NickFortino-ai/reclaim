@@ -24,8 +24,8 @@ export function PreviewBar() {
       </div>
       <div className="hidden sm:block h-11" />
 
-      {/* Bottom bar - mobile */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700 p-3">
+      {/* Bottom bar - mobile (above bottom nav) */}
+      <div className="sm:hidden fixed bottom-14 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700 p-3">
         <Link
           to="/register"
           className="block w-full py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-lg text-center transition-colors"

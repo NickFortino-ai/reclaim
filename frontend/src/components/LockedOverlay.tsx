@@ -30,7 +30,7 @@ export function LockedOverlay({ children, message = 'Sign up to unlock', blur = 
           <p className="text-white font-semibold mb-3">{message}</p>
           <Link
             to="/register"
-            className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors text-sm"
+            className="inline-block px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors text-sm"
           >
             Unlock Full Access
           </Link>

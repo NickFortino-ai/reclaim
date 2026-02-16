@@ -150,7 +150,7 @@ export function Register() {
           {loading ? 'Loading...' : 'Continue to Payment'}
         </button>
 
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-sm text-gray-500 text-center mt-4">
           Secure payment powered by Stripe. Cancel anytime.
         </p>
 

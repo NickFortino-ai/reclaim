@@ -67,18 +67,18 @@ export function Patterns() {
       {/* Journey Overview */}
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Journey Overview</h2>
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary-600">{data.journey.daysSinceStart}</p>
-            <p className="text-xs text-gray-500">Days Since Start</p>
+            <p className="text-xl sm:text-2xl font-bold text-primary-600">{data.journey.daysSinceStart}</p>
+            <p className="text-sm text-gray-500">Days Since Start</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary-600">{data.journey.consistencyRate}%</p>
-            <p className="text-xs text-gray-500">Consistency Rate</p>
+            <p className="text-xl sm:text-2xl font-bold text-primary-600">{data.journey.consistencyRate}%</p>
+            <p className="text-sm text-gray-500">Consistency Rate</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary-600">{data.journey.totalResets}</p>
-            <p className="text-xs text-gray-500">Total Resets</p>
+            <p className="text-xl sm:text-2xl font-bold text-primary-600">{data.journey.totalResets}</p>
+            <p className="text-sm text-gray-500">Total Resets</p>
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export function Patterns() {
                           className={`w-full rounded-sm ${i === data.intimacy.checkIns.length - 1 ? activeColor : barColor}`}
                           style={{ height: `${ci[key] * 3}px` }}
                         />
-                        <span className="text-[10px] text-gray-400 mt-1">D{ci.dayNumber}</span>
+                        <span className="text-xs text-gray-400 mt-1">D{ci.dayNumber}</span>
                       </div>
                     ))}
                   </div>
@@ -270,11 +270,11 @@ export function Patterns() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-primary-600">{data.urgeSurfing.totalSessions}</p>
-              <p className="text-xs text-gray-500">Total Sessions</p>
+              <p className="text-sm text-gray-500">Total Sessions</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-primary-600">{data.urgeSurfing.last30DaysCount}</p>
-              <p className="text-xs text-gray-500">Last 30 Days</p>
+              <p className="text-sm text-gray-500">Last 30 Days</p>
             </div>
           </div>
 
@@ -347,11 +347,11 @@ export function Patterns() {
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-primary-600">{data.desensitization.totalSessions}</p>
-              <p className="text-xs text-gray-500">Total Sessions</p>
+              <p className="text-sm text-gray-500">Total Sessions</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-primary-600">{data.desensitization.avgPointsPerSession}</p>
-              <p className="text-xs text-gray-500">Avg Points/Session</p>
+              <p className="text-sm text-gray-500">Avg Points/Session</p>
             </div>
           </div>
         </div>
@@ -361,18 +361,18 @@ export function Patterns() {
       {hasJournalData && (
         <div className="card">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Journal Activity</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary-600">{data.journalStats.totalEntries}</p>
-              <p className="text-xs text-gray-500">Total Entries</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary-600">{data.journalStats.totalEntries}</p>
+              <p className="text-sm text-gray-500">Total Entries</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary-600">{data.journalStats.entriesLast30Days}</p>
-              <p className="text-xs text-gray-500">Last 30 Days</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary-600">{data.journalStats.entriesLast30Days}</p>
+              <p className="text-sm text-gray-500">Last 30 Days</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary-600">{data.journalStats.avgEntriesPerWeek}</p>
-              <p className="text-xs text-gray-500">Avg/Week</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary-600">{data.journalStats.avgEntriesPerWeek}</p>
+              <p className="text-sm text-gray-500">Avg/Week</p>
             </div>
           </div>
         </div>

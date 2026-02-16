@@ -272,7 +272,7 @@ export function Journal() {
       <div className="card">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Journal</h1>
         <p className="text-gray-600">Write down your thoughts, triggers, and victories.</p>
-        <p className="text-xs text-gray-500 mt-1">Your journal entries are private and cannot be viewed by anyone else.</p>
+        <p className="text-sm text-gray-500 mt-1">Your journal entries are private and cannot be viewed by anyone else.</p>
       </div>
 
       {/* Intimacy Check-In */}
@@ -382,7 +382,7 @@ export function Journal() {
                             key={m.value}
                             type="button"
                             onClick={() => setEditMood(editMood === m.value ? '' : m.value)}
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                               editMood === m.value
                                 ? 'bg-primary-100 text-primary-700 ring-2 ring-primary-300'
                                 : 'bg-gray-100 text-gray-600'
@@ -398,7 +398,7 @@ export function Journal() {
                             key={t.value}
                             type="button"
                             onClick={() => setEditTrigger(editTrigger === t.value ? '' : t.value)}
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                               editTrigger === t.value
                                 ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-300'
                                 : 'bg-gray-100 text-gray-600'
@@ -432,12 +432,12 @@ export function Journal() {
                           {getTriggerEmoji(entry.trigger) && (
                             <span className="text-lg">{getTriggerEmoji(entry.trigger)}</span>
                           )}
-                          <span className="text-xs text-gray-400">{formatTime(entry.createdAt)}</span>
+                          <span className="text-sm text-gray-400">{formatTime(entry.createdAt)}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5">
                           <button
                             onClick={() => handleEdit(entry)}
-                            className="p-1 text-gray-400 hover:text-gray-600"
+                            className="p-2 text-gray-400 hover:text-gray-600"
                             title="Edit"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -446,7 +446,7 @@ export function Journal() {
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(entry.id)}
-                            className="p-1 text-gray-400 hover:text-red-500"
+                            className="p-2 text-gray-400 hover:text-red-500"
                             title="Delete"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -467,13 +467,13 @@ export function Journal() {
                         <button
                           onClick={() => handleDelete(entry.id)}
                           disabled={deleteEntry.isPending}
-                          className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
+                          className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
                         >
                           Delete
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(null)}
-                          className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-lg"
+                          className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg"
                         >
                           Cancel
                         </button>

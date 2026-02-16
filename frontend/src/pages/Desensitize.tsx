@@ -542,12 +542,12 @@ export function Desensitize() {
         </button>
 
         {/* Action Buttons */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setPhase('feedback')}
             className="flex-1 btn btn-primary py-3"
           >
-            I Stayed Strong (Skip Timer)
+            I Stayed Strong
           </button>
           <button
             onClick={resetExercise}
@@ -619,7 +619,7 @@ export function Desensitize() {
         )}
 
         {/* Difficulty Level Badge */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
             difficulty.level === 'Beginner' ? 'bg-green-100 text-green-700' :
             difficulty.level === 'Developing' ? 'bg-blue-100 text-blue-700' :
@@ -630,7 +630,7 @@ export function Desensitize() {
             {difficulty.level}
           </div>
           <span className="text-sm text-gray-600">{difficulty.description}</span>
-          <span className="text-sm text-gray-500 ml-auto">10-20s exercise</span>
+          <span className="text-sm text-gray-500 sm:ml-auto">10-20s exercise</span>
         </div>
 
         {/* Progress Stats */}

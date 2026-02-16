@@ -79,7 +79,7 @@ export function Dashboard() {
                 {data.gracePeriodDaysRemaining} day{data.gracePeriodDaysRemaining !== 1 ? 's' : ''} remaining to claim lifetime access.
               </p>
             </div>
-            <Link to="/celebration" className="btn bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2">
+            <Link to="/celebration" className="btn bg-amber-600 hover:bg-amber-700 text-white text-sm px-4">
               Claim
             </Link>
           </div>
@@ -195,7 +195,7 @@ export function Dashboard() {
       {/* Milestone Celebration Modal */}
       {milestone && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 text-center">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-5 sm:p-8 text-center">
             <div className="text-5xl mb-4">🏆</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{milestone.title}</h2>
             <p className="text-gray-600 mb-6">{milestone.message}</p>
