@@ -328,12 +328,18 @@ export const content = {
       body: data,
     }),
 
-  completeDesens: (token: string, imageId: string) =>
+  completeDesens: (token: string, imageId: string, feedbackScore?: number) =>
     request<DesensCompleteResponse>('/api/content/desens/complete', {
       method: 'POST',
       token,
-      body: { imageId },
+      body: { imageId, feedbackScore },
     }),
+
+  getDesensStats: (token: string) =>
+    request<{ totalSessions: number; baselineScore: number | null; improvement: number | null }>(
+      '/api/content/desens/stats',
+      { token }
+    ),
 
   getResources: (token: string) =>
     request<ResourcesResponse>('/api/content/resources', { token }),

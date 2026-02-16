@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useDesensImage, useLogUrgeSurf, useCompleteDesens, useUserData } from '../hooks/useApi';
+import { useDesensImage, useLogUrgeSurf, useCompleteDesens, useUserData, useDesensStats } from '../hooks/useApi';
 
 // Difficulty levels based on day progression
 const getDifficultyLevel = (dayNum: number): { level: string; description: string; duration: number } => {
@@ -25,7 +25,6 @@ const FEEDBACK_OPTIONS = [
 ];
 
 // Storage keys
-const PROGRESS_KEY = 'desens_progress';
 const INTRO_SEEN_KEY = 'desens_intro_seen';
 
 // Educational content
@@ -39,13 +38,9 @@ const WHY_THIS_WORKS = {
   ]
 };
 
-interface ProgressData {
-  sessions: { day: number; score: number; date: string }[];
-  baselineScore?: number;
-}
-
 export function Desensitize() {
   const { data: userData, isLoading: userLoading } = useUserData();
+  const { data: desensStats } = useDesensStats();
   const dayNum = userData?.dayNum || 1;
   const { data: image, isLoading: imageLoading, error } = useDesensImage(dayNum);
   const logUrgeSurf = useLogUrgeSurf();
@@ -57,7 +52,6 @@ export function Desensitize() {
   const [phase, setPhase] = useState<'first-intro' | 'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [showWhyThis, setShowWhyThis] = useState(false);
-  const [progress, setProgress] = useState<ProgressData>({ sessions: [] });
   const [, setHasSeenIntro] = useState(true); // Default true to avoid flash
 
   // Urge surfing states
@@ -72,18 +66,8 @@ export function Desensitize() {
 
   const difficulty = getDifficultyLevel(dayNum);
 
-  // Load progress and intro state from localStorage
+  // Check if user has seen the intro
   useEffect(() => {
-    const saved = localStorage.getItem(PROGRESS_KEY);
-    if (saved) {
-      try {
-        setProgress(JSON.parse(saved));
-      } catch {
-        // Invalid data, start fresh
-      }
-    }
-
-    // Check if user has seen the intro
     const introSeen = localStorage.getItem(INTRO_SEEN_KEY);
     if (!introSeen) {
       setHasSeenIntro(false);
@@ -209,19 +193,10 @@ export function Desensitize() {
   }, [urgeSurfTimeRemaining, image, dayNum, logUrgeSurf]);
 
   const handleFeedback = async (score: number) => {
-    const newSession = { day: dayNum, score, date: new Date().toISOString() };
-    const newProgress: ProgressData = {
-      sessions: [...progress.sessions, newSession],
-      baselineScore: progress.baselineScore ?? score,
-    };
-
-    setProgress(newProgress);
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify(newProgress));
-
-    // Award desensitization points
+    // Award desensitization points and store feedback score on server
     if (image) {
       try {
-        const result = await completeDesens.mutateAsync(image.id);
+        const result = await completeDesens.mutateAsync({ imageId: image.id, feedbackScore: score });
         setPointsEarned(result.pointsEarned);
         setShowPointsAnimation(true);
         setTimeout(() => setShowPointsAnimation(false), 3000);
@@ -231,16 +206,6 @@ export function Desensitize() {
     }
 
     setPhase('complete');
-  };
-
-  const calculateImprovement = (): number | null => {
-    if (!progress.baselineScore || progress.sessions.length < 3) return null;
-
-    const recentSessions = progress.sessions.slice(-5);
-    const avgRecent = recentSessions.reduce((sum, s) => sum + s.score, 0) / recentSessions.length;
-    const improvement = ((progress.baselineScore - avgRecent) / progress.baselineScore) * 100;
-
-    return Math.round(Math.max(0, improvement));
   };
 
   const resetExercise = () => {
@@ -443,7 +408,8 @@ export function Desensitize() {
 
   // Complete Phase
   if (phase === 'complete') {
-    const improvement = calculateImprovement();
+    const totalSessions = desensStats?.totalSessions ?? 0;
+    const improvement = desensStats?.improvement ?? null;
 
     return (
       <div className="max-w-2xl mx-auto">
@@ -498,14 +464,14 @@ export function Desensitize() {
                 Urges are {improvement}% lower than Day 1
               </p>
               <p className="text-sm text-gray-600">
-                Based on your {progress.sessions.length} completed sessions
+                Based on your {totalSessions} completed sessions
               </p>
             </div>
           )}
 
           <div className="bg-white rounded-lg p-4 mb-6">
             <p className="text-gray-700">
-              <span className="font-medium">Sessions completed:</span> {progress.sessions.length}
+              <span className="font-medium">Sessions completed:</span> {totalSessions}
             </p>
             <p className="text-gray-700">
               <span className="font-medium">Current level:</span> {difficulty.level}
@@ -668,17 +634,17 @@ export function Desensitize() {
         </div>
 
         {/* Progress Stats */}
-        {progress.sessions.length > 0 && (
+        {(desensStats?.totalSessions ?? 0) > 0 && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Sessions Completed</p>
-                <p className="text-xl font-bold text-gray-900">{progress.sessions.length}</p>
+                <p className="text-xl font-bold text-gray-900">{desensStats?.totalSessions}</p>
               </div>
-              {calculateImprovement() !== null && calculateImprovement()! > 0 && (
+              {desensStats?.improvement !== null && desensStats?.improvement !== undefined && desensStats.improvement > 0 && (
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Urge Reduction</p>
-                  <p className="text-xl font-bold text-green-600">{calculateImprovement()}%</p>
+                  <p className="text-xl font-bold text-green-600">{desensStats.improvement}%</p>
                 </div>
               )}
             </div>

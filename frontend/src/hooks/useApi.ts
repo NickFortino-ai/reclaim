@@ -108,11 +108,23 @@ export function useCompleteDesens() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (imageId: string) => api.content.completeDesens(token!, imageId),
+    mutationFn: ({ imageId, feedbackScore }: { imageId: string; feedbackScore?: number }) =>
+      api.content.completeDesens(token!, imageId, feedbackScore),
     onSuccess: (data) => {
       updateUser({ desensitizationPoints: data.totalPoints });
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['desensStats'] });
     },
+  });
+}
+
+export function useDesensStats() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['desensStats'],
+    queryFn: () => api.content.getDesensStats(token!),
+    enabled: !!token,
   });
 }
 

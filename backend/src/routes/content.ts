@@ -144,7 +144,7 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
 // Complete desensitization exercise, award points
 router.post('/desens/complete', async (req: Request, res: Response) => {
   try {
-    const { imageId } = req.body;
+    const { imageId, feedbackScore } = req.body;
     const userId = req.user!.userId;
 
     if (!imageId || typeof imageId !== 'string') {
@@ -207,6 +207,7 @@ router.post('/desens/complete', async (req: Request, res: Response) => {
           userId,
           imageId: image.id,
           pointsEarned: actualPointsEarned,
+          feedbackScore: typeof feedbackScore === 'number' ? feedbackScore : null,
         },
       }),
     ]);
@@ -220,6 +221,36 @@ router.post('/desens/complete', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Desens complete error:', error);
     res.status(500).json({ error: 'Failed to record completion' });
+  }
+});
+
+// Get desensitization session stats
+router.get('/desens/stats', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const logs = await prisma.desensitizationLog.findMany({
+      where: { userId },
+      orderBy: { completedAt: 'asc' },
+      select: { feedbackScore: true },
+    });
+
+    const totalSessions = logs.length;
+    const scoredSessions = logs.filter(l => l.feedbackScore !== null);
+    const baselineScore = scoredSessions.length > 0 ? scoredSessions[0].feedbackScore : null;
+
+    let improvement: number | null = null;
+    if (baselineScore && baselineScore > 0 && scoredSessions.length >= 3) {
+      const recent = scoredSessions.slice(-5);
+      const avgRecent = recent.reduce((sum, s) => sum + (s.feedbackScore ?? 0), 0) / recent.length;
+      const pct = ((baselineScore - avgRecent) / baselineScore) * 100;
+      improvement = Math.round(Math.max(0, pct));
+    }
+
+    res.json({ totalSessions, baselineScore, improvement });
+  } catch (error) {
+    console.error('Desens stats error:', error);
+    res.status(500).json({ error: 'Failed to get stats' });
   }
 });
 
