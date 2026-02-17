@@ -63,9 +63,6 @@ export function StreakDisplay({ currentStreak, totalDaysWon, recoveryScore }: St
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-sm text-gray-500 text-center">
-          {365 - currentStreak} more streak days — subscription auto-cancels at 365-day streak
-        </p>
       </div>
     </div>
   );
