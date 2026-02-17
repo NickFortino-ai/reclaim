@@ -54,8 +54,8 @@ export function Dashboard() {
     }
   };
 
-  const handleCheckInSuccess = (totalDaysWon: number) => {
-    const m = MILESTONES[totalDaysWon];
+  const handleCheckInSuccess = (currentStreak: number) => {
+    const m = MILESTONES[currentStreak];
     if (m) {
       setMilestone(m);
     }

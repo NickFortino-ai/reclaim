@@ -4,7 +4,7 @@ import { useCheckIn } from '../hooks/useApi';
 interface CheckInButtonProps {
   checkedInToday: boolean;
   onComplete?: (completed: boolean) => void;
-  onCheckInSuccess?: (totalDaysWon: number) => void;
+  onCheckInSuccess?: (currentStreak: number) => void;
 }
 
 export function CheckInButton({ checkedInToday, onComplete, onCheckInSuccess }: CheckInButtonProps) {
@@ -15,7 +15,7 @@ export function CheckInButton({ checkedInToday, onComplete, onCheckInSuccess }: 
     try {
       const result = await checkIn.mutateAsync();
       setShowConfirm(false);
-      onCheckInSuccess?.(result.totalDaysWon);
+      onCheckInSuccess?.(result.currentStreak);
       if (result.completed) {
         onComplete?.(true);
       }
