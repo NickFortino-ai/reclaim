@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { getRandomQuote } from '../utils/helpers.js';
 
 const router = Router();
 
@@ -19,6 +20,80 @@ router.get('/', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get journal entries error:', error);
     res.status(500).json({ error: 'Failed to get journal entries' });
+  }
+});
+
+// Get a reflection: a past positive entry or motivational quote
+router.get('/reflection', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    // Strategy 1: Find an entry with struggling/tempted mood that has a later strong/proud entry
+    const negativeEntry = await prisma.journalEntry.findFirst({
+      where: {
+        userId,
+        mood: { in: ['struggling', 'tempted'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+
+    if (negativeEntry) {
+      const positiveAfter = await prisma.journalEntry.findFirst({
+        where: {
+          userId,
+          mood: { in: ['strong', 'proud'] },
+          createdAt: { gt: negativeEntry.createdAt },
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (positiveAfter) {
+        res.json({
+          type: 'journal' as const,
+          entry: {
+            id: positiveAfter.id,
+            content: positiveAfter.content,
+            mood: positiveAfter.mood,
+            createdAt: positiveAfter.createdAt,
+          },
+          context: 'You felt this way after a hard moment — and you came through it.',
+        });
+        return;
+      }
+    }
+
+    // Strategy 2: Any recent strong/proud/motivated/grateful entry
+    const positiveEntry = await prisma.journalEntry.findFirst({
+      where: {
+        userId,
+        mood: { in: ['strong', 'proud', 'motivated', 'grateful'] },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (positiveEntry) {
+      res.json({
+        type: 'journal' as const,
+        entry: {
+          id: positiveEntry.id,
+          content: positiveEntry.content,
+          mood: positiveEntry.mood,
+          createdAt: positiveEntry.createdAt,
+        },
+        context: 'Remember this version of yourself.',
+      });
+      return;
+    }
+
+    // Strategy 3: Fallback to motivational quote
+    res.json({
+      type: 'quote' as const,
+      quote: getRandomQuote(),
+    });
+  } catch (error) {
+    console.error('Get reflection error:', error);
+    res.status(500).json({ error: 'Failed to get reflection' });
   }
 });
 

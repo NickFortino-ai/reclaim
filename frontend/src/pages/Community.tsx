@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { useCommunity, useSendSupport } from '../hooks/useApi';
+import { Link } from 'react-router-dom';
+import { useCommunity, useSendSupport, usePartnership, useFindPartner } from '../hooks/useApi';
 import { useAuth } from '../context/AuthContext';
 
 export function Community() {
   const { user } = useAuth();
   const { data, isLoading, error } = useCommunity();
   const sendSupport = useSendSupport();
+  const { data: partnershipData } = usePartnership();
+  const findPartner = useFindPartner();
   const [justSupported, setJustSupported] = useState<Set<string>>(new Set());
   const [animating, setAnimating] = useState<string | null>(null);
 
@@ -67,6 +70,56 @@ export function Community() {
           You're not alone. See others on the same journey and send them encouragement.
         </p>
       </div>
+
+      {/* Accountability Partner Card */}
+      {partnershipData?.partnership ? (
+        <Link to="/partner" className="card mb-6 bg-blue-50 border border-blue-200 block hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🤝</span>
+            <div className="flex-1">
+              <h2 className="font-semibold text-blue-800">Your Accountability Partner</h2>
+              <p className="text-sm text-blue-700">
+                {partnershipData.partnership.partner.displayName} — Day {partnershipData.partnership.partner.currentStreak}
+              </p>
+            </div>
+            {partnershipData.partnership.unreadCount > 0 && (
+              <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {partnershipData.partnership.unreadCount}
+              </span>
+            )}
+            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      ) : (
+        <div className="card mb-6 bg-blue-50 border border-blue-200">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🤝</span>
+            <div className="flex-1">
+              <h2 className="font-semibold text-blue-800">Find an Accountability Partner</h2>
+              <p className="text-sm text-blue-700">
+                Get matched with someone on a similar journey. Support each other and stay accountable.
+              </p>
+            </div>
+          </div>
+          <div className="mt-3">
+            {partnershipData?.inQueue ? (
+              <p className="text-sm text-blue-600 font-medium">
+                Searching for a match... You'll be paired automatically.
+              </p>
+            ) : (
+              <button
+                onClick={() => findPartner.mutate()}
+                disabled={findPartner.isPending}
+                className="btn bg-blue-600 hover:bg-blue-700 text-white text-sm"
+              >
+                {findPartner.isPending ? 'Finding...' : 'Find a Partner'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Hall of Fame Section */}
       {data.hallOfFame && data.hallOfFame.length > 0 && (

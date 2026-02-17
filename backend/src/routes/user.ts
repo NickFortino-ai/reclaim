@@ -4,6 +4,7 @@ import { stripe } from '../services/stripe.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { differenceInDays, isSameDay, getRandomQuote, differenceInDaysInTimezone, isSameDayInTimezone, startOfDayInTimezone, generateAccessCode, ADJECTIVES, NOUNS } from '../utils/helpers.js';
 import { getUserTimezone } from '../utils/timezone.js';
+import { computeRecoveryScore } from '../utils/recoveryScore.js';
 
 const router = Router();
 
@@ -88,6 +89,40 @@ router.get('/me', async (req: Request, res: Response) => {
       }
     }
 
+    // Compute recovery score
+    const [urgeSurfCount, journalCount, allCheckIns] = await Promise.all([
+      prisma.urgeSurfEvent.count({ where: { userId: user.id } }),
+      prisma.journalEntry.count({ where: { userId: user.id } }),
+      prisma.checkIn.findMany({
+        where: { userId: user.id },
+        orderBy: { date: 'asc' },
+        select: { stayedStrong: true, daysAdded: true },
+      }),
+    ]);
+
+    // Build streak history from check-ins
+    const streakHistory: number[] = [];
+    let runningStreak = 0;
+    for (const c of allCheckIns) {
+      if (c.stayedStrong) {
+        runningStreak += c.daysAdded;
+      } else {
+        if (runningStreak > 0) streakHistory.push(runningStreak);
+        runningStreak = 0;
+      }
+    }
+    if (runningStreak > 0) streakHistory.push(runningStreak);
+
+    const daysSinceStart = Math.max(1, Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
+    const recoveryScore = computeRecoveryScore({
+      totalDaysWon: user.totalDaysWon,
+      daysSinceStart,
+      streakHistory,
+      urgeSurfCount,
+      journalCount,
+      desensitizationPoints: user.desensitizationPoints,
+    });
+
     // Grace period enforcement: 7 days after completion, auto-cancel if not lifetime
     let gracePeriodDaysRemaining: number | null = null;
     if (user.completedAt && !user.lifetimeAccess) {
@@ -108,6 +143,53 @@ router.get('/me', async (req: Request, res: Response) => {
           data: { subscriptionStatus: 'canceled' },
         });
       }
+    }
+
+    // Partner info
+    let partnerInfo: {
+      id: string;
+      displayName: string;
+      currentStreak: number;
+      lastCheckIn: Date | null;
+      colorTheme: string;
+      checkedInToday: boolean;
+    } | null = null;
+    let unreadPartnerMessages = 0;
+
+    const activePartnership = await prisma.partnership.findFirst({
+      where: {
+        status: 'active',
+        OR: [{ user1Id: user.id }, { user2Id: user.id }],
+      },
+      include: {
+        user1: { select: { id: true, displayName: true, currentStreak: true, lastCheckIn: true, colorTheme: true, timezone: true } },
+        user2: { select: { id: true, displayName: true, currentStreak: true, lastCheckIn: true, colorTheme: true, timezone: true } },
+      },
+    });
+
+    if (activePartnership) {
+      const partner = activePartnership.user1Id === user.id ? activePartnership.user2 : activePartnership.user1;
+      const partnerTz = partner.timezone || 'UTC';
+      const partnerCheckedInToday = partner.lastCheckIn
+        ? isSameDayInTimezone(new Date(), partner.lastCheckIn, partnerTz)
+        : false;
+
+      partnerInfo = {
+        id: partner.id,
+        displayName: partner.displayName,
+        currentStreak: partner.currentStreak,
+        lastCheckIn: partner.lastCheckIn,
+        colorTheme: partner.colorTheme,
+        checkedInToday: partnerCheckedInToday,
+      };
+
+      unreadPartnerMessages = await prisma.partnerMessage.count({
+        where: {
+          partnershipId: activePartnership.id,
+          senderId: { not: user.id },
+          readAt: null,
+        },
+      });
     }
 
     res.json({
@@ -136,6 +218,9 @@ router.get('/me', async (req: Request, res: Response) => {
       needsMissedDaysCheck,
       gracePeriodDaysRemaining,
       intimacyCheckInDue,
+      recoveryScore,
+      partnerInfo,
+      unreadPartnerMessages,
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -314,6 +399,8 @@ router.post('/reset', async (req: Request, res: Response) => {
       return;
     }
 
+    const previousStreak = user.currentStreak;
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -330,9 +417,48 @@ router.post('/reset', async (req: Request, res: Response) => {
       },
     });
 
+    // Compute post-reset recovery score
+    const [resetUrgeSurfCount, resetJournalCount, resetAllCheckIns] = await Promise.all([
+      prisma.urgeSurfEvent.count({ where: { userId: user.id } }),
+      prisma.journalEntry.count({ where: { userId: user.id } }),
+      prisma.checkIn.findMany({
+        where: { userId: user.id },
+        orderBy: { date: 'asc' },
+        select: { stayedStrong: true, daysAdded: true },
+      }),
+    ]);
+
+    const resetStreakHistory: number[] = [];
+    let resetRunning = 0;
+    for (const c of resetAllCheckIns) {
+      if (c.stayedStrong) {
+        resetRunning += c.daysAdded;
+      } else {
+        if (resetRunning > 0) resetStreakHistory.push(resetRunning);
+        resetRunning = 0;
+      }
+    }
+    if (resetRunning > 0) resetStreakHistory.push(resetRunning);
+
+    const resetDaysSinceStart = Math.max(1, Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
+    const consistencyRate = Math.min(Math.round((user.totalDaysWon / resetDaysSinceStart) * 100), 100);
+    const postResetScore = computeRecoveryScore({
+      totalDaysWon: user.totalDaysWon,
+      daysSinceStart: resetDaysSinceStart,
+      streakHistory: resetStreakHistory,
+      urgeSurfCount: resetUrgeSurfCount,
+      journalCount: resetJournalCount,
+      desensitizationPoints: user.desensitizationPoints,
+    });
+
     res.json({
       message: 'Streak reset. Every day is a new beginning.',
       quote: getRandomQuote(),
+      previousStreak,
+      totalDaysWon: user.totalDaysWon,
+      highestStreak: user.highestStreak,
+      consistencyRate,
+      recoveryScore: postResetScore,
     });
   } catch (error) {
     console.error('Reset error:', error);
@@ -469,8 +595,20 @@ router.delete('/account', async (req: Request, res: Response) => {
       }
     }
 
+    // Delete partner messages from all partnerships involving this user
+    const userPartnerships = await prisma.partnership.findMany({
+      where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
+      select: { id: true },
+    });
+    const partnershipIds = userPartnerships.map(p => p.id);
+
     // Delete all related records, then the user
     await prisma.$transaction([
+      ...(partnershipIds.length > 0
+        ? [prisma.partnerMessage.deleteMany({ where: { partnershipId: { in: partnershipIds } } })]
+        : []),
+      prisma.partnership.deleteMany({ where: { OR: [{ user1Id: userId }, { user2Id: userId }] } }),
+      prisma.partnerQueue.deleteMany({ where: { userId } }),
       prisma.journalEntry.deleteMany({ where: { userId } }),
       prisma.desensitizationLog.deleteMany({ where: { userId } }),
       prisma.urgeSurfEvent.deleteMany({ where: { userId } }),

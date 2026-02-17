@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLogUrgeSurf } from '../hooks/useApi';
+import { BreathingExercise } from '../components/BreathingExercise';
 
 export function UrgeSurf() {
   const { user } = useAuth();
@@ -8,55 +9,8 @@ export function UrgeSurf() {
   const dayNum = Math.min(Math.max(user?.currentStreak || 1, 1), 365);
 
   const [phase, setPhase] = useState<'ready' | 'breathing' | 'complete'>('ready');
-  const [timeRemaining, setTimeRemaining] = useState(90);
-  const [breathingPhase, setBreathingPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
-  const [breathingCircleScale, setBreathingCircleScale] = useState(1);
-
-  // Timer countdown
-  useEffect(() => {
-    if (phase !== 'breathing' || timeRemaining <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeRemaining((t) => {
-        if (t <= 1) {
-          setPhase('complete');
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [phase, timeRemaining]);
-
-  // Breathing animation (4-7-8 pattern = 19s cycle)
-  useEffect(() => {
-    if (phase !== 'breathing') return;
-
-    const runBreathingCycle = () => {
-      setBreathingPhase('inhale');
-      setBreathingCircleScale(1.5);
-
-      setTimeout(() => {
-        setBreathingPhase('hold');
-      }, 4000);
-
-      setTimeout(() => {
-        setBreathingPhase('exhale');
-        setBreathingCircleScale(1);
-      }, 11000);
-    };
-
-    runBreathingCycle();
-    const cycleInterval = setInterval(runBreathingCycle, 19000);
-
-    return () => clearInterval(cycleInterval);
-  }, [phase]);
 
   const startBreathing = useCallback(() => {
-    setTimeRemaining(90);
-    setBreathingPhase('inhale');
-    setBreathingCircleScale(1);
     setPhase('breathing');
 
     logUrgeSurf.mutate({
@@ -77,7 +31,6 @@ export function UrgeSurf() {
 
   const reset = () => {
     setPhase('ready');
-    setTimeRemaining(90);
   };
 
   // Ready phase
@@ -132,77 +85,13 @@ export function UrgeSurf() {
 
   // Breathing phase
   if (phase === 'breathing') {
-    const peakMessage = timeRemaining > 30
-      ? "The urge will peak in about 60 seconds, then pass. Breathe with me."
-      : timeRemaining > 0
-      ? "The peak is passing. Keep breathing."
-      : "You made it through. You're stronger than the urge.";
-
     return (
       <div className="max-w-2xl mx-auto">
         <div className="card bg-blue-50 border-blue-200">
           <h2 className="text-xl font-semibold text-blue-800 mb-4 text-center">
             Urge Surfing Exercise
           </h2>
-
-          <div className="space-y-6">
-            {/* Timer */}
-            <div className="text-center">
-              <span className="text-4xl font-bold text-blue-600">
-                {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
-              </span>
-            </div>
-
-            {/* Peak message */}
-            <p className="text-blue-700 text-center font-medium">
-              {peakMessage}
-            </p>
-
-            {/* Animated Breathing Circle */}
-            <div className="flex justify-center py-8">
-              <div
-                className="w-32 h-32 rounded-full bg-blue-200 flex items-center justify-center transition-transform ease-in-out"
-                style={{
-                  transform: `scale(${breathingCircleScale})`,
-                  transitionDuration: breathingPhase === 'inhale' ? '4000ms' : breathingPhase === 'exhale' ? '8000ms' : '0ms',
-                }}
-              >
-                <span className="text-blue-700 font-semibold text-lg capitalize">
-                  {breathingPhase}
-                </span>
-              </div>
-            </div>
-
-            {/* Breathing instruction */}
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="flex justify-center items-center gap-4 text-lg">
-                <div className={`text-center ${breathingPhase === 'inhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                  <div className="text-2xl mb-1">4s</div>
-                  <div className="text-sm">Inhale</div>
-                </div>
-                <div className="text-gray-300">&rarr;</div>
-                <div className={`text-center ${breathingPhase === 'hold' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                  <div className="text-2xl mb-1">7s</div>
-                  <div className="text-sm">Hold</div>
-                </div>
-                <div className="text-gray-300">&rarr;</div>
-                <div className={`text-center ${breathingPhase === 'exhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                  <div className="text-2xl mb-1">8s</div>
-                  <div className="text-sm">Exhale</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Skip / early complete */}
-            <div className="text-center">
-              <button
-                onClick={handleComplete}
-                className="text-sm text-blue-500 hover:text-blue-700 py-2 px-4"
-              >
-                I'm feeling better — end early
-              </button>
-            </div>
-          </div>
+          <BreathingExercise durationSeconds={90} onComplete={handleComplete} />
         </div>
       </div>
     );

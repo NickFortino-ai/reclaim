@@ -41,6 +41,7 @@ import { AdminResources } from './pages/admin/AdminResources';
 import { Bookmarks } from './pages/Bookmarks';
 import { LifetimeSuccess } from './pages/LifetimeSuccess';
 import { Patterns } from './pages/Patterns';
+import { Partner } from './pages/Partner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -249,6 +250,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Patterns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partner"
+          element={
+            <ProtectedRoute>
+              <Partner />
             </ProtectedRoute>
           }
         />

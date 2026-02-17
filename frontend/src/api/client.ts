@@ -100,6 +100,18 @@ export interface UserData {
   needsMissedDaysCheck: boolean;
   gracePeriodDaysRemaining: number | null;
   intimacyCheckInDue: boolean;
+  recoveryScore: number;
+  partnerInfo: PartnerInfo | null;
+  unreadPartnerMessages: number;
+}
+
+export interface PartnerInfo {
+  id: string;
+  displayName: string;
+  currentStreak: number;
+  lastCheckIn: string | null;
+  colorTheme: string;
+  checkedInToday: boolean;
 }
 
 export interface CheckInResponse {
@@ -117,6 +129,11 @@ export interface MissedDaysResponse {
 export interface ResetResponse {
   message: string;
   quote: string;
+  previousStreak: number;
+  totalDaysWon: number;
+  highestStreak: number;
+  consistencyRate: number;
+  recoveryScore: number;
 }
 
 export interface IntimacyCheckInData {
@@ -568,9 +585,24 @@ export interface JournalEntry {
   updatedAt: string;
 }
 
+export interface JournalReflection {
+  type: 'journal' | 'quote';
+  entry?: {
+    id: string;
+    content: string;
+    mood: string | null;
+    createdAt: string;
+  };
+  context?: string;
+  quote?: string;
+}
+
 export const journal = {
   getEntries: (token: string) =>
     request<{ entries: JournalEntry[] }>('/api/journal', { token }),
+
+  getReflection: (token: string) =>
+    request<JournalReflection>('/api/journal/reflection', { token }),
 
   createEntry: (token: string, content: string, mood?: string, trigger?: string) =>
     request<JournalEntry>('/api/journal', {
@@ -588,6 +620,62 @@ export const journal = {
 
   deleteEntry: (token: string, id: string) =>
     request<{ message: string }>(`/api/journal/${id}`, { method: 'DELETE', token }),
+};
+
+// Partnership
+export interface PartnershipMessage {
+  id: string;
+  senderId: string;
+  type: 'message' | 'nudge';
+  content: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface PartnershipData {
+  partnership: {
+    id: string;
+    createdAt: string;
+    partner: {
+      id: string;
+      displayName: string;
+      currentStreak: number;
+      lastCheckIn: string | null;
+      colorTheme: string;
+    };
+    messages: PartnershipMessage[];
+    unreadCount: number;
+  } | null;
+  inQueue: boolean;
+}
+
+export interface FindPartnerResponse {
+  status: 'matched' | 'queued';
+  partnershipId?: string;
+}
+
+export const partnership = {
+  find: (token: string) =>
+    request<FindPartnerResponse>('/api/partnership/find', { method: 'POST', token }),
+
+  get: (token: string) =>
+    request<PartnershipData>('/api/partnership', { token }),
+
+  sendMessage: (token: string, content: string) =>
+    request<PartnershipMessage>('/api/partnership/message', {
+      method: 'POST',
+      token,
+      body: { content },
+    }),
+
+  sendNudge: (token: string) =>
+    request<PartnershipMessage>('/api/partnership/nudge', { method: 'POST', token }),
+
+  dissolve: (token: string) =>
+    request<{ message: string }>('/api/partnership/dissolve', { method: 'POST', token }),
+
+  markRead: (token: string) =>
+    request<{ message: string }>('/api/partnership/messages/read', { method: 'POST', token }),
 };
 
 export { ApiError };

@@ -5,6 +5,8 @@ import { StreakDisplay } from '../components/StreakDisplay';
 import { CheckInButton } from '../components/CheckInButton';
 import { MissedDaysModal } from '../components/MissedDaysModal';
 import { ResetButton } from '../components/ResetButton';
+import { StrugglingFlow } from '../components/StrugglingFlow';
+import { PartnerCard } from '../components/PartnerCard';
 
 const MILESTONES: Record<number, { title: string; message: string }> = {
   7: { title: '1 Week Strong', message: 'You\'ve made it a full week. The first week is the hardest — you proved you can do this.' },
@@ -20,6 +22,7 @@ export function Dashboard() {
   const handleMissedDays = useHandleMissedDays();
   const [showMissedDays, setShowMissedDays] = useState(true);
   const [milestone, setMilestone] = useState<{ title: string; message: string } | null>(null);
+  const [showStrugglingFlow, setShowStrugglingFlow] = useState(false);
   const navigate = useNavigate();
 
   // Auto-handle missed days for lifetime members (skip the modal)
@@ -60,6 +63,10 @@ export function Dashboard() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {showStrugglingFlow && (
+        <StrugglingFlow onClose={() => setShowStrugglingFlow(false)} />
+      )}
+
       {data.needsMissedDaysCheck && showMissedDays && !data.user.lifetimeAccess && (
         <MissedDaysModal
           missedDays={data.missedDays}
@@ -104,7 +111,15 @@ export function Dashboard() {
       <StreakDisplay
         currentStreak={data.user.currentStreak}
         totalDaysWon={data.user.totalDaysWon}
+        recoveryScore={data.recoveryScore}
       />
+
+      {data.partnerInfo && (
+        <PartnerCard
+          partner={data.partnerInfo}
+          unreadCount={data.unreadPartnerMessages}
+        />
+      )}
 
       <CheckInButton
         checkedInToday={data.checkedInToday}
@@ -143,6 +158,19 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* I'm Struggling Button */}
+      <button
+        onClick={() => setShowStrugglingFlow(true)}
+        className="w-full card bg-blue-50 border-2 border-blue-300 hover:bg-blue-100 hover:border-blue-400 transition-colors"
+      >
+        <div className="flex items-center justify-center gap-3 py-1">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <span className="font-semibold text-blue-700 text-lg">I'm Struggling Right Now</span>
+        </div>
+      </button>
 
       {/* Quick Access Tools */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

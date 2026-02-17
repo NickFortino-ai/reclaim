@@ -467,6 +467,81 @@ export function useDeleteJournalEntry() {
   });
 }
 
+// Partnership hooks
+export function usePartnership() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['partnership'],
+    queryFn: () => api.partnership.get(token!),
+    enabled: !!token,
+    refetchInterval: 30000,
+  });
+}
+
+export function useFindPartner() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.partnership.find(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partnership'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+export function useSendPartnerMessage() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (content: string) => api.partnership.sendMessage(token!, content),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partnership'] });
+    },
+  });
+}
+
+export function useSendNudge() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.partnership.sendNudge(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partnership'] });
+    },
+  });
+}
+
+export function useDissolvePartnership() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.partnership.dissolve(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partnership'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+export function useMarkPartnerMessagesRead() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.partnership.markRead(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partnership'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
 // Referral hooks
 export function useReferralStats() {
   const { token } = useAuth();

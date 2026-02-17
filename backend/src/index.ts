@@ -9,6 +9,7 @@ import stripeRoutes from './routes/stripe.js';
 import adminRoutes from './routes/admin.js';
 import referralRoutes from './routes/referral.js';
 import journalRoutes from './routes/journal.js';
+import partnershipRoutes from './routes/partnership.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +57,7 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/partnership', partnershipRoutes);
 
 // Error handler
 app.use(errorHandler);

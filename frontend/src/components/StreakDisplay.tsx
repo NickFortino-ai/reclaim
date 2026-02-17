@@ -1,21 +1,33 @@
 interface StreakDisplayProps {
   currentStreak: number;
   totalDaysWon: number;
+  recoveryScore: number;
 }
 
-export function StreakDisplay({ currentStreak, totalDaysWon }: StreakDisplayProps) {
+function getScoreColor(score: number): string {
+  if (score <= 25) return 'text-red-600';
+  if (score <= 50) return 'text-amber-600';
+  if (score <= 75) return 'text-green-600';
+  return 'text-emerald-600';
+}
+
+export function StreakDisplay({ currentStreak, totalDaysWon, recoveryScore }: StreakDisplayProps) {
   const progress = Math.min((currentStreak / 365) * 100, 100);
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-6 text-center">
         <div>
           <h2 className="text-3xl font-bold text-primary-600">{currentStreak}</h2>
-          <p className="text-gray-600">Current Streak</p>
+          <p className="text-gray-600 text-sm">Current Streak</p>
         </div>
-        <div className="text-right">
+        <div>
           <h2 className="text-3xl font-bold text-gray-900">{totalDaysWon}</h2>
-          <p className="text-gray-600">Total Days Won</p>
+          <p className="text-gray-600 text-sm">Total Days Won</p>
+        </div>
+        <div>
+          <h2 className={`text-3xl font-bold ${getScoreColor(recoveryScore)}`}>{recoveryScore}</h2>
+          <p className="text-gray-600 text-sm">Recovery Score</p>
         </div>
       </div>
 

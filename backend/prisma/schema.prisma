@@ -50,6 +50,10 @@ model User {
   bookmarks           Bookmark[]
   journalEntries      JournalEntry[]
   intimacyCheckIns    IntimacyCheckIn[]
+  partnershipsAsUser1 Partnership[] @relation("partnerUser1")
+  partnershipsAsUser2 Partnership[] @relation("partnerUser2")
+  sentPartnerMessages PartnerMessage[] @relation("messageSender")
+  partnerQueue        PartnerQueue?
 }
 
 model CheckIn {
@@ -182,4 +186,41 @@ model JournalEntry {
   updatedAt DateTime @updatedAt
 
   @@index([userId, createdAt])
+}
+
+model Partnership {
+  id          String    @id @default(cuid())
+  user1Id     String
+  user2Id     String
+  user1       User      @relation("partnerUser1", fields: [user1Id], references: [id])
+  user2       User      @relation("partnerUser2", fields: [user2Id], references: [id])
+  status      String    @default("active") // active, dissolved
+  createdAt   DateTime  @default(now())
+  dissolvedAt DateTime?
+  messages    PartnerMessage[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id, status])
+  @@index([user2Id, status])
+}
+
+model PartnerMessage {
+  id            String      @id @default(cuid())
+  partnershipId String
+  partnership   Partnership @relation(fields: [partnershipId], references: [id])
+  senderId      String
+  sender        User        @relation("messageSender", fields: [senderId], references: [id])
+  type          String      @default("message") // message, nudge
+  content       String      @db.VarChar(500)
+  readAt        DateTime?
+  createdAt     DateTime    @default(now())
+
+  @@index([partnershipId, createdAt])
+}
+
+model PartnerQueue {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }

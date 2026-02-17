@@ -1,30 +1,64 @@
 import { useState } from 'react';
 import { useReset } from '../hooks/useApi';
+import { ResetResponse } from '../api/client';
+
+function getScoreColor(score: number): string {
+  if (score <= 25) return 'text-red-600';
+  if (score <= 50) return 'text-amber-600';
+  if (score <= 75) return 'text-green-600';
+  return 'text-emerald-600';
+}
 
 export function ResetButton() {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [quote, setQuote] = useState<string | null>(null);
+  const [resetData, setResetData] = useState<ResetResponse | null>(null);
   const reset = useReset();
 
   const handleReset = async () => {
     try {
       const result = await reset.mutateAsync();
-      setQuote(result.quote);
+      setResetData(result);
       setShowConfirm(false);
     } catch (error) {
       console.error('Reset failed:', error);
     }
   };
 
-  if (quote) {
+  if (resetData) {
     return (
       <div className="card bg-amber-50 border-amber-200">
-        <h3 className="text-lg font-semibold text-amber-800 mb-2 text-center">
-          A New Beginning
+        <h3 className="text-lg font-semibold text-amber-800 mb-3 text-center">
+          You just went {resetData.previousStreak} day{resetData.previousStreak !== 1 ? 's' : ''} strong
         </h3>
-        <p className="text-amber-700 text-center italic mb-4">"{quote}"</p>
+
+        <div className="grid grid-cols-3 gap-4 mb-4 text-center">
+          <div>
+            <div className="text-2xl font-bold text-gray-900">{resetData.totalDaysWon}</div>
+            <div className="text-xs text-gray-600">Total Days Won</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-gray-900">{resetData.highestStreak}</div>
+            <div className="text-xs text-gray-600">Highest Streak</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-gray-900">{resetData.consistencyRate}%</div>
+            <div className="text-xs text-gray-600">Consistency</div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-3 mb-4 text-center">
+          <div className={`text-3xl font-bold ${getScoreColor(resetData.recoveryScore)}`}>
+            {resetData.recoveryScore}
+          </div>
+          <div className="text-sm text-gray-600">Recovery Score</div>
+          <p className="text-sm text-gray-700 mt-1">
+            This barely moved. One day doesn't erase {resetData.totalDaysWon} day{resetData.totalDaysWon !== 1 ? 's' : ''} of growth.
+          </p>
+        </div>
+
+        <p className="text-amber-700 text-center italic mb-4">"{resetData.quote}"</p>
         <button
-          onClick={() => setQuote(null)}
+          onClick={() => setResetData(null)}
           className="w-full btn bg-amber-600 text-white hover:bg-amber-700"
         >
           Continue Forward
