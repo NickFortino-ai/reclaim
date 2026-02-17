@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePreview } from '../context/PreviewContext';
@@ -195,6 +195,7 @@ export function Layout({ children }: LayoutProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </Link>
+                <ShareButton className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors" />
                 <button onClick={handleLogout} className="btn btn-secondary text-sm">
                   Logout
                 </button>
@@ -208,10 +209,11 @@ export function Layout({ children }: LayoutProps) {
             <Link to="/dashboard" className="text-lg font-bold text-primary-600">
               Reclaim
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">
                 Day {user.currentStreak}
               </span>
+              <ShareButton iconOnly className="p-2 text-gray-500 rounded-lg transition-colors" />
               <Link
                 to="/settings"
                 className={`p-2 rounded-lg transition-colors ${
@@ -239,6 +241,63 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return <>{children}</>;
+}
+
+function ShareButton({ className, iconOnly }: { className?: string; iconOnly?: boolean }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = useCallback(async () => {
+    const shareData = {
+      title: 'Reclaim - 365 Days to Freedom',
+      text: 'A private accountability platform for men committed to breaking free.',
+      url: 'https://reclaim365.app/',
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled or share failed silently
+      }
+    } else {
+      await navigator.clipboard.writeText(shareData.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, []);
+
+  const shareIcon = (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+    </svg>
+  );
+
+  const checkIcon = (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  );
+
+  if (iconOnly) {
+    return (
+      <button onClick={handleShare} className={className} title="Share Reclaim">
+        {copied ? checkIcon : shareIcon}
+      </button>
+    );
+  }
+
+  return (
+    <button onClick={handleShare} className={className} title="Share Reclaim">
+      {copied ? (
+        <span className="flex items-center gap-1">
+          {checkIcon}
+          Copied!
+        </span>
+      ) : (
+        'Share'
+      )}
+    </button>
+  );
 }
 
 function NavLink({ to, current, children }: { to: string; current: boolean; children: ReactNode }) {
