@@ -2,12 +2,17 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../services/prisma.js';
 import { stripe } from '../services/stripe.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { differenceInDays, isSameDay, getRandomQuote, differenceInDaysInTimezone, isSameDayInTimezone, startOfDayInTimezone, generateAccessCode } from '../utils/helpers.js';
+import { differenceInDays, isSameDay, getRandomQuote, differenceInDaysInTimezone, isSameDayInTimezone, startOfDayInTimezone, generateAccessCode, ADJECTIVES, NOUNS } from '../utils/helpers.js';
 import { getUserTimezone } from '../utils/timezone.js';
 
 const router = Router();
 
 router.use(authMiddleware);
+
+// Get warrior name options (adjectives + nouns)
+router.get('/warrior-name-options', (_req: Request, res: Response) => {
+  res.json({ adjectives: ADJECTIVES, nouns: NOUNS });
+});
 
 // Get current user data + today's affirmation
 router.get('/me', async (req: Request, res: Response) => {
@@ -822,8 +827,15 @@ router.patch('/display-name', async (req: Request, res: Response) => {
   try {
     const { displayName } = req.body;
 
-    if (!displayName || typeof displayName !== 'string' || displayName.trim().length < 2 || displayName.trim().length > 30) {
-      res.status(400).json({ error: 'Display name must be 2-30 characters' });
+    if (!displayName || typeof displayName !== 'string') {
+      res.status(400).json({ error: 'Display name is required' });
+      return;
+    }
+
+    // Validate name is a valid Adjective + Noun combo
+    const parts = displayName.trim().split(' ');
+    if (parts.length !== 2 || !ADJECTIVES.includes(parts[0]) || !NOUNS.includes(parts[1])) {
+      res.status(400).json({ error: 'Please choose a valid warrior name from the available options' });
       return;
     }
 

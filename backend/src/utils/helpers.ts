@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 // Masculine, powerful adjectives for warrior names
-const ADJECTIVES = [
+export const ADJECTIVES = [
   'Silent', 'Iron', 'Swift', 'Steel', 'Stone', 'Shadow', 'Thunder', 'Storm',
   'Wild', 'Ancient', 'Bold', 'Fierce', 'Lone', 'Mighty', 'Noble', 'Rogue',
   'Dark', 'Crimson', 'Silver', 'Ghost', 'Frost', 'Ember', 'Blaze', 'Grim',
@@ -12,7 +12,7 @@ const ADJECTIVES = [
 ];
 
 // Powerful, masculine nouns for warrior names
-const NOUNS = [
+export const NOUNS = [
   'Wolf', 'Bear', 'Hawk', 'Lion', 'Tiger', 'Eagle', 'Stallion', 'Spartan',
   'Guardian', 'Sentinel', 'Warrior', 'Knight', 'Ranger', 'Titan', 'Viking',
   'Phoenix', 'Dragon', 'Cobra', 'Panther', 'Viper', 'Falcon', 'Raven',

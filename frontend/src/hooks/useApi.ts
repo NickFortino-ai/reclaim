@@ -153,6 +153,17 @@ export function useUpdateLeaderboardVisibility() {
   });
 }
 
+export function useWarriorNameOptions() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['warrior-name-options'],
+    queryFn: () => api.user.getWarriorNameOptions(token!),
+    enabled: !!token,
+    staleTime: Infinity,
+  });
+}
+
 export function useUpdateDisplayName() {
   const { token } = useAuth();
   const queryClient = useQueryClient();

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ThemePicker } from '../components/ThemePicker';
-import { useReferralStats, useUserData, useUpdateReminderTime, useUpdateLeaderboardVisibility, useUpdateDisplayName, useChangeAccessCode } from '../hooks/useApi';
+import { useReferralStats, useUserData, useUpdateReminderTime, useUpdateLeaderboardVisibility, useUpdateDisplayName, useChangeAccessCode, useWarriorNameOptions } from '../hooks/useApi';
 import { user as userApi, stripe as stripeApi } from '../api/client';
 
 export function Settings() {
@@ -402,8 +402,10 @@ function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserD
   const updateLeaderboardVisibility = useUpdateLeaderboardVisibility();
   const updateDisplayName = useUpdateDisplayName();
   const changeAccessCode = useChangeAccessCode();
+  const { data: nameOptions } = useWarriorNameOptions();
 
-  const [newName, setNewName] = useState('');
+  const [selectedAdjective, setSelectedAdjective] = useState('');
+  const [selectedNoun, setSelectedNoun] = useState('');
   const [nameError, setNameError] = useState('');
   const [nameSuccess, setNameSuccess] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
@@ -435,14 +437,16 @@ function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserD
   const handleNameSubmit = () => {
     setNameError('');
     setNameSuccess('');
-    if (newName.trim().length < 2 || newName.trim().length > 30) {
-      setNameError('Name must be 2-30 characters');
+    if (!selectedAdjective || !selectedNoun) {
+      setNameError('Please select both an adjective and an animal');
       return;
     }
-    updateDisplayName.mutate(newName.trim(), {
+    const newName = `${selectedAdjective} ${selectedNoun}`;
+    updateDisplayName.mutate(newName, {
       onSuccess: () => {
         setNameSuccess('Warrior name updated!');
-        setNewName('');
+        setSelectedAdjective('');
+        setSelectedNoun('');
         setShowNameInput(false);
         setTimeout(() => setNameSuccess(''), 3000);
       },
@@ -528,29 +532,50 @@ function PreferencesSection({ userData }: { userData: ReturnType<typeof useUserD
           {nameSuccess && (
             <p className="text-sm text-green-600 mt-1">{nameSuccess}</p>
           )}
-          {showNameInput && (
-            <div className="mt-3 flex gap-2">
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="New warrior name"
-                maxLength={30}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              <button
-                onClick={handleNameSubmit}
-                disabled={updateDisplayName.isPending}
-                className="btn btn-primary text-sm"
-              >
-                {updateDisplayName.isPending ? 'Saving...' : 'Save'}
-              </button>
-              <button
-                onClick={() => { setShowNameInput(false); setNewName(''); setNameError(''); }}
-                className="btn btn-secondary text-sm"
-              >
-                Cancel
-              </button>
+          {showNameInput && nameOptions && (
+            <div className="mt-3 space-y-3">
+              <div className="flex gap-2">
+                <select
+                  value={selectedAdjective}
+                  onChange={(e) => setSelectedAdjective(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Select adjective...</option>
+                  {nameOptions.adjectives.map((adj) => (
+                    <option key={adj} value={adj}>{adj}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedNoun}
+                  onChange={(e) => setSelectedNoun(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Select animal...</option>
+                  {nameOptions.nouns.map((noun) => (
+                    <option key={noun} value={noun}>{noun}</option>
+                  ))}
+                </select>
+              </div>
+              {selectedAdjective && selectedNoun && (
+                <p className="text-sm text-gray-600">
+                  Preview: <span className="font-semibold text-gray-900">{selectedAdjective} {selectedNoun}</span>
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleNameSubmit}
+                  disabled={updateDisplayName.isPending || !selectedAdjective || !selectedNoun}
+                  className="btn btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateDisplayName.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => { setShowNameInput(false); setSelectedAdjective(''); setSelectedNoun(''); setNameError(''); }}
+                  className="btn btn-secondary text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
           {nameError && (

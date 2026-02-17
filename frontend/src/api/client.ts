@@ -226,6 +226,9 @@ export const user = {
       body: { hide },
     }),
 
+  getWarriorNameOptions: (token: string) =>
+    request<{ adjectives: string[]; nouns: string[] }>('/api/user/warrior-name-options', { token }),
+
   updateDisplayName: (token: string, displayName: string) =>
     request<{ displayName: string; displayNameChangedAt: string }>('/api/user/display-name', {
       method: 'PATCH',
