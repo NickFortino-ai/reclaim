@@ -21,6 +21,26 @@ router.get('/me', async (req: Request, res: Response) => {
       return;
     }
 
+    // Sync subscription status with Stripe if stuck on 'trialing'
+    if (user.subscriptionStatus === 'trialing' && user.stripeSubscriptionId) {
+      try {
+        const sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        const stripeStatus = sub.status === 'active' ? 'active'
+          : sub.status === 'trialing' ? 'trialing'
+          : sub.status === 'canceled' ? 'canceled'
+          : user.subscriptionStatus;
+        if (stripeStatus !== user.subscriptionStatus) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { subscriptionStatus: stripeStatus },
+          });
+          user.subscriptionStatus = stripeStatus;
+        }
+      } catch (e) {
+        console.error('Failed to sync subscription status:', e);
+      }
+    }
+
     const tz = getUserTimezone(req, user.timezone);
     const todayStart = startOfDayInTimezone(new Date(), tz);
 

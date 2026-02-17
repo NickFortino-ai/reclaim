@@ -72,9 +72,6 @@ export function Settings() {
       {/* Theme Picker */}
       <ThemePicker />
 
-      {/* Referral Section */}
-      <ReferralSection />
-
       {/* Support Section */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Support</h3>
@@ -164,6 +161,9 @@ export function Settings() {
           </div>
         </div>
       </div>
+
+      {/* Referral Section */}
+      <ReferralSection />
 
       {/* Danger Zone */}
       <div className="card border-red-200">
