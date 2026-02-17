@@ -6,9 +6,15 @@ import { useReferralStats, useUserData, useUpdateReminderTime, useUpdateLeaderbo
 import { user as userApi, stripe as stripeApi } from '../api/client';
 
 export function Settings() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, updateUser } = useAuth();
   const { data: userData } = useUserData();
   const navigate = useNavigate();
+
+  // Sync subscription status from fresh /me data into auth context
+  const freshStatus = userData?.user?.subscriptionStatus;
+  if (freshStatus && user && freshStatus !== user.subscriptionStatus) {
+    updateUser({ subscriptionStatus: freshStatus });
+  }
 
   // Modal states
   const [showCancelDialog, setShowCancelDialog] = useState(false);
