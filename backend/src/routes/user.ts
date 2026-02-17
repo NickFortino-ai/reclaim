@@ -156,40 +156,44 @@ router.get('/me', async (req: Request, res: Response) => {
     } | null = null;
     let unreadPartnerMessages = 0;
 
-    const activePartnership = await prisma.partnership.findFirst({
-      where: {
-        status: 'active',
-        OR: [{ user1Id: user.id }, { user2Id: user.id }],
-      },
-      include: {
-        user1: { select: { id: true, displayName: true, currentStreak: true, lastCheckIn: true, colorTheme: true, timezone: true } },
-        user2: { select: { id: true, displayName: true, currentStreak: true, lastCheckIn: true, colorTheme: true, timezone: true } },
-      },
-    });
-
-    if (activePartnership) {
-      const partner = activePartnership.user1Id === user.id ? activePartnership.user2 : activePartnership.user1;
-      const partnerTz = partner.timezone || 'UTC';
-      const partnerCheckedInToday = partner.lastCheckIn
-        ? isSameDayInTimezone(new Date(), partner.lastCheckIn, partnerTz)
-        : false;
-
-      partnerInfo = {
-        id: partner.id,
-        displayName: partner.displayName,
-        currentStreak: partner.currentStreak,
-        lastCheckIn: partner.lastCheckIn,
-        colorTheme: partner.colorTheme,
-        checkedInToday: partnerCheckedInToday,
-      };
-
-      unreadPartnerMessages = await prisma.partnerMessage.count({
+    try {
+      const activePartnership = await prisma.partnership.findFirst({
         where: {
-          partnershipId: activePartnership.id,
-          senderId: { not: user.id },
-          readAt: null,
+          status: 'active',
+          OR: [{ user1Id: user.id }, { user2Id: user.id }],
+        },
+        include: {
+          user1: { select: { id: true, displayName: true, currentStreak: true, lastCheckIn: true, colorTheme: true, timezone: true } },
+          user2: { select: { id: true, displayName: true, currentStreak: true, lastCheckIn: true, colorTheme: true, timezone: true } },
         },
       });
+
+      if (activePartnership) {
+        const partner = activePartnership.user1Id === user.id ? activePartnership.user2 : activePartnership.user1;
+        const partnerTz = partner.timezone || 'UTC';
+        const partnerCheckedInToday = partner.lastCheckIn
+          ? isSameDayInTimezone(new Date(), partner.lastCheckIn, partnerTz)
+          : false;
+
+        partnerInfo = {
+          id: partner.id,
+          displayName: partner.displayName,
+          currentStreak: partner.currentStreak,
+          lastCheckIn: partner.lastCheckIn,
+          colorTheme: partner.colorTheme,
+          checkedInToday: partnerCheckedInToday,
+        };
+
+        unreadPartnerMessages = await prisma.partnerMessage.count({
+          where: {
+            partnershipId: activePartnership.id,
+            senderId: { not: user.id },
+            readAt: null,
+          },
+        });
+      }
+    } catch {
+      // Partnership tables may not exist yet — gracefully skip
     }
 
     res.json({
