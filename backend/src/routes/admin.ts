@@ -208,6 +208,11 @@ router.delete('/images/:id', async (req: Request, res: Response) => {
       await deleteImage(image.imageUrl);
     }
 
+    // Delete related logs first to avoid foreign key constraint
+    await prisma.desensitizationLog.deleteMany({
+      where: { imageId: id },
+    });
+
     await prisma.desensImage.delete({
       where: { id },
     });
