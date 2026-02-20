@@ -92,21 +92,24 @@ export function Desensitize() {
     return () => clearInterval(timer);
   }, [phase, timeRemaining]);
 
-  // Overlay text timing: 3s delay, visible for 6s, then fades out
+  // Overlay text timing: uses per-image values
   useEffect(() => {
     if (phase !== 'exercise') {
       setOverlayVisible(false);
       return;
     }
 
-    const showTimer = setTimeout(() => setOverlayVisible(true), 3000);
-    const hideTimer = setTimeout(() => setOverlayVisible(false), 9000);
+    const appearMs = (image?.textAppearAt ?? 3) * 1000;
+    const disappearMs = (image?.textDisappearAt ?? 9) * 1000;
+
+    const showTimer = setTimeout(() => setOverlayVisible(true), appearMs);
+    const hideTimer = setTimeout(() => setOverlayVisible(false), disappearMs);
 
     return () => {
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
     };
-  }, [phase]);
+  }, [phase, image]);
 
   // Urge surf timer countdown
   useEffect(() => {
@@ -147,12 +150,12 @@ export function Desensitize() {
   }, [phase]);
 
   const startExercise = useCallback(() => {
-    const duration = Math.floor(Math.random() * 11) + 10; // Random 10-20 seconds
+    const duration = image?.durationSeconds ?? 15;
     setExerciseDuration(duration);
     setTimeRemaining(duration);
     setOverlayVisible(false);
     setPhase('exercise');
-  }, []);
+  }, [image]);
 
   const enterUrgeSurf = useCallback(() => {
     setExerciseTimerPaused(timeRemaining);
@@ -630,7 +633,7 @@ export function Desensitize() {
             {difficulty.level}
           </div>
           <span className="text-sm text-gray-600">{difficulty.description}</span>
-          <span className="text-sm text-gray-500 sm:ml-auto">10-20s exercise</span>
+          <span className="text-sm text-gray-500 sm:ml-auto">{image?.durationSeconds ?? 15}s exercise</span>
         </div>
 
         {/* Progress Stats */}
@@ -677,7 +680,7 @@ export function Desensitize() {
 
       <div className="card bg-amber-50">
         <p className="text-sm text-amber-800">
-          <strong>How it works:</strong> View the image for 10-20 seconds while focusing on
+          <strong>How it works:</strong> View the image for {image?.durationSeconds ?? 15} seconds while focusing on
           the mindfulness prompts. The overlay text will appear briefly during the exercise.
           This builds your ability to see past artificial stimulation and resensitize to real attraction—real women, real connection, real arousal.
         </p>

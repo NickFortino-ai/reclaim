@@ -4,6 +4,7 @@ import {
   useSaveImage,
   useDeleteImage,
 } from '../../hooks/useApi';
+import { TimingSlider } from '../../components/TimingSlider';
 
 const DIFFICULTY_OPTIONS = [
   { value: 0, label: 'Neutral (0 points)', labelLong: 'Neutral (0 points) - Pattern interrupt', color: 'bg-blue-100 text-blue-700' },
@@ -30,6 +31,9 @@ export function AdminImages() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [newDuration, setNewDuration] = useState(15);
+  const [newTextAppearAt, setNewTextAppearAt] = useState(3);
+  const [newTextDisappearAt, setNewTextDisappearAt] = useState(9);
   const [filterDifficulty, setFilterDifficulty] = useState<number | 'all'>('all');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -140,12 +144,18 @@ export function AdminImages() {
         difficulty: newDifficulty as number,
         imageFile: inputMode === 'upload' && selectedFile ? selectedFile : undefined,
         imageUrl: inputMode === 'url' ? imageUrl.trim() : undefined,
+        durationSeconds: newDuration,
+        textAppearAt: newTextAppearAt,
+        textDisappearAt: newTextDisappearAt,
       });
 
       // Reset form
       setNewDayNum('');
       setNewOverlayText('');
       setNewDifficulty(2);
+      setNewDuration(15);
+      setNewTextAppearAt(3);
+      setNewTextDisappearAt(9);
       setImageUrl('');
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -168,12 +178,15 @@ export function AdminImages() {
     }
   };
 
-  const handleEdit = (img: { id: string; dayNum: number; overlayText: string; difficulty: number; imageUrl: string }) => {
+  const handleEdit = (img: { id: string; dayNum: number; overlayText: string; difficulty: number; imageUrl: string; durationSeconds: number; textAppearAt: number; textDisappearAt: number }) => {
     setEditingId(img.id);
     setShowAdd(true);
     setNewDayNum(String(img.dayNum));
     setNewOverlayText(img.overlayText);
     setNewDifficulty(img.difficulty);
+    setNewDuration(img.durationSeconds);
+    setNewTextAppearAt(img.textAppearAt);
+    setNewTextDisappearAt(img.textDisappearAt);
     setInputMode('url');
     setImageUrl(img.imageUrl);
     setPreviewUrl(img.imageUrl);
@@ -191,6 +204,9 @@ export function AdminImages() {
     setNewDayNum('');
     setNewOverlayText('');
     setNewDifficulty(2);
+    setNewDuration(15);
+    setNewTextAppearAt(3);
+    setNewTextDisappearAt(9);
     setInputMode('url');
     setImageUrl('');
     setSelectedFile(null);
@@ -428,6 +444,15 @@ export function AdminImages() {
                 required
               />
             </div>
+
+            <TimingSlider
+              duration={newDuration}
+              textAppearAt={newTextAppearAt}
+              textDisappearAt={newTextDisappearAt}
+              onDurationChange={setNewDuration}
+              onTextAppearAtChange={setNewTextAppearAt}
+              onTextDisappearAtChange={setNewTextDisappearAt}
+            />
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button
@@ -471,10 +496,13 @@ export function AdminImages() {
                   </div>
                 </div>
                 <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-gray-900">Day {img.dayNum}</span>
                     <span className={`px-2 py-0.5 rounded text-xs ${diffOption?.color || 'bg-gray-100 text-gray-700'}`}>
                       {img.difficulty}pt
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
+                      {img.durationSeconds}s ({img.textAppearAt}s-{img.textDisappearAt}s)
                     </span>
                   </div>
                   <div className="flex gap-3">

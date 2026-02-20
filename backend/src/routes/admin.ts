@@ -128,11 +128,14 @@ router.get('/images', async (_req: Request, res: Response) => {
 // Create or update desensitization image (with file upload or URL)
 router.post('/images', upload.single('image'), async (req: Request, res: Response) => {
   try {
-    const { dayNum, overlayText, difficulty = '2', imageUrl: providedUrl } = req.body;
+    const { dayNum, overlayText, difficulty = '2', imageUrl: providedUrl, durationSeconds = '15', textAppearAt = '3', textDisappearAt = '9' } = req.body;
     const file = req.file;
 
     const dayNumInt = parseInt(dayNum);
     const difficultyInt = parseInt(difficulty);
+    const durationInt = parseInt(durationSeconds);
+    const appearAtInt = parseInt(textAppearAt);
+    const disappearAtInt = parseInt(textDisappearAt);
 
     if (!dayNumInt || dayNumInt < 1 || dayNumInt > 365) {
       res.status(400).json({ error: 'Invalid day number (must be 1-365)' });
@@ -146,6 +149,21 @@ router.post('/images', upload.single('image'), async (req: Request, res: Respons
 
     if (isNaN(difficultyInt) || difficultyInt < 0 || difficultyInt > 3) {
       res.status(400).json({ error: 'Invalid difficulty level (must be 0, 1, 2, or 3)' });
+      return;
+    }
+
+    if (isNaN(durationInt) || durationInt < 5 || durationInt > 60) {
+      res.status(400).json({ error: 'Duration must be between 5 and 60 seconds' });
+      return;
+    }
+
+    if (isNaN(appearAtInt) || appearAtInt < 0 || appearAtInt >= durationInt) {
+      res.status(400).json({ error: 'Text appear time must be between 0 and duration' });
+      return;
+    }
+
+    if (isNaN(disappearAtInt) || disappearAtInt <= appearAtInt || disappearAtInt > durationInt) {
+      res.status(400).json({ error: 'Text disappear time must be between appear time and duration' });
       return;
     }
 
@@ -182,8 +200,8 @@ router.post('/images', upload.single('image'), async (req: Request, res: Respons
 
     const image = await prisma.desensImage.upsert({
       where: { dayNum: dayNumInt },
-      update: { imageUrl, overlayText, difficulty: difficultyInt },
-      create: { dayNum: dayNumInt, imageUrl, overlayText, difficulty: difficultyInt },
+      update: { imageUrl, overlayText, difficulty: difficultyInt, durationSeconds: durationInt, textAppearAt: appearAtInt, textDisappearAt: disappearAtInt },
+      create: { dayNum: dayNumInt, imageUrl, overlayText, difficulty: difficultyInt, durationSeconds: durationInt, textAppearAt: appearAtInt, textDisappearAt: disappearAtInt },
     });
 
     res.json(image);

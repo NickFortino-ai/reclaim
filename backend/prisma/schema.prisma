@@ -72,11 +72,14 @@ model Affirmation {
 }
 
 model DesensImage {
-  id          String @id @default(cuid())
-  dayNum      Int    @unique
-  imageUrl    String
-  overlayText String
-  difficulty  Int    @default(2) // 0=neutral(0pts), 1=easy(1pt), 2=medium(2pts), 3=hard(3pts)
+  id               String @id @default(cuid())
+  dayNum           Int    @unique
+  imageUrl         String
+  overlayText      String
+  difficulty       Int    @default(2) // 0=neutral(0pts), 1=easy(1pt), 2=medium(2pts), 3=hard(3pts)
+  durationSeconds  Int    @default(15)
+  textAppearAt     Int    @default(3)
+  textDisappearAt  Int    @default(9)
 
   desensitizationLogs DesensitizationLog[]
 }

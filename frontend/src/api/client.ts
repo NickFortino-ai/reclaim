@@ -295,6 +295,9 @@ export interface DesensImage {
   imageUrl: string;
   overlayText: string;
   difficulty: number;
+  durationSeconds: number;
+  textAppearAt: number;
+  textDisappearAt: number;
 }
 
 export interface DesensCompleteResponse {
@@ -509,7 +512,10 @@ export const admin = {
     overlayText: string,
     difficulty: number,
     imageFile?: File,
-    imageUrl?: string
+    imageUrl?: string,
+    durationSeconds?: number,
+    textAppearAt?: number,
+    textDisappearAt?: number
   ): Promise<DesensImage> => {
     const formData = new FormData();
     formData.append('dayNum', dayNum.toString());
@@ -520,6 +526,15 @@ export const admin = {
     }
     if (imageUrl) {
       formData.append('imageUrl', imageUrl);
+    }
+    if (durationSeconds !== undefined) {
+      formData.append('durationSeconds', durationSeconds.toString());
+    }
+    if (textAppearAt !== undefined) {
+      formData.append('textAppearAt', textAppearAt.toString());
+    }
+    if (textDisappearAt !== undefined) {
+      formData.append('textDisappearAt', textDisappearAt.toString());
     }
 
     const response = await fetch(`${API_URL}/api/admin/images`, {

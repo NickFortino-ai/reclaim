@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "DesensImage" ADD COLUMN     "durationSeconds" INTEGER NOT NULL DEFAULT 15,
+ADD COLUMN     "textAppearAt" INTEGER NOT NULL DEFAULT 3,
+ADD COLUMN     "textDisappearAt" INTEGER NOT NULL DEFAULT 9;
