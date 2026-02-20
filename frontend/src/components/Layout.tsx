@@ -1,4 +1,4 @@
-import { ReactNode, useState, useCallback } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePreview } from '../context/PreviewContext';
@@ -155,7 +155,7 @@ export function Layout({ children }: LayoutProps) {
                 </Link>
                 <div className="ml-10 flex space-x-4">
                   <NavLink to="/dashboard" current={location.pathname === '/dashboard'}>
-                    Dashboard
+                    Home
                   </NavLink>
                   <NavLink to="/desensitize" current={location.pathname === '/desensitize'}>
                     Desensitize
@@ -178,33 +178,13 @@ export function Layout({ children }: LayoutProps) {
                   <NavLink to="/intimacy" current={location.pathname === '/intimacy'}>
                     Intimacy
                   </NavLink>
-                  <NavLink to="/faq" current={location.pathname === '/faq'}>
-                    FAQ
-                  </NavLink>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">
                   Streak: {user.currentStreak} / 365
                 </span>
-                <Link
-                  to="/settings"
-                  className={`p-2 rounded-lg transition-colors ${
-                    location.pathname === '/settings'
-                      ? 'bg-primary-100 text-primary-700'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  title="Settings"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </Link>
-                <ShareButton className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors" />
-                <button onClick={handleLogout} className="btn btn-secondary text-sm">
-                  Logout
-                </button>
+                <HamburgerMenu onLogout={handleLogout} />
               </div>
             </div>
           </div>
@@ -219,20 +199,7 @@ export function Layout({ children }: LayoutProps) {
               <span className="text-sm text-gray-500">
                 Day {user.currentStreak}
               </span>
-              <ShareButton iconOnly className="p-2 text-gray-500 rounded-lg transition-colors" />
-              <Link
-                to="/settings"
-                className={`p-2 rounded-lg transition-colors ${
-                  location.pathname === '/settings'
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'text-gray-500'
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </Link>
+              <HamburgerMenu onLogout={handleLogout} />
             </div>
           </div>
         </nav>
@@ -249,60 +216,82 @@ export function Layout({ children }: LayoutProps) {
   return <>{children}</>;
 }
 
-function ShareButton({ className, iconOnly }: { className?: string; iconOnly?: boolean }) {
-  const [copied, setCopied] = useState(false);
+function HamburgerMenu({ onLogout }: { onLogout: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const handleShare = useCallback(async () => {
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const handleShare = async () => {
     const shareData = {
       title: 'Reclaim - 365 Days to Freedom',
       text: 'A private accountability platform for men committed to breaking free.',
       url: 'https://reclaim365.app/',
     };
-
     if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch {
-        // User cancelled or share failed silently
-      }
+      try { await navigator.share(shareData); } catch { /* cancelled */ }
     } else {
       await navigator.clipboard.writeText(shareData.url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
-  }, []);
+    setOpen(false);
+  };
 
-  const shareIcon = (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-    </svg>
-  );
-
-  const checkIcon = (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-  );
-
-  if (iconOnly) {
-    return (
-      <button onClick={handleShare} className={className} title="Share Reclaim">
-        {copied ? checkIcon : shareIcon}
-      </button>
-    );
-  }
+  const itemClass = 'w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors';
 
   return (
-    <button onClick={handleShare} className={className} title="Share Reclaim">
-      {copied ? (
-        <span className="flex items-center gap-1">
-          {checkIcon}
-          Copied!
-        </span>
-      ) : (
-        'Share'
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+      >
+        {open ? (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+          <Link to="/settings" onClick={() => setOpen(false)} className={itemClass}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Settings
+          </Link>
+          <button onClick={handleShare} className={itemClass}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            Share Reclaim
+          </button>
+          <Link to="/faq" onClick={() => setOpen(false)} className={itemClass}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            FAQ
+          </Link>
+          <div className="border-t border-gray-100 my-1" />
+          <button onClick={() => { onLogout(); setOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        </div>
       )}
-    </button>
+    </div>
   );
 }
 

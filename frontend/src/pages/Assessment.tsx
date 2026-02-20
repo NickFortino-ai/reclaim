@@ -76,6 +76,7 @@ export function Assessment() {
   const [questionPage, setQuestionPage] = useState(0);
   const [resultScore, setResultScore] = useState<number | null>(null);
   const [resultMilestone, setResultMilestone] = useState<string>('baseline');
+  const [showAbout, setShowAbout] = useState(false);
 
   if (isLoading) {
     return (
@@ -191,11 +192,39 @@ export function Assessment() {
             <p>Answer based on the last 6 months{isBaseline ? '' : ' since your last assessment'}</p>
           </div>
 
-          <div className="flex items-center gap-2 justify-center px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 max-w-sm mx-auto mb-6">
+          <div className="flex items-center gap-2 justify-center px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 max-w-sm mx-auto mb-4">
             <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             <p className="text-xs text-gray-500">Your responses are completely private.</p>
+          </div>
+
+          <div className="max-w-md mx-auto mb-6">
+            <button
+              onClick={() => setShowAbout(!showAbout)}
+              className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 mx-auto transition-colors"
+            >
+              <svg className={`w-4 h-4 transition-transform ${showAbout ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              What is this assessment?
+            </button>
+            {showAbout && (
+              <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-100 text-left text-sm text-gray-700 space-y-2">
+                <p>
+                  This assessment uses the <strong>Problematic Pornography Consumption Scale (PPCS)</strong>, a peer-reviewed instrument developed by Bőthe and colleagues at Eötvös Loránd University and Nottingham Trent University.
+                </p>
+                <p>
+                  The PPCS is based on Griffiths's six-component model of addiction and measures patterns like salience, tolerance, mood modification, conflict, withdrawal, and relapse. It's designed to distinguish between non-problematic and problematic pornography use.
+                </p>
+                <p>
+                  The scale has been validated across multiple studies with excellent reliability, and provides an evidence-based way to track changes in your relationship with pornography over time.
+                </p>
+                <p className="text-xs text-gray-500 pt-1">
+                  Source: Bőthe et al., <em>The Journal of Sex Research</em>, 2018
+                </p>
+              </div>
+            )}
           </div>
 
           {previousScore && (
