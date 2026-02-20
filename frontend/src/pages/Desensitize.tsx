@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDesensImage, useLogUrgeSurf, useCompleteDesens, useUserData, useDesensStats } from '../hooks/useApi';
 
 // Difficulty levels based on day progression
@@ -23,6 +23,21 @@ const FEEDBACK_OPTIONS = [
   { id: 'strong', label: 'Strong urge, stayed strong', emoji: '💪', score: 2 },
   { id: 'difficult', label: 'Very difficult but completed', emoji: '🏆', score: 3 },
 ];
+
+// Progressive breathing pattern
+const BREATHING_CYCLES = [
+  { inhale: 3, hold: 3, exhale: 3 },
+  { inhale: 4, hold: 4, exhale: 4 },
+  { inhale: 5, hold: 5, exhale: 5 },
+  { inhale: 5, hold: 5, exhale: 6 },
+  { inhale: 5, hold: 5, exhale: 7 },
+];
+
+function getBreathingCycle(index: number) {
+  return index < BREATHING_CYCLES.length
+    ? BREATHING_CYCLES[index]
+    : BREATHING_CYCLES[BREATHING_CYCLES.length - 1];
+}
 
 // Storage keys
 const INTRO_SEEN_KEY = 'desens_intro_seen';
@@ -58,6 +73,8 @@ export function Desensitize() {
   const [urgeSurfTimeRemaining, setUrgeSurfTimeRemaining] = useState(90);
   const [breathingPhase, setBreathingPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [breathingCircleScale, setBreathingCircleScale] = useState(1);
+  const [currentCycle, setCurrentCycle] = useState(BREATHING_CYCLES[0]);
+  const breathingCycleRef = useRef(0);
   const [exerciseTimerPaused, setExerciseTimerPaused] = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [exerciseDuration, setExerciseDuration] = useState(0);
@@ -122,31 +139,45 @@ export function Desensitize() {
     return () => clearInterval(timer);
   }, [phase, urgeSurfTimeRemaining]);
 
-  // Breathing animation effect (4-7-8 pattern = 19 seconds per cycle)
+  // Progressive breathing animation (3-3-3 → 4-4-4 → 5-5-5 → 5-5-6 → 5-5-7 repeating)
   useEffect(() => {
     if (phase !== 'urge-surf') return;
 
-    const runBreathingCycle = () => {
-      // Inhale (4s) - expand
+    let cancelled = false;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    const runCycle = () => {
+      if (cancelled) return;
+      const cycle = getBreathingCycle(breathingCycleRef.current);
+
+      setCurrentCycle(cycle);
       setBreathingPhase('inhale');
       setBreathingCircleScale(1.5);
 
-      setTimeout(() => {
-        // Hold (7s) - stay expanded
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
         setBreathingPhase('hold');
-      }, 4000);
+      }, cycle.inhale * 1000));
 
-      setTimeout(() => {
-        // Exhale (8s) - contract
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
         setBreathingPhase('exhale');
         setBreathingCircleScale(1);
-      }, 11000); // 4s + 7s
+      }, (cycle.inhale + cycle.hold) * 1000));
+
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
+        breathingCycleRef.current++;
+        runCycle();
+      }, (cycle.inhale + cycle.hold + cycle.exhale) * 1000));
     };
 
-    runBreathingCycle();
-    const cycleInterval = setInterval(runBreathingCycle, 19000);
+    runCycle();
 
-    return () => clearInterval(cycleInterval);
+    return () => {
+      cancelled = true;
+      timeouts.forEach(clearTimeout);
+    };
   }, [phase]);
 
   const startExercise = useCallback(() => {
@@ -162,6 +193,8 @@ export function Desensitize() {
     setUrgeSurfTimeRemaining(90);
     setBreathingPhase('inhale');
     setBreathingCircleScale(1);
+    breathingCycleRef.current = 0;
+    setCurrentCycle(BREATHING_CYCLES[0]);
     setPhase('urge-surf');
 
     // Log that they started urge surfing
@@ -318,7 +351,11 @@ export function Desensitize() {
                 className="w-32 h-32 rounded-full bg-blue-200 flex items-center justify-center transition-transform ease-in-out"
                 style={{
                   transform: `scale(${breathingCircleScale})`,
-                  transitionDuration: breathingPhase === 'inhale' ? '4000ms' : breathingPhase === 'exhale' ? '8000ms' : '0ms',
+                  transitionDuration: breathingPhase === 'inhale'
+                    ? `${currentCycle.inhale * 1000}ms`
+                    : breathingPhase === 'exhale'
+                    ? `${currentCycle.exhale * 1000}ms`
+                    : '0ms',
                 }}
               >
                 <span className="text-blue-700 font-semibold text-lg capitalize">
@@ -331,17 +368,17 @@ export function Desensitize() {
             <div className="bg-white rounded-lg p-4 text-center">
               <div className="flex justify-center items-center gap-4 text-lg">
                 <div className={`text-center ${breathingPhase === 'inhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                  <div className="text-2xl mb-1">4s</div>
+                  <div className="text-2xl mb-1">{currentCycle.inhale}s</div>
                   <div className="text-sm">Inhale</div>
                 </div>
                 <div className="text-gray-300">→</div>
                 <div className={`text-center ${breathingPhase === 'hold' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                  <div className="text-2xl mb-1">7s</div>
+                  <div className="text-2xl mb-1">{currentCycle.hold}s</div>
                   <div className="text-sm">Hold</div>
                 </div>
                 <div className="text-gray-300">→</div>
                 <div className={`text-center ${breathingPhase === 'exhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-                  <div className="text-2xl mb-1">8s</div>
+                  <div className="text-2xl mb-1">{currentCycle.exhale}s</div>
                   <div className="text-sm">Exhale</div>
                 </div>
               </div>

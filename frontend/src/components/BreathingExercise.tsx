@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
 
+const BREATHING_CYCLES = [
+  { inhale: 3, hold: 3, exhale: 3 },
+  { inhale: 4, hold: 4, exhale: 4 },
+  { inhale: 5, hold: 5, exhale: 5 },
+  { inhale: 5, hold: 5, exhale: 6 },
+  { inhale: 5, hold: 5, exhale: 7 },
+];
+
+function getCycle(index: number) {
+  return index < BREATHING_CYCLES.length
+    ? BREATHING_CYCLES[index]
+    : BREATHING_CYCLES[BREATHING_CYCLES.length - 1];
+}
+
 interface BreathingExerciseProps {
   durationSeconds: number;
   onComplete: () => void;
@@ -10,6 +24,7 @@ export function BreathingExercise({ durationSeconds, onComplete, compact = false
   const [timeRemaining, setTimeRemaining] = useState(durationSeconds);
   const [breathingPhase, setBreathingPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [breathingCircleScale, setBreathingCircleScale] = useState(1);
+  const [currentCycle, setCurrentCycle] = useState(getCycle(0));
 
   // Timer countdown
   useEffect(() => {
@@ -28,26 +43,44 @@ export function BreathingExercise({ durationSeconds, onComplete, compact = false
     return () => clearInterval(timer);
   }, [timeRemaining, onComplete]);
 
-  // Breathing animation (4-7-8 pattern = 19s cycle)
+  // Progressive breathing animation (3-3-3 → 4-4-4 → 5-5-5 → 5-5-6 → 5-5-7 repeating)
   useEffect(() => {
-    const runBreathingCycle = () => {
+    let cancelled = false;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    let cycleIndex = 0;
+
+    const runCycle = () => {
+      if (cancelled) return;
+      const cycle = getCycle(cycleIndex);
+
+      setCurrentCycle(cycle);
       setBreathingPhase('inhale');
       setBreathingCircleScale(1.5);
 
-      setTimeout(() => {
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
         setBreathingPhase('hold');
-      }, 4000);
+      }, cycle.inhale * 1000));
 
-      setTimeout(() => {
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
         setBreathingPhase('exhale');
         setBreathingCircleScale(1);
-      }, 11000);
+      }, (cycle.inhale + cycle.hold) * 1000));
+
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
+        cycleIndex++;
+        runCycle();
+      }, (cycle.inhale + cycle.hold + cycle.exhale) * 1000));
     };
 
-    runBreathingCycle();
-    const cycleInterval = setInterval(runBreathingCycle, 19000);
+    runCycle();
 
-    return () => clearInterval(cycleInterval);
+    return () => {
+      cancelled = true;
+      timeouts.forEach(clearTimeout);
+    };
   }, []);
 
   const peakMessage = timeRemaining > 30
@@ -78,7 +111,11 @@ export function BreathingExercise({ durationSeconds, onComplete, compact = false
           }`}
           style={{
             transform: `scale(${breathingCircleScale})`,
-            transitionDuration: breathingPhase === 'inhale' ? '4000ms' : breathingPhase === 'exhale' ? '8000ms' : '0ms',
+            transitionDuration: breathingPhase === 'inhale'
+              ? `${currentCycle.inhale * 1000}ms`
+              : breathingPhase === 'exhale'
+              ? `${currentCycle.exhale * 1000}ms`
+              : '0ms',
           }}
         >
           <span className={`text-blue-700 font-semibold capitalize ${compact ? 'text-base' : 'text-lg'}`}>
@@ -91,17 +128,17 @@ export function BreathingExercise({ durationSeconds, onComplete, compact = false
       <div className="bg-white rounded-lg p-4 text-center">
         <div className="flex justify-center items-center gap-4 text-lg">
           <div className={`text-center ${breathingPhase === 'inhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-            <div className="text-2xl mb-1">4s</div>
+            <div className="text-2xl mb-1">{currentCycle.inhale}s</div>
             <div className="text-sm">Inhale</div>
           </div>
           <div className="text-gray-300">&rarr;</div>
           <div className={`text-center ${breathingPhase === 'hold' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-            <div className="text-2xl mb-1">7s</div>
+            <div className="text-2xl mb-1">{currentCycle.hold}s</div>
             <div className="text-sm">Hold</div>
           </div>
           <div className="text-gray-300">&rarr;</div>
           <div className={`text-center ${breathingPhase === 'exhale' ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>
-            <div className="text-2xl mb-1">8s</div>
+            <div className="text-2xl mb-1">{currentCycle.exhale}s</div>
             <div className="text-sm">Exhale</div>
           </div>
         </div>

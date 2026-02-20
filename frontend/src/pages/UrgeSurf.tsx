@@ -50,14 +50,17 @@ export function UrgeSurf() {
           </p>
 
           <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
-            <h3 className="font-semibold text-blue-800 mb-2">4-7-8 Breathing Pattern</h3>
+            <h3 className="font-semibold text-blue-800 mb-2">Progressive Breathing</h3>
+            <p className="text-sm text-blue-700 mb-2">
+              Starts gentle at <strong>3-3-3</strong> and gradually deepens to <strong>5-5-7</strong> as your body relaxes:
+            </p>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li><strong>Inhale</strong> through your nose for 4 seconds</li>
-              <li><strong>Hold</strong> your breath for 7 seconds</li>
-              <li><strong>Exhale</strong> slowly through your mouth for 8 seconds</li>
+              <li><strong>Inhale</strong> through your nose</li>
+              <li><strong>Hold</strong> your breath</li>
+              <li><strong>Exhale</strong> slowly through your mouth</li>
             </ul>
             <p className="text-sm text-blue-600 mt-2">
-              This activates your parasympathetic nervous system, reducing the urge's intensity.
+              The longer exhale activates your parasympathetic nervous system, reducing the urge's intensity.
             </p>
           </div>
 
@@ -114,7 +117,7 @@ export function UrgeSurf() {
           <h3 className="font-semibold text-gray-900 mb-2">What Just Happened</h3>
           <p className="text-sm text-gray-600">
             Your prefrontal cortex (decision-making) just overrode your limbic system (impulse).
-            The 4-7-8 breathing pattern activated your parasympathetic nervous system,
+            The progressive breathing pattern activated your parasympathetic nervous system,
             lowering cortisol and reducing the intensity of the urge. This gets easier with practice.
           </p>
         </div>
