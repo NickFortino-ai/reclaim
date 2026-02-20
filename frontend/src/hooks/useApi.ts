@@ -203,6 +203,95 @@ export function useSubmitIntimacyCheckIn() {
   });
 }
 
+// Intimacy tracker hooks
+export function useIntimacyLogs() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['intimacy-logs'],
+    queryFn: () => api.intimacy.getLogs(token!),
+    enabled: !!token,
+  });
+}
+
+export function useCreateIntimacyLog() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      date: string;
+      erectionQuality: number;
+      stayingPower: string;
+      presence: number;
+      enjoyment: number;
+      connection: number;
+      notes?: string;
+    }) => api.intimacy.createLog(token!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['intimacy-logs'] });
+    },
+  });
+}
+
+export function useUpdateIntimacyLog() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string } & Partial<{
+      date: string;
+      erectionQuality: number;
+      stayingPower: string;
+      presence: number;
+      enjoyment: number;
+      connection: number;
+      notes: string | null;
+    }>) => api.intimacy.updateLog(token!, id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['intimacy-logs'] });
+    },
+  });
+}
+
+export function useDeleteIntimacyLog() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.intimacy.deleteLog(token!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['intimacy-logs'] });
+    },
+  });
+}
+
+// Assessment hooks
+export function useAssessmentScores() {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: ['assessment-scores'],
+    queryFn: () => api.assessment.getScores(token!),
+    enabled: !!token,
+  });
+}
+
+export function useSubmitAssessment() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { responses: number[]; milestone: string }) =>
+      api.assessment.submit(token!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assessment-scores'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['patterns'] });
+    },
+  });
+}
+
 // Pattern insights
 export function usePatterns() {
   const { token } = useAuth();

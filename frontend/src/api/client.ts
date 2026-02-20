@@ -100,6 +100,7 @@ export interface UserData {
   needsMissedDaysCheck: boolean;
   gracePeriodDaysRemaining: number | null;
   intimacyCheckInDue: boolean;
+  assessmentDue: boolean;
   recoveryScore: number;
   partnerInfo: PartnerInfo | null;
   unreadPartnerMessages: number;
@@ -143,6 +144,26 @@ export interface IntimacyCheckInData {
   realAttraction: number;
   emotionalConnection: number;
   createdAt: string;
+}
+
+export interface IntimacyLog {
+  id: string;
+  date: string;
+  erectionQuality: number;
+  stayingPower: string;
+  presence: number;
+  enjoyment: number;
+  connection: number;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface AssessmentScore {
+  id: string;
+  responses: number[];
+  totalScore: number;
+  takenAt: string;
+  milestone: string;
 }
 
 export interface PatternsData {
@@ -190,6 +211,9 @@ export interface PatternsData {
   intimacy: {
     checkIns: { dayNumber: number; confidence: number; realAttraction: number; emotionalConnection: number }[];
     latestVsFirst: { confidence: number; realAttraction: number; emotionalConnection: number } | null;
+  };
+  ppcs: {
+    scores: { milestone: string; totalScore: number; takenAt: string }[];
   };
 }
 
@@ -635,6 +659,46 @@ export const journal = {
 
   deleteEntry: (token: string, id: string) =>
     request<{ message: string }>(`/api/journal/${id}`, { method: 'DELETE', token }),
+};
+
+// Intimacy Tracker
+export const intimacy = {
+  getLogs: (token: string) =>
+    request<{ logs: IntimacyLog[] }>('/api/intimacy', { token }),
+
+  createLog: (token: string, data: {
+    date: string;
+    erectionQuality: number;
+    stayingPower: string;
+    presence: number;
+    enjoyment: number;
+    connection: number;
+    notes?: string;
+  }) =>
+    request<IntimacyLog>('/api/intimacy', { method: 'POST', token, body: data }),
+
+  updateLog: (token: string, id: string, data: Partial<{
+    date: string;
+    erectionQuality: number;
+    stayingPower: string;
+    presence: number;
+    enjoyment: number;
+    connection: number;
+    notes: string | null;
+  }>) =>
+    request<IntimacyLog>(`/api/intimacy/${id}`, { method: 'PATCH', token, body: data }),
+
+  deleteLog: (token: string, id: string) =>
+    request<{ message: string }>(`/api/intimacy/${id}`, { method: 'DELETE', token }),
+};
+
+// Assessment (PPCS)
+export const assessment = {
+  getScores: (token: string) =>
+    request<{ scores: AssessmentScore[] }>('/api/assessment', { token }),
+
+  submit: (token: string, data: { responses: number[]; milestone: string }) =>
+    request<AssessmentScore>('/api/assessment', { method: 'POST', token, body: data }),
 };
 
 // Partnership

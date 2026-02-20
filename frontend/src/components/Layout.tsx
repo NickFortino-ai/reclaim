@@ -59,6 +59,9 @@ export function Layout({ children }: LayoutProps) {
                   <NavLink to="/demo/patterns" current={location.pathname === '/demo/patterns'}>
                     Patterns
                   </NavLink>
+                  <NavLink to="/demo/intimacy" current={location.pathname === '/demo/intimacy'}>
+                    Intimacy
+                  </NavLink>
                   <NavLink to="/demo/faq" current={location.pathname === '/demo/faq'}>
                     FAQ
                   </NavLink>
@@ -171,6 +174,9 @@ export function Layout({ children }: LayoutProps) {
                   </NavLink>
                   <NavLink to="/patterns" current={location.pathname === '/patterns'}>
                     Patterns
+                  </NavLink>
+                  <NavLink to="/intimacy" current={location.pathname === '/intimacy'}>
+                    Intimacy
                   </NavLink>
                   <NavLink to="/faq" current={location.pathname === '/faq'}>
                     FAQ

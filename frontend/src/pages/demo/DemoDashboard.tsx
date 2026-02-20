@@ -148,6 +148,15 @@ export function DemoDashboard() {
           </div>
         </Link>
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link to="/demo/intimacy" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">💑</div>
+            <h3 className="font-semibold text-gray-900">Intimacy</h3>
+            <p className="text-sm text-gray-600 mt-1">Track real intimate experiences</p>
+          </div>
+        </Link>
+      </div>
     </div>
   );
 }

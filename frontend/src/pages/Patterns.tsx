@@ -30,7 +30,8 @@ export function Patterns() {
     data.journalStats.totalEntries > 0 ||
     data.urgeSurfing.totalSessions > 0 ||
     data.desensitization.totalSessions > 0 ||
-    data.intimacy.checkIns.length > 0;
+    data.intimacy.checkIns.length > 0 ||
+    data.ppcs.scores.length > 0;
 
   if (!hasEnoughData) {
     return (
@@ -147,6 +148,56 @@ export function Patterns() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* PPCS Recovery Assessment */}
+      {data.ppcs.scores.length > 0 && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Recovery Assessment (PPCS)</h2>
+          <p className="text-sm text-gray-500 mb-4">Problematic pornography consumption score over time</p>
+
+          <div className="flex gap-2 items-end justify-center mb-4">
+            {data.ppcs.scores.map((s, i) => {
+              const maxScore = 126;
+              const height = Math.max((s.totalScore / maxScore) * 120, 16);
+              const isLatest = i === data.ppcs.scores.length - 1;
+              const milestoneLabels: Record<string, string> = {
+                baseline: 'Baseline', day30: 'Day 30', day90: 'Day 90', day180: 'Day 180', day365: 'Day 365',
+              };
+              return (
+                <div key={s.milestone} className="flex flex-col items-center flex-1 max-w-[80px]">
+                  <span className="text-sm font-bold text-gray-900 mb-1">{s.totalScore}</span>
+                  <div
+                    className={`w-full rounded-sm ${isLatest ? 'bg-purple-500' : 'bg-purple-300'}`}
+                    style={{ height: `${height}px` }}
+                  />
+                  <span className="text-xs text-gray-500 mt-1">{milestoneLabels[s.milestone] || s.milestone}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {data.ppcs.scores.length >= 2 && (() => {
+            const first = data.ppcs.scores[0].totalScore;
+            const last = data.ppcs.scores[data.ppcs.scores.length - 1].totalScore;
+            const diff = last - first;
+            if (diff === 0) return null;
+            return (
+              <div className={`p-3 rounded-lg ${diff < 0 ? 'bg-green-50' : 'bg-amber-50'}`}>
+                <p className={`text-sm font-semibold ${diff < 0 ? 'text-green-700' : 'text-amber-700'}`}>
+                  {diff < 0
+                    ? `${Math.abs(diff)} points lower since baseline — measurable improvement`
+                    : `${diff} points higher since baseline — stay committed to the process`
+                  }
+                </p>
+              </div>
+            );
+          })()}
+
+          <p className="text-xs text-gray-400 mt-3">
+            Based on the Problematic Pornography Consumption Scale (Bothe et al., The Journal of Sex Research, 2017)
+          </p>
         </div>
       )}
 

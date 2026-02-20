@@ -50,6 +50,8 @@ model User {
   bookmarks           Bookmark[]
   journalEntries      JournalEntry[]
   intimacyCheckIns    IntimacyCheckIn[]
+  intimacyLogs        IntimacyLog[]
+  assessmentScores    AssessmentScore[]
   partnershipsAsUser1 Partnership[] @relation("partnerUser1")
   partnershipsAsUser2 Partnership[] @relation("partnerUser2")
   sentPartnerMessages PartnerMessage[] @relation("messageSender")
@@ -226,4 +228,32 @@ model PartnerQueue {
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+}
+
+model IntimacyLog {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  date             DateTime
+  erectionQuality  Int      // 1-5
+  stayingPower     String   // "less-than-1min" | "1-5min" | "5-15min" | "15-30min" | "30-plus"
+  presence         Int      // 1-5
+  enjoyment        Int      // 1-5
+  connection       Int      // 1-5
+  notes            String?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model AssessmentScore {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  responses  Json     // array of 18 ints, each 1-7
+  totalScore Int
+  takenAt    DateTime @default(now())
+  milestone  String   // "baseline" | "day30" | "day90" | "day180" | "day365"
+
+  @@index([userId, takenAt])
 }

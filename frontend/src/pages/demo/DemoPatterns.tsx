@@ -97,6 +97,43 @@ export function DemoPatterns() {
         </div>
       </div>
 
+      {/* PPCS Recovery Assessment */}
+      <div className="card">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Recovery Assessment (PPCS)</h2>
+        <p className="text-sm text-gray-500 mb-4">Problematic pornography consumption score over time</p>
+
+        <div className="flex gap-2 items-end justify-center mb-4">
+          {[
+            { milestone: 'Baseline', score: 78 },
+            { milestone: 'Day 90', score: 52 },
+          ].map(({ milestone, score }, i, arr) => {
+            const maxScore = 126;
+            const height = Math.max((score / maxScore) * 120, 16);
+            const isLatest = i === arr.length - 1;
+            return (
+              <div key={milestone} className="flex flex-col items-center flex-1 max-w-[80px]">
+                <span className="text-sm font-bold text-gray-900 mb-1">{score}</span>
+                <div
+                  className={`w-full rounded-sm ${isLatest ? 'bg-purple-500' : 'bg-purple-300'}`}
+                  style={{ height: `${height}px` }}
+                />
+                <span className="text-xs text-gray-500 mt-1">{milestone}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="p-3 rounded-lg bg-green-50">
+          <p className="text-sm font-semibold text-green-700">
+            26 points lower since baseline — measurable improvement
+          </p>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-3">
+          Based on the Problematic Pornography Consumption Scale (Bothe et al., The Journal of Sex Research, 2017)
+        </p>
+      </div>
+
       {/* Trigger Analysis */}
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Trigger Analysis</h2>

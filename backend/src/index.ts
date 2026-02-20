@@ -9,6 +9,8 @@ import stripeRoutes from './routes/stripe.js';
 import adminRoutes from './routes/admin.js';
 import referralRoutes from './routes/referral.js';
 import journalRoutes from './routes/journal.js';
+import intimacyRoutes from './routes/intimacy.js';
+import assessmentRoutes from './routes/assessment.js';
 import partnershipRoutes from './routes/partnership.js';
 
 const app = express();
@@ -57,6 +59,8 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/intimacy', intimacyRoutes);
+app.use('/api/assessment', assessmentRoutes);
 app.use('/api/partnership', partnershipRoutes);
 
 // Error handler

@@ -172,6 +172,26 @@ export function Dashboard() {
         </div>
       </button>
 
+      {/* Assessment Prompt */}
+      {data.assessmentDue && (
+        <div className="card bg-purple-50 border border-purple-200">
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">📋</div>
+            <div className="flex-1">
+              <p className="font-semibold text-purple-800">
+                Recovery Assessment Available
+              </p>
+              <p className="text-sm text-purple-700">
+                Take a quick 2-minute assessment to measure your recovery progress.
+              </p>
+            </div>
+            <Link to="/assessment" className="btn bg-purple-600 hover:bg-purple-700 text-white text-sm px-4">
+              Take It
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Quick Access Tools */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link to="/desensitize" className="card hover:shadow-md transition-shadow">
@@ -216,6 +236,30 @@ export function Dashboard() {
             <div className="text-3xl mb-2">📊</div>
             <h3 className="font-semibold text-gray-900">My Patterns</h3>
             <p className="text-sm text-gray-600 mt-1">Insights from your behavioral data</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link to="/intimacy" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">💑</div>
+            <h3 className="font-semibold text-gray-900">Intimacy</h3>
+            <p className="text-sm text-gray-600 mt-1">Track real intimate experiences</p>
+          </div>
+        </Link>
+        <Link to="/partner" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">🤝</div>
+            <h3 className="font-semibold text-gray-900">Partner</h3>
+            <p className="text-sm text-gray-600 mt-1">Accountability partner messaging</p>
+          </div>
+        </Link>
+        <Link to="/bookmarks" className="card hover:shadow-md transition-shadow">
+          <div className="text-center">
+            <div className="text-3xl mb-2">🔖</div>
+            <h3 className="font-semibold text-gray-900">Bookmarks</h3>
+            <p className="text-sm text-gray-600 mt-1">Your saved resources</p>
           </div>
         </Link>
       </div>

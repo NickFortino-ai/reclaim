@@ -31,6 +31,8 @@ import { DemoUrgeSurf } from './pages/demo/DemoUrgeSurf';
 import { DemoJournal } from './pages/demo/DemoJournal';
 import { DemoFAQ } from './pages/demo/DemoFAQ';
 import { DemoPatterns } from './pages/demo/DemoPatterns';
+import { DemoIntimacy } from './pages/demo/DemoIntimacy';
+import { DemoAssessment } from './pages/demo/DemoAssessment';
 
 // Admin Pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -41,6 +43,8 @@ import { AdminResources } from './pages/admin/AdminResources';
 import { Bookmarks } from './pages/Bookmarks';
 import { LifetimeSuccess } from './pages/LifetimeSuccess';
 import { Patterns } from './pages/Patterns';
+import { Intimacy } from './pages/Intimacy';
+import { Assessment } from './pages/Assessment';
 import { Partner } from './pages/Partner';
 
 const queryClient = new QueryClient({
@@ -195,6 +199,22 @@ function AppRoutes() {
             </DemoRoute>
           }
         />
+        <Route
+          path="/demo/intimacy"
+          element={
+            <DemoRoute>
+              <DemoIntimacy />
+            </DemoRoute>
+          }
+        />
+        <Route
+          path="/demo/assessment"
+          element={
+            <DemoRoute>
+              <DemoAssessment />
+            </DemoRoute>
+          }
+        />
 
         {/* Protected user routes */}
         <Route
@@ -250,6 +270,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Patterns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/intimacy"
+          element={
+            <ProtectedRoute>
+              <Intimacy />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assessment"
+          element={
+            <ProtectedRoute>
+              <Assessment />
             </ProtectedRoute>
           }
         />

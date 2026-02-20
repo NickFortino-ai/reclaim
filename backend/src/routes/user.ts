@@ -89,6 +89,30 @@ router.get('/me', async (req: Request, res: Response) => {
       }
     }
 
+    // Check if PPCS assessment is due
+    let assessmentDue = false;
+    const assessmentScores = await prisma.assessmentScore.findMany({
+      where: { userId: user.id },
+      select: { milestone: true },
+    });
+    const completedMilestones = new Set(assessmentScores.map(s => s.milestone));
+    if (!completedMilestones.has('baseline')) {
+      assessmentDue = true;
+    } else {
+      const milestoneThresholds = [
+        { days: 30, milestone: 'day30' },
+        { days: 90, milestone: 'day90' },
+        { days: 180, milestone: 'day180' },
+        { days: 365, milestone: 'day365' },
+      ];
+      for (const { days, milestone } of milestoneThresholds) {
+        if (user.totalDaysWon >= days && !completedMilestones.has(milestone)) {
+          assessmentDue = true;
+          break;
+        }
+      }
+    }
+
     // Compute recovery score
     const [urgeSurfCount, journalCount, allCheckIns] = await Promise.all([
       prisma.urgeSurfEvent.count({ where: { userId: user.id } }),
@@ -222,6 +246,7 @@ router.get('/me', async (req: Request, res: Response) => {
       needsMissedDaysCheck,
       gracePeriodDaysRemaining,
       intimacyCheckInDue,
+      assessmentDue,
       recoveryScore,
       partnerInfo,
       unreadPartnerMessages,
@@ -501,7 +526,7 @@ router.get('/export', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    const [user, checkIns, journalEntries, bookmarks, desensLogs, urgeSurfEvents, intimacyCheckIns] = await Promise.all([
+    const [user, checkIns, journalEntries, bookmarks, desensLogs, urgeSurfEvents, intimacyCheckIns, intimacyLogs, exportAssessmentScores] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -544,6 +569,16 @@ router.get('/export', async (req: Request, res: Response) => {
         orderBy: { dayNumber: 'asc' },
         select: { dayNumber: true, confidence: true, realAttraction: true, emotionalConnection: true, createdAt: true },
       }),
+      prisma.intimacyLog.findMany({
+        where: { userId },
+        orderBy: { date: 'desc' },
+        select: { date: true, erectionQuality: true, stayingPower: true, presence: true, enjoyment: true, connection: true, notes: true, createdAt: true },
+      }),
+      prisma.assessmentScore.findMany({
+        where: { userId },
+        orderBy: { takenAt: 'asc' },
+        select: { milestone: true, totalScore: true, takenAt: true },
+      }),
     ]);
 
     res.json({
@@ -560,6 +595,8 @@ router.get('/export', async (req: Request, res: Response) => {
       desensitizationLogs: desensLogs,
       urgeSurfEvents,
       intimacyCheckIns,
+      intimacyLogs,
+      assessmentScores: exportAssessmentScores,
     });
   } catch (error) {
     console.error('Export data error:', error);
@@ -613,6 +650,8 @@ router.delete('/account', async (req: Request, res: Response) => {
         : []),
       prisma.partnership.deleteMany({ where: { OR: [{ user1Id: userId }, { user2Id: userId }] } }),
       prisma.partnerQueue.deleteMany({ where: { userId } }),
+      prisma.intimacyLog.deleteMany({ where: { userId } }),
+      prisma.assessmentScore.deleteMany({ where: { userId } }),
       prisma.journalEntry.deleteMany({ where: { userId } }),
       prisma.desensitizationLog.deleteMany({ where: { userId } }),
       prisma.urgeSurfEvent.deleteMany({ where: { userId } }),
@@ -688,7 +727,7 @@ router.get('/patterns', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    const [user, checkIns, journalEntries, urgeSurfEvents, desensLogs, intimacyCheckIns] = await Promise.all([
+    const [user, checkIns, journalEntries, urgeSurfEvents, desensLogs, intimacyCheckIns, patternsAssessmentScores] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -723,6 +762,11 @@ router.get('/patterns', async (req: Request, res: Response) => {
         where: { userId },
         orderBy: { dayNumber: 'asc' },
         select: { dayNumber: true, confidence: true, realAttraction: true, emotionalConnection: true },
+      }),
+      prisma.assessmentScore.findMany({
+        where: { userId },
+        orderBy: { takenAt: 'asc' },
+        select: { milestone: true, totalScore: true, takenAt: true },
       }),
     ]);
 
@@ -909,6 +953,13 @@ router.get('/patterns', async (req: Request, res: Response) => {
               emotionalConnection: intimacyCheckIns[intimacyCheckIns.length - 1].emotionalConnection - intimacyCheckIns[0].emotionalConnection,
             }
           : null,
+      },
+      ppcs: {
+        scores: patternsAssessmentScores.map(s => ({
+          milestone: s.milestone,
+          totalScore: s.totalScore,
+          takenAt: s.takenAt,
+        })),
       },
     });
   } catch (error) {
