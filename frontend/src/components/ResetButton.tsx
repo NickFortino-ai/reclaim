@@ -71,10 +71,10 @@ export function ResetButton() {
     return (
       <div className="card border-red-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">
-          Reset your streak?
+          Did you watch porn?
         </h3>
         <p className="text-gray-600 text-center text-sm mb-4">
-          This will set your current streak to 0. Your total days won will remain.
+          This resets your porn-free streak to Day 0. Your total days won will remain. Masturbating without porn does not require a reset.
         </p>
         <div className="flex gap-4">
           <button

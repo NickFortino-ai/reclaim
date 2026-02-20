@@ -72,6 +72,7 @@ export function CheckInButton({ checkedInToday, onComplete, onCheckInSuccess }: 
       >
         I'm Still Going Strong
       </button>
+      <p className="text-xs text-gray-400 text-center mt-2">Stayed porn-free today</p>
     </div>
   );
 }

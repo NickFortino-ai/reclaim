@@ -71,6 +71,11 @@ const sections: FAQSection[] = [
     title: 'Recovery & Philosophy',
     items: [
       {
+        question: 'Does masturbating without porn break my streak?',
+        answer:
+          "No. Reclaim tracks porn-free days, not masturbation-free days. Sexual desire is healthy \u2014 the problem is when it\u2019s hijacked by screens. Masturbating without porn does not break your streak. The goal is to break free from porn specifically and reclaim your real desire, directing it toward real connection instead of pixels.",
+      },
+      {
         question: 'What if I reset my streak?',
         answer:
           "Resets happen \u2014 they\u2019re part of the journey, not the end of it. When you reset, your current streak goes to Day 1, but your Total Days Won keeps climbing. You stay subscribed until you complete an unbroken 365-day streak. The brotherhood is here to support you through every reset and victory.",
