@@ -89,7 +89,7 @@ router.get('/me', async (req: Request, res: Response) => {
       }
     }
 
-    // Check if PPCS assessment is due
+    // Check if BPS assessment is due
     let assessmentDue = false;
     const assessmentScores = await prisma.assessmentScore.findMany({
       where: { userId: user.id },

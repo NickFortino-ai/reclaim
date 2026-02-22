@@ -701,7 +701,7 @@ export const intimacy = {
     request<{ message: string }>(`/api/intimacy/${id}`, { method: 'DELETE', token }),
 };
 
-// Assessment (PPCS)
+// Assessment (BPS)
 export const assessment = {
   getScores: (token: string) =>
     request<{ scores: AssessmentScore[] }>('/api/assessment', { token }),

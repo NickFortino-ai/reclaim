@@ -9,14 +9,15 @@ const MILESTONE_LABELS: Record<string, string> = {
 };
 
 function getInterpretation(score: number): { level: string; color: string } {
-  if (score >= 76) return { level: 'Problematic', color: 'text-red-600' };
-  if (score >= 50) return { level: 'Moderate', color: 'text-amber-600' };
-  return { level: 'Mild', color: 'text-green-600' };
+  if (score >= 7) return { level: 'Significant', color: 'text-red-600' };
+  if (score >= 4) return { level: 'Problematic', color: 'text-amber-600' };
+  if (score >= 2) return { level: 'Low-Moderate', color: 'text-yellow-600' };
+  return { level: 'Minimal', color: 'text-green-600' };
 }
 
 const mockScores = [
-  { id: '1', milestone: 'baseline', totalScore: 78, takenAt: '2025-11-15T10:00:00Z' },
-  { id: '2', milestone: 'day90', totalScore: 52, takenAt: '2026-02-12T10:00:00Z' },
+  { id: '1', milestone: 'baseline', totalScore: 8, takenAt: '2025-11-15T10:00:00Z' },
+  { id: '2', milestone: 'day90', totalScore: 4, takenAt: '2026-02-12T10:00:00Z' },
 ];
 
 export function DemoAssessment() {
@@ -26,7 +27,7 @@ export function DemoAssessment() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="card">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Recovery Assessment</h1>
-        <p className="text-gray-600 text-sm">Track your recovery with the PPCS assessment.</p>
+        <p className="text-gray-600 text-sm">Track your recovery with the Brief Pornography Screen.</p>
       </div>
 
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
@@ -101,7 +102,7 @@ export function DemoAssessment() {
       </LockedOverlay>
 
       <p className="text-xs text-gray-400 text-center">
-        Based on the Problematic Pornography Consumption Scale (Bothe et al., The Journal of Sex Research, 2017)
+        Based on the Brief Pornography Screen (Kraus, Gola, Grubbs et al., Journal of Behavioral Addictions, 2020)
       </p>
     </div>
   );

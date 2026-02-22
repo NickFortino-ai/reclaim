@@ -182,7 +182,7 @@ export function Dashboard() {
                 Recovery Assessment Available
               </p>
               <p className="text-sm text-purple-700">
-                Take a quick 2-minute assessment to measure your recovery progress.
+                5 quick questions to measure your recovery progress.
               </p>
             </div>
             <Link to="/assessment" className="btn bg-purple-600 hover:bg-purple-700 text-white text-sm px-4">

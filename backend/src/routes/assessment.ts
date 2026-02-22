@@ -33,15 +33,15 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    if (!Array.isArray(responses) || responses.length !== 18) {
-      res.status(400).json({ error: 'Responses must be an array of exactly 18 items' });
+    if (!Array.isArray(responses) || responses.length !== 5) {
+      res.status(400).json({ error: 'Responses must be an array of exactly 5 items' });
       return;
     }
 
     for (let i = 0; i < responses.length; i++) {
       const r = responses[i];
-      if (typeof r !== 'number' || !Number.isInteger(r) || r < 1 || r > 7) {
-        res.status(400).json({ error: `Response ${i + 1} must be an integer from 1 to 7` });
+      if (typeof r !== 'number' || !Number.isInteger(r) || r < 0 || r > 2) {
+        res.status(400).json({ error: `Response ${i + 1} must be an integer from 0 to 2` });
         return;
       }
     }

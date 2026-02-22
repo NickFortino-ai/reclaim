@@ -97,17 +97,17 @@ export function DemoPatterns() {
         </div>
       </div>
 
-      {/* PPCS Recovery Assessment */}
+      {/* Recovery Assessment (BPS) */}
       <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Recovery Assessment (PPCS)</h2>
-        <p className="text-sm text-gray-500 mb-4">Problematic pornography consumption score over time</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Recovery Assessment (BPS)</h2>
+        <p className="text-sm text-gray-500 mb-4">Brief Pornography Screen score over time</p>
 
         <div className="flex gap-2 items-end justify-center mb-4">
           {[
-            { milestone: 'Baseline', score: 78 },
-            { milestone: 'Day 90', score: 52 },
+            { milestone: 'Baseline', score: 8 },
+            { milestone: 'Day 90', score: 4 },
           ].map(({ milestone, score }, i, arr) => {
-            const maxScore = 126;
+            const maxScore = 10;
             const height = Math.max((score / maxScore) * 120, 16);
             const isLatest = i === arr.length - 1;
             return (
@@ -125,12 +125,12 @@ export function DemoPatterns() {
 
         <div className="p-3 rounded-lg bg-green-50">
           <p className="text-sm font-semibold text-green-700">
-            26 points lower since baseline — measurable improvement
+            4 points lower since baseline — measurable improvement
           </p>
         </div>
 
         <p className="text-xs text-gray-400 mt-3">
-          Based on the Problematic Pornography Consumption Scale (Bothe et al., The Journal of Sex Research, 2017)
+          Based on the Brief Pornography Screen (Kraus, Gola, Grubbs et al., Journal of Behavioral Addictions, 2020)
         </p>
       </div>
 
