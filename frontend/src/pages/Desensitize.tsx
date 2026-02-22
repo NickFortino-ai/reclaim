@@ -464,7 +464,9 @@ export function Desensitize() {
             You Did It!
           </h2>
           <p className="text-green-700 mb-4">
-            You faced the trigger and chose your values. That's real strength.
+            {image?.difficulty === 0
+              ? (userData?.affirmation || "You showed up today. That's what matters.")
+              : "You faced the trigger and chose your values. That's real strength."}
           </p>
 
           {/* Points animation */}
