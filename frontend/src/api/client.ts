@@ -55,6 +55,7 @@ export interface LoginResponse {
     colorTheme: string;
     subscriptionStatus: string;
     completedAt: string | null;
+    hasCompletedOnboarding: boolean;
   };
 }
 
@@ -92,6 +93,7 @@ export interface UserData {
     hideFromLeaderboard: boolean;
     displayNameChangedAt: string | null;
     accessCode: string;
+    hasCompletedOnboarding: boolean;
   };
   affirmation: string | null;
   dayNum: number;
@@ -280,6 +282,12 @@ export const user = {
   changeAccessCode: (token: string) =>
     request<{ accessCode: string }>('/api/user/access-code', {
       method: 'PATCH',
+      token,
+    }),
+
+  completeOnboarding: (token: string) =>
+    request<{ success: boolean }>('/api/user/complete-onboarding', {
+      method: 'POST',
       token,
     }),
 };

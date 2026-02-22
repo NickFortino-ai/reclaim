@@ -46,6 +46,8 @@ import { Patterns } from './pages/Patterns';
 import { Intimacy } from './pages/Intimacy';
 import { Assessment } from './pages/Assessment';
 import { Partner } from './pages/Partner';
+import { Onboarding } from './pages/Onboarding';
+import { DemoOnboarding } from './pages/demo/DemoOnboarding';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +59,20 @@ const queryClient = new QueryClient({
 });
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { token, user, isAdmin } = useAuth();
+
+  if (!token || isAdmin) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user && user.hasCompletedOnboarding === false) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function OnboardingRoute({ children }: { children: React.ReactNode }) {
   const { token, isAdmin } = useAuth();
 
   if (!token || isAdmin) {
@@ -142,7 +158,25 @@ function AppRoutes() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
 
+        {/* Onboarding route */}
+        <Route
+          path="/onboarding"
+          element={
+            <OnboardingRoute>
+              <Onboarding />
+            </OnboardingRoute>
+          }
+        />
+
         {/* Demo routes */}
+        <Route
+          path="/demo/onboarding"
+          element={
+            <DemoRoute>
+              <DemoOnboarding />
+            </DemoRoute>
+          }
+        />
         <Route
           path="/demo/dashboard"
           element={

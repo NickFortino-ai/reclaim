@@ -100,6 +100,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
           colorTheme: existingUser.colorTheme,
           referralCode: existingUser.referralCode,
           desensitizationPoints: existingUser.desensitizationPoints,
+          hasCompletedOnboarding: existingUser.hasCompletedOnboarding,
         },
       });
       return;
@@ -196,6 +197,7 @@ router.post('/complete-registration', async (req: Request, res: Response) => {
         colorTheme: user.colorTheme,
         referralCode: user.referralCode,
         desensitizationPoints: user.desensitizationPoints,
+        hasCompletedOnboarding: false,
       },
       referralApplied,
     });

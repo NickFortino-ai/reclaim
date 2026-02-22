@@ -188,6 +188,20 @@ export function useChangeAccessCode() {
   });
 }
 
+// Complete onboarding
+export function useCompleteOnboarding() {
+  const { token, updateUser } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.user.completeOnboarding(token!),
+    onSuccess: () => {
+      updateUser({ hasCompletedOnboarding: true });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
 // Intimacy check-in
 export function useSubmitIntimacyCheckIn() {
   const { token } = useAuth();

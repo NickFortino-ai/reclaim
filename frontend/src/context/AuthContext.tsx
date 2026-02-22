@@ -9,6 +9,7 @@ interface User {
   colorTheme: string;
   subscriptionStatus: string;
   completedAt: string | null;
+  hasCompletedOnboarding: boolean;
 }
 
 interface AuthContextType {

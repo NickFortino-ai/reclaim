@@ -100,6 +100,7 @@ router.post('/login', async (req: Request, res: Response) => {
         subscriptionStatus: user.subscriptionStatus,
         completedAt: user.completedAt,
         desensitizationPoints: user.desensitizationPoints,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
       },
     });
   } catch (error) {

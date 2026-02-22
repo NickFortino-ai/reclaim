@@ -29,7 +29,7 @@ export function Landing() {
 
   const handleTryDemo = () => {
     startDemo();
-    navigate('/demo/dashboard');
+    navigate('/demo/onboarding');
   };
 
   return (
@@ -58,8 +58,7 @@ export function Landing() {
           </h1>
 
           <p className="text-xl text-slate-300 text-center max-w-2xl mx-auto mb-12">
-            A private, no-BS accountability system for men ready to break free from porn addiction.
-            Track your progress. Join the brotherhood. Become who you were meant to be.
+            Porn rewired your brain away from real women. Reclaim rewires it back. 365 days of neuroscience-backed recovery to restore your drive, your confidence, and your ability to connect with a woman who wants you.
           </p>
 
           {/* CTA Buttons */}

@@ -238,6 +238,7 @@ router.get('/me', async (req: Request, res: Response) => {
         hideFromLeaderboard: user.hideFromLeaderboard,
         displayNameChangedAt: user.displayNameChangedAt,
         accessCode: user.accessCode,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
       },
       affirmation: affirmation?.text || null,
       dayNum,
@@ -1109,6 +1110,21 @@ router.patch('/access-code', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Change access code error:', error);
     res.status(500).json({ error: 'Failed to change access code' });
+  }
+});
+
+// Complete onboarding
+router.post('/complete-onboarding', async (req: Request, res: Response) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { hasCompletedOnboarding: true },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Complete onboarding error:', error);
+    res.status(500).json({ error: 'Failed to complete onboarding' });
   }
 });
 

@@ -14,6 +14,11 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Full-screen immersive pages — no layout chrome
+  if (location.pathname === '/onboarding' || location.pathname === '/demo/onboarding') {
+    return <>{children}</>;
+  }
+
   const handleLogout = () => {
     logout();
     navigate('/');
