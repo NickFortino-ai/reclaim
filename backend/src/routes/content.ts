@@ -183,12 +183,16 @@ router.post('/desens/complete', async (req: Request, res: Response) => {
     });
 
     if (alreadyCompletedToday) {
+      const totalSessions = await prisma.desensitizationLog.count({
+        where: { userId },
+      });
       res.json({
         pointsEarned: 0,
         totalPoints: user.desensitizationPoints,
         maxPoints: 300,
         isComplete: user.desensitizationPoints >= 300,
         alreadyCompleted: true,
+        totalSessions,
       });
       return;
     }
@@ -212,11 +216,16 @@ router.post('/desens/complete', async (req: Request, res: Response) => {
       }),
     ]);
 
+    const totalSessions = await prisma.desensitizationLog.count({
+      where: { userId },
+    });
+
     res.json({
       pointsEarned: actualPointsEarned,
       totalPoints: updatedUser.desensitizationPoints,
       maxPoints: 300,
       isComplete: updatedUser.desensitizationPoints >= 300,
+      totalSessions,
     });
   } catch (error) {
     console.error('Desens complete error:', error);

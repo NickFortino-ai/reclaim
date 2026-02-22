@@ -54,14 +54,14 @@ const WHY_THIS_WORKS = {
 };
 
 export function Desensitize() {
-  const { data: userData, isLoading: userLoading } = useUserData();
+  const { data: userData, isLoading: userLoading, isFetching: userFetching } = useUserData();
   const { data: desensStats } = useDesensStats();
-  const dayNum = userData?.dayNum || 1;
+  const dayNum = userData?.dayNum ?? 0;
   const { data: image, isLoading: imageLoading, error } = useDesensImage(dayNum);
   const logUrgeSurf = useLogUrgeSurf();
   const completeDesens = useCompleteDesens();
   const desensPoints = userData?.user.desensitizationPoints ?? 0;
-  const isLoading = userLoading || imageLoading;
+  const isLoading = userLoading || userFetching || imageLoading;
 
   // Exercise states
   const [phase, setPhase] = useState<'first-intro' | 'intro' | 'exercise' | 'feedback' | 'complete' | 'urge-surf'>('intro');
@@ -80,6 +80,7 @@ export function Desensitize() {
   const [exerciseDuration, setExerciseDuration] = useState(0);
   const [pointsEarned, setPointsEarned] = useState<number | null>(null);
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+  const [sessionCount, setSessionCount] = useState<number | null>(null);
 
   const difficulty = getDifficultyLevel(dayNum);
 
@@ -234,6 +235,9 @@ export function Desensitize() {
       try {
         const result = await completeDesens.mutateAsync({ imageId: image.id, feedbackScore: score });
         setPointsEarned(result.pointsEarned);
+        if (result.totalSessions !== undefined) {
+          setSessionCount(result.totalSessions);
+        }
         setShowPointsAnimation(true);
         setTimeout(() => setShowPointsAnimation(false), 3000);
       } catch {
@@ -248,6 +252,7 @@ export function Desensitize() {
     setPhase('intro');
     setTimeRemaining(0);
     setUrgeSurfTimeRemaining(90);
+    setSessionCount(null);
   };
 
   const dismissIntro = () => {
@@ -448,7 +453,7 @@ export function Desensitize() {
 
   // Complete Phase
   if (phase === 'complete') {
-    const totalSessions = desensStats?.totalSessions ?? 0;
+    const totalSessions = sessionCount ?? desensStats?.totalSessions ?? 0;
     const improvement = desensStats?.improvement ?? null;
 
     return (

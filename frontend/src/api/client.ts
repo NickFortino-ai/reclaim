@@ -329,6 +329,7 @@ export interface DesensCompleteResponse {
   totalPoints: number;
   maxPoints: number;
   isComplete: boolean;
+  totalSessions?: number;
 }
 
 // Resources
