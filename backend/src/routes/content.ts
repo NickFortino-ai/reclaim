@@ -55,17 +55,17 @@ router.get('/desens/:day', async (req: Request, res: Response) => {
       return;
     }
 
-    // Check if a neutral (difficulty 0) image is assigned to this exact day
-    const neutralImage = await prisma.desensImage.findFirst({
-      where: { dayNum, difficulty: 0 },
+    // Check if an image is assigned to this exact day
+    const dayImage = await prisma.desensImage.findUnique({
+      where: { dayNum },
     });
 
     const userId = req.user!.userId;
     const seed = `${userId}-${dayNum}`;
     let image;
 
-    if (neutralImage) {
-      image = neutralImage;
+    if (dayImage) {
+      image = dayImage;
     } else {
       // Weighted difficulty selection based on day progression
       let weights: { difficulty: number; weight: number }[];
