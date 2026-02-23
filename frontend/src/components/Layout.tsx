@@ -185,10 +185,7 @@ export function Layout({ children }: LayoutProps) {
                   </NavLink>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  Streak: {user.currentStreak} / 365
-                </span>
+              <div className="flex items-center">
                 <HamburgerMenu onLogout={handleLogout} />
               </div>
             </div>
