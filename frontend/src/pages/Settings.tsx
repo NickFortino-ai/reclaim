@@ -140,7 +140,7 @@ export function Settings() {
             <div className="text-right">
               <p className="text-sm text-gray-500">Streak Progress</p>
               <p className="text-sm text-gray-500">Current Streak</p>
-              <p className="text-lg font-bold text-primary-600">{user?.currentStreak || 0} / 365</p>
+              <p className="text-lg font-bold text-primary-600">{userData?.user.currentStreak ?? user?.currentStreak ?? 0} / 365</p>
             </div>
           </div>
 

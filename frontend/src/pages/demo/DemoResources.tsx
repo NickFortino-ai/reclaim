@@ -11,7 +11,7 @@ export function DemoResources() {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Resources</h1>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto">
+      <div className="flex bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto gap-1">
         <TabButton
           active={activeTab === 'studies'}
           onClick={() => setActiveTab('studies')}
@@ -60,7 +60,7 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 min-w-0 px-2 sm:px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
+      className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
         active
           ? 'bg-white text-gray-900 shadow-sm'
           : 'text-gray-600 hover:text-gray-900'

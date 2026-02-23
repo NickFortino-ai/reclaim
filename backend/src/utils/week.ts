@@ -1,6 +1,6 @@
-/** Returns the user's resource week (1-52) based on totalDaysWon. Cycles after 52. */
-export function getUserWeek(totalDaysWon: number): number {
-  return (Math.floor(totalDaysWon / 7) % 52) + 1;
+/** Returns the user's resource week (1-52) based on currentStreak. Cycles after 52. */
+export function getUserWeek(currentStreak: number): number {
+  return (Math.floor(currentStreak / 7) % 52) + 1;
 }
 
 export const VALID_CATEGORIES = ['studies', 'drive', 'intimacy', 'wisdom'] as const;
