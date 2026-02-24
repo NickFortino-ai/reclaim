@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { registerPushNotifications } from '../services/pushNotifications';
+import { user as userApi } from '../api/client';
 
 interface User {
   id: string;
@@ -64,6 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(newToken);
     setUser(newUser);
     setIsAdmin(false);
+
+    // Register for push notifications on native platforms
+    registerPushNotifications((pushToken) => {
+      userApi.registerPushToken(newToken, pushToken, 'ios').catch(console.error);
+    });
   };
 
   const adminLogin = (newToken: string) => {

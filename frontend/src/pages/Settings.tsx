@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { ThemePicker } from '../components/ThemePicker';
 import { useReferralStats, useUserData, useUpdateReminderTime, useUpdateLeaderboardVisibility, useUpdateDisplayName, useChangeAccessCode, useWarriorNameOptions } from '../hooks/useApi';
 import { user as userApi, stripe as stripeApi } from '../api/client';
+import { isNative } from '../utils/platform';
 
 export function Settings() {
   const { user, token, logout, updateUser } = useAuth();
@@ -25,6 +26,14 @@ export function Settings() {
 
   const handleCancelSubscription = async () => {
     if (!user) return;
+
+    // On iOS, redirect to Apple subscription management (Apple mandates this)
+    if (isNative()) {
+      window.open('https://apps.apple.com/account/subscriptions', '_blank');
+      setShowCancelDialog(false);
+      return;
+    }
+
     setCancelLoading(true);
     try {
       await stripeApi.cancelSubscription(user.id);

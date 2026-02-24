@@ -9,6 +9,7 @@ import { Layout } from './components/Layout';
 import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { RegisterNative } from './pages/RegisterNative';
 import { RegisterSuccess } from './pages/RegisterSuccess';
 import { RegisterCancel } from './pages/RegisterCancel';
 import { Dashboard } from './pages/Dashboard';
@@ -149,6 +150,14 @@ function AppRoutes() {
           element={
             <PublicRoute>
               <Register />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register-native"
+          element={
+            <PublicRoute>
+              <RegisterNative />
             </PublicRoute>
           }
         />

@@ -1128,4 +1128,52 @@ router.post('/complete-onboarding', async (req: Request, res: Response) => {
   }
 });
 
+// Link RevenueCat user ID to Reclaim user (called after IAP purchase on iOS)
+router.post('/link-revenuecat', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { revenuecatId } = req.body;
+
+    if (!revenuecatId || typeof revenuecatId !== 'string') {
+      res.status(400).json({ error: 'RevenueCat ID required' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { revenuecatId },
+    });
+
+    res.json({ linked: true });
+  } catch (error) {
+    console.error('Link RevenueCat error:', error);
+    res.status(500).json({ error: 'Failed to link RevenueCat' });
+  }
+});
+
+// Confirm IAP subscription is active (called after RevenueCat purchase completes)
+router.post('/confirm-iap-subscription', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    if (user.subscriptionStatus === 'pending_iap') {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { subscriptionStatus: 'active' },
+      });
+    }
+
+    res.json({ subscriptionStatus: 'active' });
+  } catch (error) {
+    console.error('Confirm IAP subscription error:', error);
+    res.status(500).json({ error: 'Failed to confirm subscription' });
+  }
+});
+
 export default router;

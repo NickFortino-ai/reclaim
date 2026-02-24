@@ -3,6 +3,7 @@ import { prisma } from '../services/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { isSameDayInTimezone, startOfDayInTimezone } from '../utils/helpers.js';
 import { getUserTimezone } from '../utils/timezone.js';
+import { isMessageAllowed } from '../utils/contentFilter.js';
 
 const router = Router();
 
@@ -181,6 +182,13 @@ router.post('/message', async (req: Request, res: Response) => {
       return;
     }
 
+    // Content moderation
+    const filterResult = isMessageAllowed(content);
+    if (!filterResult.allowed) {
+      res.status(400).json({ error: filterResult.reason || 'Message not allowed' });
+      return;
+    }
+
     const partnership = await prisma.partnership.findFirst({
       where: {
         status: 'active',
@@ -347,6 +355,43 @@ router.post('/messages/read', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Mark messages read error:', error);
     res.status(500).json({ error: 'Failed to mark messages as read' });
+  }
+});
+
+// Report a partner message
+router.post('/report', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { messageId, reason } = req.body;
+
+    if (!messageId || !reason || typeof reason !== 'string') {
+      res.status(400).json({ error: 'Message ID and reason required' });
+      return;
+    }
+
+    // Verify the message belongs to user's partnership
+    const message = await prisma.partnerMessage.findUnique({
+      where: { id: messageId },
+      include: { partnership: true },
+    });
+
+    if (!message || (message.partnership.user1Id !== userId && message.partnership.user2Id !== userId)) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    await prisma.messageReport.create({
+      data: {
+        messageId,
+        reporterId: userId,
+        reason: reason.slice(0, 500),
+      },
+    });
+
+    res.json({ reported: true });
+  } catch (error) {
+    console.error('Report message error:', error);
+    res.status(500).json({ error: 'Failed to report message' });
   }
 });
 

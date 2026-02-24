@@ -138,9 +138,22 @@
   --color-primary-950: #321d19;
 }
 
+/* Safe area insets for iOS notch/Dynamic Island */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
 /* Base styles */
 body {
   @apply bg-gray-50 text-gray-900 min-h-screen;
+}
+
+/* Bottom padding that accounts for safe area + mobile nav height */
+.pb-safe-nav {
+  padding-bottom: calc(5rem + var(--sab));
 }
 
 /* Utility classes */

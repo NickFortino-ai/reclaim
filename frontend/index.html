@@ -55,11 +55,16 @@
     <meta name="twitter:image" content="https://reclaim365.app/og-image.png" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Splash loader while React mounts (auto-replaced by React) -->
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;color:white;font-family:system-ui,-apple-system,sans-serif;font-size:2rem;font-weight:700;letter-spacing:-0.025em;">
+        Reclaim
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Register service worker
-      if ('serviceWorker' in navigator) {
+      // Register service worker (web only, not in Capacitor native shell)
+      if ('serviceWorker' in navigator && !window.Capacitor?.isNativePlatform()) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then((registration) => {

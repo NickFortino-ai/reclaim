@@ -81,7 +81,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </nav>
         {/* Mobile top bar */}
-        <nav className="sm:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <nav className="sm:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50" style={{ paddingTop: 'var(--sat)' }}>
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center">
               <Link to="/demo/dashboard" className="text-lg font-bold text-primary-600">
@@ -192,7 +192,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </nav>
         {/* Mobile top bar */}
-        <nav className="sm:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <nav className="sm:hidden bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50" style={{ paddingTop: 'var(--sat)' }}>
           <div className="px-4 py-3 flex items-center justify-between">
             <Link to="/dashboard" className="text-lg font-bold text-primary-600">
               Reclaim
@@ -205,7 +205,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
         </nav>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:pb-8 pb-safe-nav">
           {children}
         </main>
         <Footer />
@@ -367,7 +367,7 @@ function DemoMobileBottomNav({ currentPath }: { currentPath: string }) {
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ paddingBottom: 'var(--sab)' }}>
       <div className="flex justify-around">
         {items.map((item) => {
           const active = currentPath === item.to;
@@ -439,7 +439,7 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ paddingBottom: 'var(--sab)' }}>
       <div className="flex justify-around">
         {items.map((item) => {
           const active = currentPath === item.to;

@@ -63,11 +63,21 @@ export interface RegisterResponse extends LoginResponse {
   accessCode: string;
 }
 
+export interface NativeRegisterResponse extends RegisterResponse {
+  referralApplied?: boolean;
+}
+
 export const auth = {
   login: (accessCode: string) =>
     request<LoginResponse>('/api/auth/login', {
       method: 'POST',
       body: { accessCode, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+    }),
+
+  registerNative: (referralCode?: string, ageVerifiedAt?: string) =>
+    request<NativeRegisterResponse>('/api/auth/register-native', {
+      method: 'POST',
+      body: { referralCode, ageVerifiedAt },
     }),
 
   adminLogin: (username: string, password: string) =>
@@ -289,6 +299,26 @@ export const user = {
     request<{ success: boolean }>('/api/user/complete-onboarding', {
       method: 'POST',
       token,
+    }),
+
+  linkRevenueCat: (token: string, revenuecatId: string) =>
+    request<{ linked: boolean }>('/api/user/link-revenuecat', {
+      method: 'POST',
+      token,
+      body: { revenuecatId },
+    }),
+
+  confirmIapSubscription: (token: string) =>
+    request<{ subscriptionStatus: string }>('/api/user/confirm-iap-subscription', {
+      method: 'POST',
+      token,
+    }),
+
+  registerPushToken: (token: string, pushToken: string, platform: string) =>
+    request<{ registered: boolean }>('/api/notifications/register-token', {
+      method: 'POST',
+      token,
+      body: { token: pushToken, platform },
     }),
 };
 

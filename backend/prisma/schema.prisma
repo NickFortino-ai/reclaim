@@ -25,7 +25,16 @@ model User {
   // Stripe
   stripeCustomerId     String? @unique
   stripeSubscriptionId String?
-  subscriptionStatus   String  @default("trialing") // trialing, active, canceled, completed
+  subscriptionStatus   String  @default("trialing") // trialing, active, canceled, completed, pending_iap
+
+  // RevenueCat (iOS IAP)
+  revenuecatId          String?  @unique
+  registrationPlatform  String   @default("web") // "web" | "ios"
+  ageVerifiedAt         DateTime?
+
+  // Push notifications
+  pushToken             String?
+  pushTokenPlatform     String?  // "ios" | "web"
 
   // Preferences
   hasCompletedOnboarding Boolean  @default(false)
@@ -220,8 +229,20 @@ model PartnerMessage {
   content       String      @db.VarChar(500)
   readAt        DateTime?
   createdAt     DateTime    @default(now())
+  reports       MessageReport[]
 
   @@index([partnershipId, createdAt])
+}
+
+model MessageReport {
+  id         String         @id @default(cuid())
+  messageId  String
+  message    PartnerMessage @relation(fields: [messageId], references: [id])
+  reporterId String
+  reason     String
+  createdAt  DateTime       @default(now())
+
+  @@index([messageId])
 }
 
 model PartnerQueue {

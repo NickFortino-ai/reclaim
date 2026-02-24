@@ -11,7 +11,7 @@ export function Privacy() {
         </div>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-8">Last updated: February 6, 2026</p>
+        <p className="text-sm text-gray-500 mb-8">Last updated: February 24, 2026</p>
 
         <div className="prose prose-gray max-w-none space-y-8">
           <section>
@@ -37,9 +37,20 @@ export function Privacy() {
               <div>
                 <h3 className="font-medium text-gray-800 mb-1">Payment Information</h3>
                 <p className="text-gray-700 leading-relaxed">
-                  Payments are processed entirely through Stripe. We store your Stripe customer ID and
-                  subscription ID to manage your account. We never see or store your credit card number,
-                  billing address, or other payment details — Stripe handles all of that securely.
+                  On the web, payments are processed through Stripe. On iOS, payments are processed through
+                  Apple's In-App Purchase system via RevenueCat. We store a customer/subscriber ID to manage
+                  your account. We never see or store your credit card number, billing address, or other
+                  payment details — these are handled securely by Stripe, Apple, or RevenueCat respectively.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-800 mb-1">Push Notifications</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  If you enable push notifications, we store a device token to send you daily check-in reminders.
+                  Push notification delivery is handled through Firebase Cloud Messaging (Google) which routes
+                  notifications to Apple Push Notification service (APNS) on iOS. Your device token is stored
+                  securely and used solely for delivering notifications you have opted into. You can disable
+                  notifications at any time in your device settings.
                 </p>
               </div>
               <div>
@@ -64,9 +75,11 @@ export function Privacy() {
             <h2 className="text-xl font-semibold text-gray-900 mb-3">How We Use Your Data</h2>
             <ul className="list-disc pl-5 text-gray-700 space-y-2">
               <li>Provide and maintain the Reclaim service</li>
-              <li>Process subscription payments through Stripe</li>
+              <li>Process subscription payments through Stripe (web) or Apple IAP via RevenueCat (iOS)</li>
               <li>Track your recovery progress and streaks</li>
-              <li>Enable community features (anonymous support)</li>
+              <li>Enable community features (anonymous support, accountability partnerships)</li>
+              <li>Send push notification reminders (if opted in)</li>
+              <li>Moderate partner messages for prohibited content</li>
               <li>Manage referral rewards</li>
               <li>Improve the service based on aggregate usage patterns</li>
             </ul>
@@ -133,6 +146,31 @@ export function Privacy() {
               If you are a California resident, you have the right to know what personal information we
               collect, request its deletion, and opt out of its sale. We do not sell personal information.
               We respond to verified consumer requests within 45 days.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">Third-Party Services</h2>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              We use the following third-party services to operate Reclaim:
+            </p>
+            <ul className="list-disc pl-5 text-gray-700 space-y-2">
+              <li><strong>Stripe</strong> — Payment processing for web subscriptions. Stripe's privacy policy applies to payment data they process.</li>
+              <li><strong>RevenueCat</strong> — Subscription management for iOS in-app purchases. RevenueCat receives your anonymous subscriber ID to manage your subscription status.</li>
+              <li><strong>Firebase Cloud Messaging</strong> — Push notification delivery. Firebase receives your device token to deliver notifications. No personal data is shared beyond the token.</li>
+              <li><strong>Supabase</strong> — Database hosting with encryption at rest and in transit.</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed mt-3">
+              None of these services receive your real name, email, or other personally identifying information from us.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">Content Moderation</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Partner messages are automatically filtered to prevent sharing of URLs, phone numbers, and email
+              addresses. Users may also report inappropriate messages. Reported messages may be reviewed by
+              administrators to maintain a safe community environment.
             </p>
           </section>
 

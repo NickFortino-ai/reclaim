@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useReferralStats, useClaimLifetime, useLifetimeCheckout, useUserData } from '../hooks/useApi';
+import { isNative } from '../utils/platform';
 
 export function Celebration() {
   const { user } = useAuth();
@@ -100,8 +101,24 @@ export function Celebration() {
               <button
                 onClick={async () => {
                   try {
-                    const result = await lifetimeCheckout.mutateAsync();
-                    if (result.url) window.location.href = result.url;
+                    if (isNative()) {
+                      // On iOS, use RevenueCat for lifetime purchase
+                      const { getOfferings, purchasePackage } = await import('../services/revenuecat');
+                      const { user: userApi } = await import('../api/client');
+                      const offering = await getOfferings();
+                      const lifetimePkg = offering?.availablePackages.find(
+                        (pkg) => pkg.identifier === 'reclaim_lifetime' || pkg.packageType === 'LIFETIME'
+                      );
+                      if (lifetimePkg) {
+                        await purchasePackage(lifetimePkg);
+                        const token = localStorage.getItem('reclaim_token');
+                        if (token) await userApi.confirmIapSubscription(token);
+                        window.location.reload();
+                      }
+                    } else {
+                      const result = await lifetimeCheckout.mutateAsync();
+                      if (result.url) window.location.href = result.url;
+                    }
                   } catch (error) {
                     console.error('Failed to create lifetime checkout:', error);
                   }

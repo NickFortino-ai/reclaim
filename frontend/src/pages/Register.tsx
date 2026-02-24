@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { stripe, referral } from '../api/client';
 import { usePreview } from '../context/PreviewContext';
+import { isNative } from '../utils/platform';
+import { AgeGate } from '../components/AgeGate';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 export function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [ageVerified, setAgeVerified] = useState(false);
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { endDemo } = usePreview();
   const fromDemo = (location.state as { fromDemo?: boolean })?.fromDemo;
+
+  // On iOS native, redirect to the native registration flow
+  useEffect(() => {
+    if (isNative()) {
+      navigate('/register-native' + (searchParams.toString() ? `?${searchParams.toString()}` : ''), { replace: true });
+    }
+  }, [navigate, searchParams]);
 
   // Get referral code from URL
   const referralCode = searchParams.get('ref') || '';
@@ -62,6 +73,11 @@ export function Register() {
     endDemo(); // Clear demo state before checkout
     await handleStartCheckout();
   };
+
+  // Show age gate before checkout (web)
+  if (!ageVerified) {
+    return <AgeGate onVerified={() => setAgeVerified(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
