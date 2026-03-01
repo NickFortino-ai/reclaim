@@ -59,7 +59,6 @@ model User {
   desensitizationLogs DesensitizationLog[]
   bookmarks           Bookmark[]
   journalEntries      JournalEntry[]
-  intimacyCheckIns    IntimacyCheckIn[]
   intimacyLogs        IntimacyLog[]
   assessmentScores    AssessmentScore[]
   partnershipsAsUser1 Partnership[] @relation("partnerUser1")
@@ -176,19 +175,6 @@ model Bookmark {
   @@index([userId])
 }
 
-model IntimacyCheckIn {
-  id                  String   @id @default(cuid())
-  userId              String
-  user                User     @relation(fields: [userId], references: [id])
-  dayNumber           Int      // totalDaysWon at time of check-in (10, 20, 30, ...)
-  confidence          Int      // 1-10
-  realAttraction      Int      // 1-10
-  emotionalConnection Int      // 1-10
-  createdAt           DateTime @default(now())
-
-  @@unique([userId, dayNumber])
-  @@index([userId])
-}
 
 model JournalEntry {
   id        String   @id @default(cuid())

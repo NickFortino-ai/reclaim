@@ -111,7 +111,6 @@ export interface UserData {
   missedDays: number;
   needsMissedDaysCheck: boolean;
   gracePeriodDaysRemaining: number | null;
-  intimacyCheckInDue: boolean;
   assessmentDue: boolean;
   recoveryScore: number;
   partnerInfo: PartnerInfo | null;
@@ -147,15 +146,6 @@ export interface ResetResponse {
   highestStreak: number;
   consistencyRate: number;
   recoveryScore: number;
-}
-
-export interface IntimacyCheckInData {
-  id: string;
-  dayNumber: number;
-  confidence: number;
-  realAttraction: number;
-  emotionalConnection: number;
-  createdAt: string;
 }
 
 export interface IntimacyLog {
@@ -220,10 +210,6 @@ export interface PatternsData {
     entriesLast30Days: number;
     avgEntriesPerWeek: number;
   };
-  intimacy: {
-    checkIns: { dayNumber: number; confidence: number; realAttraction: number; emotionalConnection: number }[];
-    latestVsFirst: { confidence: number; realAttraction: number; emotionalConnection: number } | null;
-  };
   ppcs: {
     scores: { milestone: string; totalScore: number; takenAt: string }[];
   };
@@ -257,13 +243,6 @@ export const user = {
 
   getPatterns: (token: string) =>
     request<PatternsData>('/api/user/patterns', { token }),
-
-  submitIntimacyCheckIn: (token: string, data: { confidence: number; realAttraction: number; emotionalConnection: number }) =>
-    request<IntimacyCheckInData>('/api/user/intimacy-checkin', {
-      method: 'POST',
-      token,
-      body: data,
-    }),
 
   updateReminderTime: (token: string, reminderTime: string | null) =>
     request<{ reminderTime: string | null }>('/api/user/reminder-time', {

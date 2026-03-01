@@ -30,7 +30,6 @@ export function Patterns() {
     data.journalStats.totalEntries > 0 ||
     data.urgeSurfing.totalSessions > 0 ||
     data.desensitization.totalSessions > 0 ||
-    data.intimacy.checkIns.length > 0 ||
     data.ppcs.scores.length > 0;
 
   if (!hasEnoughData) {
@@ -104,52 +103,6 @@ export function Patterns() {
           )}
         </div>
       </div>
-
-      {/* Intimacy Progress */}
-      {data.intimacy.checkIns.length >= 2 && (
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Intimacy Progress</h2>
-          <p className="text-sm text-gray-500 mb-4">How your real-world connections are improving</p>
-
-          <div className="space-y-4">
-            {[
-              { label: 'Confidence Around Women', key: 'confidence' as const, barColor: 'bg-rose-300', activeColor: 'bg-rose-500' },
-              { label: 'Real-World Attraction', key: 'realAttraction' as const, barColor: 'bg-pink-300', activeColor: 'bg-pink-500' },
-              { label: 'Emotional Connection', key: 'emotionalConnection' as const, barColor: 'bg-fuchsia-300', activeColor: 'bg-fuchsia-500' },
-            ].map(({ label, key, barColor, activeColor }) => {
-              const latest = data.intimacy.checkIns[data.intimacy.checkIns.length - 1];
-              const change = data.intimacy.latestVsFirst?.[key];
-              const firstDay = data.intimacy.checkIns[0].dayNumber;
-              return (
-                <div key={key}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-700">{label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-900">{latest[key]}/10</span>
-                      {change !== undefined && change !== null && change !== 0 && (
-                        <span className={`text-sm font-semibold ${change > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                          {change > 0 ? '+' : ''}{change} since Day {firstDay}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-1.5 items-end">
-                    {data.intimacy.checkIns.map((ci, i) => (
-                      <div key={i} className="flex flex-col items-center flex-1">
-                        <div
-                          className={`w-full rounded-sm ${i === data.intimacy.checkIns.length - 1 ? activeColor : barColor}`}
-                          style={{ height: `${ci[key] * 3}px` }}
-                        />
-                        <span className="text-xs text-gray-400 mt-1">D{ci.dayNumber}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Recovery Assessment (BPS) */}
       {data.ppcs.scores.length > 0 && (

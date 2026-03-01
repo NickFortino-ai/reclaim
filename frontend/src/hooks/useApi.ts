@@ -202,21 +202,6 @@ export function useCompleteOnboarding() {
   });
 }
 
-// Intimacy check-in
-export function useSubmitIntimacyCheckIn() {
-  const { token } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: { confidence: number; realAttraction: number; emotionalConnection: number }) =>
-      api.user.submitIntimacyCheckIn(token!, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['patterns'] });
-    },
-  });
-}
-
 // Intimacy tracker hooks
 export function useIntimacyLogs() {
   const { token } = useAuth();
