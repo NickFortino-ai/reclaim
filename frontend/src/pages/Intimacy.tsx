@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useIntimacyLogs, useCreateIntimacyLog, useUpdateIntimacyLog, useDeleteIntimacyLog } from '../hooks/useApi';
+import { useIntimacyLogs, useCreateIntimacyLog, useUpdateIntimacyLog, useDeleteIntimacyLog, useUserData, useSubmitIntimacyCheckIn } from '../hooks/useApi';
 import type { IntimacyLog } from '../api/client';
 
 const STAYING_POWER_OPTIONS = [
@@ -59,7 +59,97 @@ const emptyForm: FormData = {
   notes: '',
 };
 
+function IntimacyCheckInCard() {
+  const submitCheckIn = useSubmitIntimacyCheckIn();
+  const [confidence, setConfidence] = useState(5);
+  const [realAttraction, setRealAttraction] = useState(5);
+  const [emotionalConnection, setEmotionalConnection] = useState(5);
+  const [dismissed, setDismissed] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  if (dismissed || submitted) return null;
+
+  const handleSubmit = async () => {
+    await submitCheckIn.mutateAsync({ confidence, realAttraction, emotionalConnection });
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="card bg-rose-50 border border-rose-200">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-rose-900">Intimacy Check-In</h2>
+          <p className="text-sm text-rose-700">Rate how you're feeling in your real-world connections</p>
+        </div>
+        <button onClick={() => setDismissed(true)} className="text-rose-400 hover:text-rose-600 p-1">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-rose-800">Confidence Around Women</label>
+            <span className="text-sm font-bold text-rose-700">{confidence}/10</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            value={confidence}
+            onChange={(e) => setConfidence(Number(e.target.value))}
+            className="w-full accent-rose-500"
+          />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-rose-800">Real-World Attraction</label>
+            <span className="text-sm font-bold text-rose-700">{realAttraction}/10</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            value={realAttraction}
+            onChange={(e) => setRealAttraction(Number(e.target.value))}
+            className="w-full accent-rose-500"
+          />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-rose-800">Emotional Connection</label>
+            <span className="text-sm font-bold text-rose-700">{emotionalConnection}/10</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            value={emotionalConnection}
+            onChange={(e) => setEmotionalConnection(Number(e.target.value))}
+            className="w-full accent-rose-500"
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={handleSubmit}
+          disabled={submitCheckIn.isPending}
+          className="btn bg-rose-600 hover:bg-rose-700 text-white"
+        >
+          {submitCheckIn.isPending ? 'Saving...' : 'Save Check-In'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Intimacy() {
+  const { data: userData } = useUserData();
   const { data, isLoading, error } = useIntimacyLogs();
   const createLog = useCreateIntimacyLog();
   const updateLog = useUpdateIntimacyLog();
@@ -187,6 +277,9 @@ export function Intimacy() {
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Intimacy Tracker</h1>
         <p className="text-gray-600 text-sm">Track real sexual experiences to see how your recovery impacts your intimate life.</p>
       </div>
+
+      {/* Intimacy Check-In */}
+      {userData?.intimacyCheckInDue && <IntimacyCheckInCard />}
 
       {/* Log button */}
       {!showForm && (
